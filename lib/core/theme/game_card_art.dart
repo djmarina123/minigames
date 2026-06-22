@@ -30,37 +30,52 @@ class GameCardArt extends StatelessWidget {
   }
 }
 
-/// Miniatura quadrada — mesma arte do catálogo para listas (ranking, etc.).
+/// Largura típica do card no grid mobile (2 colunas, ~390px).
+const _kReferenceCardWidth = 172.0;
+
+/// Miniatura — recorte escalado do mesmo [GameCatalogHero] do catálogo.
 class GameCatalogThumbnail extends StatelessWidget {
   const GameCatalogThumbnail({
     super.key,
     required this.gameId,
     required this.theme,
+    this.title,
     this.size = 52,
+    this.showTitle = false,
+    this.showFeaturedBadge = false,
   });
 
   final String gameId;
   final HubGameTheme theme;
+  final String? title;
   final double size;
+  final bool showTitle;
+  final bool showFeaturedBadge;
 
   @override
   Widget build(BuildContext context) {
-    final radius = size * 0.22;
+    final cardHeight = _kReferenceCardWidth / HubTheme.cardAspectRatio;
+    final radius = size * (HubTheme.cardRadius / _kReferenceCardWidth);
+
     return SizedBox(
       width: size,
       height: size,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(radius),
-          border: Border.all(color: HubTheme.cardBorder, width: 3),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(radius - 3),
-          child: GameCardArt(
-            gameId: gameId,
-            theme: theme,
-            compact: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: FittedBox(
+          fit: BoxFit.cover,
+          alignment: showTitle ? Alignment.topCenter : const Alignment(0, 0.12),
+          child: SizedBox(
+            width: _kReferenceCardWidth,
+            height: cardHeight,
+            child: GameCatalogHero(
+              gameId: gameId,
+              title: title ?? '',
+              theme: theme,
+              height: cardHeight,
+              showTitleOverlay: showTitle,
+              showFeaturedBadge: showFeaturedBadge,
+            ),
           ),
         ),
       ),
@@ -286,6 +301,7 @@ class GameCatalogHero extends StatelessWidget {
     required this.title,
     required this.theme,
     this.height = 200,
+    this.showTitleOverlay = true,
     this.showFeaturedBadge = false,
   });
 
@@ -293,6 +309,7 @@ class GameCatalogHero extends StatelessWidget {
   final String title;
   final HubGameTheme theme;
   final double height;
+  final bool showTitleOverlay;
   final bool showFeaturedBadge;
 
   @override
@@ -319,62 +336,64 @@ class GameCatalogHero extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           GameCardArt(gameId: gameId, theme: theme),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 72,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    theme.cardColor.withValues(alpha: 0.95),
-                    theme.cardColor.withValues(alpha: 0.35),
-                    theme.cardColor.withValues(alpha: 0),
-                  ],
-                  stops: const [0, 0.5, 1],
+          if (showTitleOverlay) ...[
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 72,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      theme.cardColor.withValues(alpha: 0.95),
+                      theme.cardColor.withValues(alpha: 0.35),
+                      theme.cardColor.withValues(alpha: 0),
+                    ],
+                    stops: const [0, 0.5, 1],
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayTitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    height: 1.1,
-                    letterSpacing: 0.2,
-                    shadows: [
-                      Shadow(
-                        color: Color(0x66000000),
-                        blurRadius: 6,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    displayTitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      height: 1.1,
+                      letterSpacing: 0.2,
+                      shadows: [
+                        Shadow(
+                          color: Color(0x66000000),
+                          blurRadius: 6,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  width: hubUnderlineWidth(titleLead),
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.accentColor,
-                    borderRadius: BorderRadius.circular(2),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: hubUnderlineWidth(titleLead),
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.accentColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
           if (showFeaturedBadge)
             Positioned(
               top: 10,

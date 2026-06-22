@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../game_prep.dart';
+import '../../theme/game_card_art.dart';
 import '../../theme/hub_theme.dart';
 
 Future<void> showGameHelpDialog(
   BuildContext context, {
+  required String gameId,
   required String gameTitle,
+  required HubGameTheme theme,
   required GameHelpContent help,
 }) {
   return showModalBottomSheet<void>(
@@ -13,7 +16,9 @@ Future<void> showGameHelpDialog(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (ctx) => _GameHelpSheet(
+      gameId: gameId,
       gameTitle: gameTitle,
+      theme: theme,
       help: help,
     ),
   );
@@ -21,11 +26,15 @@ Future<void> showGameHelpDialog(
 
 class _GameHelpSheet extends StatelessWidget {
   const _GameHelpSheet({
+    required this.gameId,
     required this.gameTitle,
+    required this.theme,
     required this.help,
   });
 
+  final String gameId;
   final String gameTitle;
+  final HubGameTheme theme;
   final GameHelpContent help;
 
   @override
@@ -55,14 +64,16 @@ class _GameHelpSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              Text(
-                gameTitle,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: HubTheme.textPrimary,
-                    ),
+              Center(
+                child: GameCatalogThumbnail(
+                  gameId: gameId,
+                  theme: theme,
+                  title: gameTitle,
+                  size: 72,
+                  showTitle: true,
+                ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               _Section(
                 icon: Icons.sports_esports_outlined,
                 title: 'Como jogar',

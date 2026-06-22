@@ -37,7 +37,10 @@ class GameSessionAppBar extends StatelessWidget implements PreferredSizeWidget {
           GameCatalogThumbnail(
             gameId: metadata.id,
             theme: HubTheme.themeFor(metadata),
-            size: 38,
+            title: metadata.title,
+            size: 44,
+            showTitle: true,
+            showFeaturedBadge: metadata.featured,
           ),
           const SizedBox(width: 10),
           Flexible(

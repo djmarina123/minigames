@@ -134,7 +134,9 @@ class _EmptyRanking extends StatelessWidget {
           const GameCatalogThumbnail(
             gameId: 'tap_rush',
             theme: _emptyTheme,
+            title: 'Tap Rush',
             size: 80,
+            showTitle: true,
           ),
           const SizedBox(height: 20),
           Text(
@@ -201,6 +203,7 @@ class _RankingCard extends StatelessWidget {
             GameCatalogThumbnail(
               gameId: gameId,
               theme: theme,
+              title: entry.gameTitle,
             ),
             const SizedBox(width: 12),
             Expanded(

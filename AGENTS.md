@@ -286,13 +286,13 @@ Todo jogo no catálogo **deve** seguir:
 
 | Widget | Uso |
 |---|---|
-| `GameCardArt` | Ilustração vetorial full-bleed; `compact: true` omite bolhas/sparkles (listas) |
+| `GameCardArt` | Ilustração vetorial full-bleed; `compact: true` simplifica (só uso interno legado) |
 | `GameCatalogHero` | Banner do catálogo e da prep (título + linha + arte) |
-| `GameCatalogThumbnail` | Miniatura quadrada (~38–52px) — **ranking**, `GameSessionAppBar`, `GameResultDialog`, estados vazios |
+| `GameCatalogThumbnail` | Recorte escalado do [GameCatalogHero] (~38–80px) — **ranking**, `GameSessionAppBar`, `GameResultDialog`, ajuda **?** |
 
-**Regra:** face visual do jogo no hub = `gameId` + `HubTheme.themeFor()` → **nunca** `metadata.icon` em UI (emoji fica só para fallback genérico / uso interno). Isso inclui **AppBar da partida** e **modal de fim de jogo** — usar `GameCatalogThumbnail`, não emoji.
+**Regra:** face visual do jogo no hub = `gameId` + `HubTheme.themeFor()` → **nunca** `metadata.icon` em UI (emoji fica só para fallback genérico / uso interno). Miniaturas usam o **mesmo widget** do card da Home (`GameCatalogHero` via `FittedBox`), não uma arte separada.
 
-Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep, ranking, sessão de jogo e placar final passam a herdar automaticamente via `GameCatalogHero` / `GameCatalogThumbnail`.
+Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep, ranking, sessão de jogo, placar final e ajuda passam a heredar automaticamente via `GameCatalogHero` / `GameCatalogThumbnail`.
 
 ### Tokens de cor (`hub_theme.dart`)
 
@@ -582,7 +582,7 @@ Ver `PLANO.md`.
 | Pós-review | Ranking por jogo sem medalhas globais | UX alinhada ao subtítulo “melhor por jogo” |
 | Pós-review | `AppTheme` usa `HubTheme.background` | Uma fonte para cor creme do hub |
 | Pós-review | `GameCatalogThumbnail` + tokens de texto no hub | Ranking e Home com mesma arte; sem hex solto na UI |
-| Pós-review | `GameCardArt(compact: true)` para listas | Thumbnail legível sem duplicar painters |
+| Pós-review | `GameCatalogThumbnail` = `GameCatalogHero` escalado | Mesmo card da Home em AppBar, ranking, placar e ajuda; sem arte duplicada |
 | Fase 2 | App **MiniPlay**, ID `com.miniplay.games` | Nome comercial e ASO; pacote Dart `minigames_hub` intacto |
 | Fase 2 | Memória: estado do grid no construtor | `onGameResize` pode preceder `onLoad` no Flame |
 | Pós-polish | Barra de qualidade Flame = Tap Rush + Memória | Novos jogos com identidade hub, HUD, FX e scoring testável |

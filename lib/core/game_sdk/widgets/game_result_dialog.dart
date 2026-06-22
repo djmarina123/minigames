@@ -129,7 +129,10 @@ class _ResultHeader extends StatelessWidget {
           GameCatalogThumbnail(
             gameId: metadata.id,
             theme: HubTheme.themeFor(metadata),
-            size: 52,
+            title: metadata.title,
+            size: 56,
+            showTitle: true,
+            showFeaturedBadge: metadata.featured,
           ),
           const SizedBox(height: 8),
           Text(

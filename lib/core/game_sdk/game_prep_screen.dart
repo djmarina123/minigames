@@ -45,7 +45,9 @@ class _GamePrepScreenState extends State<GamePrepScreen> {
   void _showHelp() {
     showGameHelpDialog(
       context,
+      gameId: widget.game.metadata.id,
       gameTitle: widget.game.metadata.title,
+      theme: HubTheme.themeFor(widget.game.metadata),
       help: _prep.help,
     );
   }
