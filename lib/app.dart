@@ -9,7 +9,7 @@ class MinigamesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Minigames Hub',
+      title: 'MiniPlay',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       home: const MainShell(),

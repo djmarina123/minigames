@@ -1,11 +1,11 @@
 {
-    "name": "minigames_hub",
-    "short_name": "minigames_hub",
+    "name": "MiniPlay",
+    "short_name": "MiniPlay",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F5F0E8",
+    "theme_color": "#E84393",
+    "description": "Hub de jogos casuais — sessões rápidas, moedas e ranking.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -91,7 +91,7 @@ class _HubDrawer extends StatelessWidget {
               child: const Align(
                 alignment: Alignment.bottomLeft,
                 child: Text(
-                  'Minigames Hub',
+                  'MiniPlay',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,

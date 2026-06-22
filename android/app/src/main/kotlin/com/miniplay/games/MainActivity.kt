@@ -1,4 +1,4 @@
-package com.minigames.hub.minigames_hub
+package com.miniplay.games
 
 import io.flutter.embedding.android.FlutterActivity
 

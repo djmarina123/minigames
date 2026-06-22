@@ -72,10 +72,11 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   _MemoryFlameGame({
     required this.callbacks,
     required this.pairCount,
-  });
+  }) : _symbols = MemoryConfig.symbolPool.take(pairCount).toList();
 
   final GameSessionCallbacks callbacks;
   final int pairCount;
+  final List<String> _symbols;
 
   final _random = Random();
   late DateTime _startedAt;
@@ -88,8 +89,6 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   MemoryCard? _secondPick;
   bool _lockInput = false;
 
-  late List<String> _symbols;
-
   @override
   Color backgroundColor() => const Color(0xFF16213E);
 
@@ -98,7 +97,6 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   @override
   Future<void> onLoad() async {
     _startedAt = DateTime.now();
-    _symbols = MemoryConfig.symbolPool.take(pairCount).toList();
   }
 
   @override

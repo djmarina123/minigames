@@ -1,7 +1,9 @@
-# AGENTS.md — Minigames Hub
+# AGENTS.md — MiniPlay
 
 > Guia para agentes de IA (Cursor, etc.) que trabalham neste repositório.
 > **Leia este arquivo antes de implementar qualquer feature.**
+
+**Nome do app (lojas/UI):** MiniPlay · **Pacote Dart:** `minigames_hub` (repo `minigames`) · **Application ID:** `com.miniplay.games`
 
 ---
 
@@ -20,10 +22,22 @@ Não encerrar uma fase sem atualizar este `AGENTS.md`.
 
 ## Visão do produto
 
-Hub de **minijogos casuais** para mobile. Android primeiro, iOS depois.
+**MiniPlay** — hub de **minijogos casuais** para mobile. Android primeiro, iOS depois.
 Sessões curtas (1–5 min), moeda virtual, rankings, recompensa diária, ads.
 
 Documento mestre de produto e roadmap: [`PLANO.md`](PLANO.md).
+
+### Identidade (Fase 2 — início)
+
+| Item | Valor |
+|---|---|
+| Nome exibido | MiniPlay |
+| Android `applicationId` / namespace | `com.miniplay.games` |
+| iOS `PRODUCT_BUNDLE_IDENTIFIER` | `com.miniplay.games` |
+| Ícone fonte | `assets/branding/miniplay_icon_512.png` |
+| Web manifest | `background_color` creme `#F5F0E8`, `theme_color` rosa `#E84393` |
+
+Ícones gerados em `android/app/src/main/res/mipmap-*`, `ios/Runner/Assets.xcassets/AppIcon.appiconset/` e `web/icons/`. O nome do pacote Dart (`minigames_hub`) permanece até migração futura — não renomear sem plano explícito.
 
 ---
 
@@ -80,6 +94,10 @@ lib/
         ├── tap_rush_config.dart
         └── components/
 
+assets/
+└── branding/
+    └── miniplay_icon_512.png   # fonte do ícone (Android/iOS/web)
+
 test/
 ├── golden/                   # golden tests (Home mobile + tablet)
 ├── goldens/                  # PNGs de referência — commitar no git
@@ -104,14 +122,15 @@ test/
 **Padrões obrigatórios (Tap Rush):**
 
 1. **Fases** — countdown → playing → finished (nunca iniciar no `onGameResize` sem flag `_sessionStarted`).
-2. **Timer no `update(dt)`** — não usar `Timer.periodic` para gameplay (HUD fica suave).
-3. **Dificuldade progressiva** — funções puras em `*_config.dart` (`progress → radius/lifetime`).
-4. **Combo / feedback** — labels flutuantes + flash visual em erro.
-5. **Score via callback** — `onScoreUpdate(total)`; **não** forçar rebuild do `GameWidget`.
-6. **GameResult** — incluir `metadata` útil (hits, misses, maxCombo).
-7. **Testes** — scoring e curva de dificuldade em `test/games/`.
-8. **UI compartilhada** — AppBar e placar final em `core/game_sdk/widgets/` (`GameSessionAppBar`, `GameResultDialog`); não duplicar por jogo.
-9. **Tela de preparação** — opções de dificuldade + ajuda via `GamePrepDefinition` (ver seção abaixo).
+2. **Estado síncrono antes do grid** — dados usados em `onGameResize`/`_buildGrid` devem existir no **construtor** (ou initializer), não só em `onLoad()` async. Flame pode chamar `onGameResize` antes de `onLoad` terminar → `LateInitializationError` (corrigido na Memória: `_symbols` no construtor).
+3. **Timer no `update(dt)`** — não usar `Timer.periodic` para gameplay (HUD fica suave).
+4. **Dificuldade progressiva** — funções puras em `*_config.dart` (`progress → radius/lifetime`).
+5. **Combo / feedback** — labels flutuantes + flash visual em erro.
+6. **Score via callback** — `onScoreUpdate(total)`; **não** forçar rebuild do `GameWidget`.
+7. **GameResult** — incluir `metadata` útil (hits, misses, maxCombo).
+8. **Testes** — scoring e curva de dificuldade em `test/games/`.
+9. **UI compartilhada** — AppBar e placar final em `core/game_sdk/widgets/` (`GameSessionAppBar`, `GameResultDialog`); não duplicar por jogo.
+10. **Tela de preparação** — opções de dificuldade + ajuda via `GamePrepDefinition` (ver seção abaixo).
 
 ---
 
@@ -429,6 +448,7 @@ Emulador recomendado: **Pixel 6a**, API 34, x86_64, **sem** imagem 16KB.
 - [x] `GameRegistry.resetForTesting()`
 - [x] Perfil com `HubTheme.background` (sem Scaffold aninhado)
 - [x] Memory: `components/memory_card.dart` + guarda `_sessionActive` pós-dispose
+- [x] Memory: `_symbols` no construtor — evita crash `LateInitializationError` se `onGameResize` roda antes de `onLoad`
 - [x] `GameResultDialog`: stats da Memória + scroll em telas baixas
 - [x] Testes: `leaderboard_repository_test`, `game_runner_screen_test`, repos expandidos
 - [x] Removidos PNGs órfãos em `assets/games/` (arte = CustomPaint)
@@ -438,6 +458,11 @@ Emulador recomendado: **Pixel 6a**, API 34, x86_64, **sem** imagem 16KB.
 ### Fase 2 — Lançamento Android ⏳
 
 Ver `PLANO.md`.
+
+- [x] Rebrand **MiniPlay**: nome na UI, `applicationId`/`bundleId` `com.miniplay.games`, ícones Android/iOS/web
+- [ ] +2/3 jogos novos, conquistas, missões diárias
+- [ ] IAP (remover ads + moedas), FCM, Remote Config
+- [ ] ASO completo e lançamento público Play Store
 
 ### Fase 3 — iOS ⏳
 
@@ -485,3 +510,5 @@ Ver `PLANO.md`.
 | Pós-review | `AppTheme` usa `HubTheme.background` | Uma fonte para cor creme do hub |
 | Pós-review | `GameCatalogThumbnail` + tokens de texto no hub | Ranking e Home com mesma arte; sem hex solto na UI |
 | Pós-review | `GameCardArt(compact: true)` para listas | Thumbnail legível sem duplicar painters |
+| Fase 2 | App **MiniPlay**, ID `com.miniplay.games` | Nome comercial e ASO; pacote Dart `minigames_hub` intacto |
+| Fase 2 | Memória: estado do grid no construtor | `onGameResize` pode preceder `onLoad` no Flame |
