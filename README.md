@@ -83,27 +83,37 @@ lib/
 
 Repositório remoto: **https://github.com/djmarina123/minigames**
 
-### Autenticação (faça uma vez)
+### Chaves SSH separadas (Senado vs GitHub)
 
-A chave SSH desta máquina ainda **não está** no GitHub. Adicione:
+Este projeto usa uma **chave SSH própria** para o GitHub. A chave `id_rsa` existente continua sendo usada nos repositórios do Senado — não mexa nela.
 
-1. Copie a chave pública:
+Configuração em `~/.ssh/config`:
+
+- `github.com` → `~/.ssh/id_ed25519_github` (pessoal)
+- demais hosts → chave padrão do Senado (`id_rsa`)
+
+### Cadastrar a chave no GitHub (uma vez)
 
 ```bash
-cat ~/.ssh/id_rsa.pub
+cat ~/.ssh/id_ed25519_github.pub
 ```
 
-2. No GitHub: **Settings → SSH and GPG keys → New SSH key** → cole e salve.
+Copie a saída e adicione em [github.com/settings/keys](https://github.com/settings/keys) → **New SSH key**.
 
-3. Teste e envie o código:
+### Enviar o código
 
 ```bash
 ssh -T git@github.com
+# Esperado: "Hi djmarina123! You've successfully authenticated..."
+
 cd /home/marina/projetos/minigames
 git push -u origin main
 ```
 
-**Alternativa (HTTPS + token):** crie um [Personal Access Token](https://github.com/settings/tokens) e use como senha no push.
+Identidade Git **só neste repositório** (não altera projetos do Senado):
+
+- `user.name` = `djmarina123`
+- `user.email` = `djmarina123@users.noreply.github.com`
 
 ### CI
 
