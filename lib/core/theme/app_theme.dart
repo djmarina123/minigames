@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'hub_theme.dart';
+
 class AppTheme {
   static const _seed = Color(0xFF6C5CE7);
 
   static ThemeData get light => ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: _seed),
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF5F0E8),
+        scaffoldBackgroundColor: HubTheme.background,
         appBarTheme: const AppBarTheme(centerTitle: true),
       );
 

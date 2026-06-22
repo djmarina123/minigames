@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../core/game_sdk/game_registry.dart';
+import '../../core/ads/ads_service.dart';
 import '../../core/game_sdk/game_prep_screen.dart';
 import '../../core/game_sdk/game_runner_screen.dart';
+import '../../core/game_sdk/game_registry.dart';
 import '../../core/game_sdk/hub_game.dart';
-import '../../core/ads/ads_service.dart';
 import '../../core/theme/hub_theme.dart';
-import '../../games/memory/memory_game.dart';
-import '../../games/tap_rush/tap_rush_game.dart';
 import 'widgets/daily_reward_banner.dart';
 import 'widgets/game_card.dart';
 import 'widgets/hub_header.dart';
@@ -66,11 +64,4 @@ class HomeScreen extends StatelessWidget {
     await Navigator.of(context).push<void>(route);
     await AdsService.maybeShowInterstitial();
   }
-}
-
-void registerBundledGames() {
-  GameRegistry.instance.registerAll([
-    MemoryGame(),
-    TapRushGame(),
-  ]);
 }

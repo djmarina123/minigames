@@ -27,4 +27,7 @@ class GameRegistry {
 
   List<HubGame> get featured =>
       enabled.where((g) => g.metadata.featured).toList();
+
+  /// Limpa o registro — usar em testes para evitar vazamento de estado.
+  void resetForTesting() => _games.clear();
 }

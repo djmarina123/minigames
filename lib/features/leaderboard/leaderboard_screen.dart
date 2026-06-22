@@ -18,7 +18,6 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  List<LeaderboardEntry> _entries = [];
   bool _loading = true;
 
   @override
@@ -37,13 +36,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   Future<void> _load() async {
     final repo = context.read<LeaderboardRepository>();
-    final entries = await repo.getAllBest();
-    if (mounted) {
-      setState(() {
-        _entries = entries;
-        _loading = false;
-      });
-    }
+    await repo.refresh();
+    if (mounted) setState(() => _loading = false);
   }
 
   Future<void> _refresh() async {
@@ -53,6 +47,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final entries = context.watch<LeaderboardRepository>().allBest;
+
     return ColoredBox(
       color: HubTheme.background,
       child: SafeArea(
@@ -66,7 +62,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   : RefreshIndicator(
                       onRefresh: _refresh,
                       color: HubTheme.removeAdsPurple,
-                      child: _entries.isEmpty
+                      child: entries.isEmpty
                           ? ListView(
                               physics: const AlwaysScrollableScrollPhysics(),
                               children: const [_EmptyRanking()],
@@ -74,13 +70,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                           : ListView.builder(
                               physics: const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                              itemCount: _entries.length,
+                              itemCount: entries.length,
                               itemBuilder: (context, index) {
-                                final entry = _entries[index];
-                                return _RankingCard(
-                                  rank: index + 1,
-                                  entry: entry,
-                                );
+                                return _RankingCard(entry: entries[index]);
                               },
                             ),
                     ),
@@ -171,12 +163,8 @@ class _EmptyRanking extends StatelessWidget {
 }
 
 class _RankingCard extends StatelessWidget {
-  const _RankingCard({
-    required this.rank,
-    required this.entry,
-  });
+  const _RankingCard({required this.entry});
 
-  final int rank;
   final LeaderboardEntry entry;
 
   @override
@@ -192,12 +180,6 @@ class _RankingCard extends StatelessWidget {
           ),
     );
     final icon = meta?.icon ?? '🎮';
-    final medal = switch (rank) {
-      1 => _Medal.gold,
-      2 => _Medal.silver,
-      3 => _Medal.bronze,
-      _ => _Medal.none,
-    };
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -217,8 +199,6 @@ class _RankingCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            _RankBadge(rank: rank, medal: medal),
-            const SizedBox(width: 12),
             Text(icon, style: const TextStyle(fontSize: 28)),
             const SizedBox(width: 12),
             Expanded(
@@ -269,63 +249,6 @@ class _RankingCard extends StatelessWidget {
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-enum _Medal { gold, silver, bronze, none }
-
-class _RankBadge extends StatelessWidget {
-  const _RankBadge({required this.rank, required this.medal});
-
-  final int rank;
-  final _Medal medal;
-
-  @override
-  Widget build(BuildContext context) {
-    final (bg, fg, label) = switch (medal) {
-      _Medal.gold => (
-          const Color(0xFFFDCB6E),
-          const Color(0xFF6C4A00),
-          '🥇',
-        ),
-      _Medal.silver => (
-          const Color(0xFFDFE6E9),
-          const Color(0xFF2D3436),
-          '🥈',
-        ),
-      _Medal.bronze => (
-          const Color(0xFFE17055),
-          Colors.white,
-          '🥉',
-        ),
-      _Medal.none => (
-          Colors.white.withValues(alpha: 0.25),
-          Colors.white,
-          '$rank',
-        ),
-    };
-
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: bg,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.6),
-          width: 2,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: medal == _Medal.none ? 16 : 20,
-          fontWeight: FontWeight.w900,
-          color: fg,
         ),
       ),
     );

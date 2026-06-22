@@ -1,8 +1,7 @@
 import 'dart:math';
 
-import 'package:flame/components.dart';
-import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/game_sdk/game_metadata.dart';
@@ -11,6 +10,7 @@ import '../../core/game_sdk/game_result.dart';
 import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
+import 'components/memory_card.dart';
 import 'memory_config.dart';
 
 class MemoryGame implements HubGame {
@@ -80,11 +80,12 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   final _random = Random();
   late DateTime _startedAt;
   bool _finished = false;
+  bool _sessionActive = true;
 
   int _pairsFound = 0;
   int _moves = 0;
-  _MemoryCard? _firstPick;
-  _MemoryCard? _secondPick;
+  MemoryCard? _firstPick;
+  MemoryCard? _secondPick;
   bool _lockInput = false;
 
   late List<String> _symbols;
@@ -98,6 +99,12 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   Future<void> onLoad() async {
     _startedAt = DateTime.now();
     _symbols = MemoryConfig.symbolPool.take(pairCount).toList();
+  }
+
+  @override
+  void onRemove() {
+    _sessionActive = false;
+    super.onRemove();
   }
 
   @override
@@ -128,7 +135,7 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
       final col = i % cols;
       final row = i ~/ cols;
       add(
-        _MemoryCard(
+        MemoryCard(
           symbol: deck[i],
           position: Vector2(
             offsetX + col * (cardSize + gap),
@@ -141,8 +148,10 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
     }
   }
 
-  Future<void> _onCardTap(_MemoryCard card) async {
-    if (_lockInput || _finished || card.isFaceUp || card.isMatched) return;
+  Future<void> _onCardTap(MemoryCard card) async {
+    if (!_sessionActive || _lockInput || _finished || card.isFaceUp || card.isMatched) {
+      return;
+    }
 
     card.reveal();
 
@@ -159,16 +168,20 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
       _firstPick!.markMatched();
       _secondPick!.markMatched();
       _pairsFound++;
-      callbacks.onScoreUpdate(
-        memoryProgressScore(pairsFound: _pairsFound, moves: _moves),
-      );
+      if (_sessionActive && !_finished) {
+        callbacks.onScoreUpdate(
+          memoryProgressScore(pairsFound: _pairsFound, moves: _moves),
+        );
+      }
       await Future<void>.delayed(const Duration(milliseconds: 200));
+      if (!_sessionActive || _finished) return;
       _resetPick();
       if (_pairsFound == pairCount) {
         _finish();
       }
     } else {
       await Future<void>.delayed(const Duration(milliseconds: 600));
+      if (!_sessionActive || _finished) return;
       _firstPick?.hide();
       _secondPick?.hide();
       _resetPick();
@@ -182,7 +195,7 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   }
 
   void _finish() {
-    if (_finished) return;
+    if (_finished || !_sessionActive) return;
     _finished = true;
     final duration = DateTime.now().difference(_startedAt);
     final breakdown = memoryFinalScore(
@@ -205,64 +218,5 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
         },
       ),
     );
-  }
-}
-
-class _MemoryCard extends PositionComponent with TapCallbacks {
-  _MemoryCard({
-    required this.symbol,
-    required super.position,
-    required super.size,
-    required this.onTap,
-  });
-
-  final String symbol;
-  final Future<void> Function(_MemoryCard) onTap;
-
-  bool isFaceUp = false;
-  bool isMatched = false;
-
-  void reveal() => isFaceUp = true;
-  void hide() => isFaceUp = false;
-  void markMatched() {
-    isMatched = true;
-    isFaceUp = true;
-  }
-
-  @override
-  void render(Canvas canvas) {
-    final rect = size.toRect();
-    final bg = isMatched
-        ? const Color(0xFF00B894)
-        : isFaceUp
-            ? const Color(0xFFdfe6e9)
-            : const Color(0xFF6C5CE7);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(8)),
-      Paint()..color = bg,
-    );
-
-    if (isFaceUp) {
-      final fontSize = size.x * 0.42;
-      final painter = TextPainter(
-        text: TextSpan(
-          text: symbol,
-          style: TextStyle(fontSize: fontSize),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      painter.paint(
-        canvas,
-        Offset(
-          (size.x - painter.width) / 2,
-          (size.y - painter.height) / 2,
-        ),
-      );
-    }
-  }
-
-  @override
-  void onTapUp(TapUpEvent event) {
-    onTap(this);
   }
 }

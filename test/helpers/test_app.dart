@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minigames_hub/app.dart';
+import 'package:minigames_hub/bootstrap/games.dart';
 import 'package:minigames_hub/core/game_sdk/game_registry.dart';
 import 'package:minigames_hub/core/leaderboard/leaderboard_repository.dart';
 import 'package:minigames_hub/core/storage/player_repository.dart';
-import 'package:minigames_hub/games/memory/memory_game.dart';
-import 'package:minigames_hub/games/tap_rush/tap_rush_game.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,11 +18,10 @@ Future<({
   final playerRepo = PlayerRepository(prefs);
   await playerRepo.load();
   final leaderboardRepo = LeaderboardRepository(prefs);
+  await leaderboardRepo.refresh();
 
-  GameRegistry.instance.registerAll([
-    MemoryGame(),
-    TapRushGame(),
-  ]);
+  GameRegistry.instance.resetForTesting();
+  registerBundledGames();
 
   return (playerRepo: playerRepo, leaderboardRepo: leaderboardRepo);
 }
@@ -35,7 +33,9 @@ Widget buildTestApp({
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<PlayerRepository>.value(value: playerRepo),
-      Provider<LeaderboardRepository>.value(value: leaderboardRepo),
+      ChangeNotifierProvider<LeaderboardRepository>.value(
+        value: leaderboardRepo,
+      ),
     ],
     child: const MinigamesApp(),
   );

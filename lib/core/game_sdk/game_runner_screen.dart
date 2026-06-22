@@ -56,7 +56,7 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
 
     final playerRepo = context.read<PlayerRepository>();
     final leaderboardRepo = context.read<LeaderboardRepository>();
-    await playerRepo.applyGameResult(
+    await playerRepo.recordGameSession(
       coinsEarned: result.coinsEarned,
       xpEarned: result.xpEarned,
     );
@@ -78,7 +78,7 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
       },
       onDoubleCoins: () async {
         final bonus = await AdsService.showRewardedAd();
-        await playerRepo.applyGameResult(coinsEarned: bonus, xpEarned: 0);
+        await playerRepo.addBonusCoins(bonus);
         if (!mounted) return;
         Navigator.of(context).pop();
         if (mounted) Navigator.of(context).pop(result);

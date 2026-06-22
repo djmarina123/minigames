@@ -17,9 +17,15 @@ class PlayerRepository extends ChangeNotifier {
   Future<void> load() async {
     final raw = _prefs.getString(_key);
     if (raw != null) {
-      _profile = PlayerProfile.fromJson(
-        jsonDecode(raw) as Map<String, Object?>,
-      );
+      try {
+        _profile = PlayerProfile.fromJson(
+          jsonDecode(raw) as Map<String, Object?>,
+        );
+      } catch (e, st) {
+        debugPrint('PlayerRepository.load: perfil inválido, usando default — $e');
+        debugPrint('$st');
+        _profile = const PlayerProfile();
+      }
     }
     notifyListeners();
   }
@@ -66,7 +72,8 @@ class PlayerRepository extends ChangeNotifier {
     return reward;
   }
 
-  Future<void> applyGameResult({
+  /// Registra o fim de uma partida (moedas, XP e contador de partidas).
+  Future<void> recordGameSession({
     required int coinsEarned,
     required int xpEarned,
   }) async {
@@ -75,6 +82,13 @@ class PlayerRepository extends ChangeNotifier {
       xp: _profile.xp + xpEarned,
       gamesPlayed: _profile.gamesPlayed + 1,
     );
+    await _save();
+  }
+
+  /// Bônus sem incrementar partidas (anúncio, recompensa mid-game, etc.).
+  Future<void> addBonusCoins(int amount) async {
+    if (amount <= 0) return;
+    _profile = _profile.copyWith(coins: _profile.coins + amount);
     await _save();
   }
 

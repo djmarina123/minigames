@@ -55,7 +55,9 @@ class GamePrepDefinition {
   GameSessionConfig defaultConfig() {
     final values = <String, Object?>{};
     for (final group in optionGroups) {
-      final idx = group.defaultIndex.clamp(0, group.choices.length - 1);
+      if (group.choices.isEmpty) continue;
+      final maxIdx = group.choices.length - 1;
+      final idx = group.defaultIndex.clamp(0, maxIdx);
       values[group.optionKey] = group.choices[idx].value;
     }
     return GameSessionConfig(values: values);

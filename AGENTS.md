@@ -48,7 +48,9 @@ Chave SSH dedicada (`~/.ssh/id_ed25519_github`) — **não usar a chave do Senad
 
 ```
 lib/
-├── main.dart                 # bootstrap, providers, registerBundledGames()
+├── main.dart                 # bootstrap, providers
+├── bootstrap/
+│   └── games.dart            # registerBundledGames()
 ├── app.dart                  # MaterialApp
 ├── core/
 │   ├── firebase/             # bootstrap stub
@@ -60,16 +62,19 @@ lib/
 │   │   └── widgets/          # GameSessionAppBar, GameResultDialog, game_help_dialog
 │   ├── models/               # PlayerProfile, LeaderboardEntry
 │   ├── storage/              # PlayerRepository (shared_preferences)
-│   ├── leaderboard/          # LeaderboardRepository
+│   ├── leaderboard/          # LeaderboardRepository (ChangeNotifier)
 │   └── theme/                # app_theme, game_ui, hub_theme, game_card_art
 ├── features/
 │   ├── shell/                # bottom nav + drawer
 │   ├── home/                 # grid + hub_header + game_card
 │   ├── leaderboard/          # ranking estilizado (melhor score por jogo)
-│   └── profile/
+│   └── profile/              # stats com HubTheme.background
 └── games/
     ├── demo/                 # Demo Tap (legado — fora do catálogo público)
-    ├── memory/               # Flame — pares (memory_config.dart + memory_game.dart)
+    ├── memory/               # Flame — pares
+    │   ├── memory_config.dart
+    │   ├── memory_game.dart
+    │   └── components/       # memory_card.dart
     └── tap_rush/             # ⭐ Referência Flame (copiar estrutura)
         ├── tap_rush_game.dart
         ├── tap_rush_config.dart
@@ -78,9 +83,9 @@ lib/
 test/
 ├── golden/                   # golden tests (Home mobile + tablet)
 ├── goldens/                  # PNGs de referência — commitar no git
-├── helpers/                  # test_app.dart, load_test_fonts.dart
+├── helpers/                  # test_app.dart, mock_game.dart, load_test_fonts.dart
 ├── games/                    # testes de scoring/config
-└── core/                     # registry, player_repository
+└── core/                     # registry, player/leaderboard repos, game_runner
 ```
 
 ---
@@ -94,7 +99,7 @@ test/
 | `*_game.dart` | Só `HubGame` + `GameWidget` |
 | `*_config.dart` | Duração, cores, scoring (testável sem Flame) |
 | `components/` | Componentes reutilizáveis (alvo, HUD, FX) |
-| `*_flame_game.dart` | Loop `update`/`render`, fases, callbacks |
+| `*_flame_game.dart` | Loop `update`/`render`, fases, callbacks (pode ficar no mesmo `*_game.dart` que Tap Rush) |
 
 **Padrões obrigatórios (Tap Rush):**
 
@@ -206,7 +211,7 @@ Todo jogo no catálogo **deve** seguir:
 
 ### Ao adicionar jogo novo
 
-1. Registrar em `registerBundledGames()`.
+1. Registrar em `registerBundledGames()` (`lib/bootstrap/games.dart`).
 2. Adicionar entrada em `HubTheme._themes` com `cardColor` + `accentColor`.
 3. Implementar arte em `core/theme/game_card_art.dart` (CustomPaint) — ver jogos existentes.
 4. Escolher emoji forte para fallback genérico.
@@ -227,12 +232,14 @@ lib/features/leaderboard/leaderboard_screen.dart
 
 ## Ranking local
 
-Melhor score **por jogo** (`LeaderboardRepository.getAllBest()`), persistido em `shared_preferences`.
+Melhor score **por jogo** (`LeaderboardRepository.allBest`), persistido em `shared_preferences`.
 
 ### Comportamento
 
 - `GameRunnerScreen` chama `submitScore` ao fim da partida.
-- Aba Ranking usa `IndexedStack` — **recarregar** quando a aba fica ativa (`LeaderboardScreen(isActive: …)`).
+- `LeaderboardRepository` é `ChangeNotifier` — `submitScore` chama `refresh()` e notifica ouvintes.
+- Aba Ranking usa `context.watch<LeaderboardRepository>()` + reload ao ativar aba (`isActive`).
+- Lista ordenada **por título do jogo** (não ranking global cross-game); sem medalhas 🥇🥈🥉 enganosas.
 - Pull-to-refresh disponível.
 - Regras de pontuação **não** aparecem na lista — só no modal **?** da prep.
 
@@ -294,7 +301,28 @@ Callbacks que o jogo **deve** usar:
 
 **Importante:** o `GameRunnerScreen` instancia o jogo **uma única vez**. Atualizar placar usa `ValueNotifier` — **nunca** `setState` no widget pai que recria o `GameWidget`, senão Flame reseta (timer volta a 15 s, memória embaralha de novo).
 
-Registrar em `registerBundledGames()` (`features/home/home_screen.dart` ou `main.dart`).
+Registrar em `registerBundledGames()` (`lib/bootstrap/games.dart`).
+
+---
+
+## Economia do jogador (`PlayerRepository`)
+
+| Método | Uso |
+|---|---|
+| `recordGameSession(coins, xp)` | Fim de partida — incrementa moedas, XP **e** `gamesPlayed` |
+| `addBonusCoins(amount)` | Anúncio rewarded, bônus mid-game — **não** conta partida |
+| `claimDailyReward()` | Banner de recompensa diária |
+
+`GameRunnerScreen` usa `recordGameSession` no `onGameOver` e `addBonusCoins` no fluxo “Dobrar moedas”.
+
+Persistência defensiva: JSON inválido em `load()` cai para perfil default (não derruba o app).
+
+---
+
+## Testes
+
+`GameRegistry.instance.resetForTesting()` em `setUp`/`tearDown` — evita vazamento entre arquivos.
+`test/helpers/test_app.dart` centraliza providers + `registerBundledGames()`.
 
 ---
 
@@ -355,13 +383,28 @@ Emulador recomendado: **Pixel 6a**, API 34, x86_64, **sem** imagem 16KB.
 - [x] Golden tests da Home (mobile + tablet) — `test/goldens/*.png`
 - [x] AdMob stub (`kAdsConfigured = false`; ID de teste no AndroidManifest)
 - [x] Game Runner integrado com economia (moedas/XP ao terminar + opção “dobrar moedas”)
-- [x] Testes: **15** passando (widget + unit + golden + memory_config)
+- [x] Testes: **24** passando (widget + unit + golden + repos + runner)
 - [x] Tela de prep (dificuldade + ajuda) — Memória (cartas) e Tap Rush (tempo)
 - [x] Ranking estilizado + refresh ao abrir aba
 - [x] Regras de pontuação da Memória em `memory_config.dart`
 - [ ] Beta fechado Play Store — **ação manual do usuário**
 
-**Decisões Fase 1:** Provider + `shared_preferences` para perfil/ranking local; Flame para jogos; ads/Firebase permanecem stub até credenciais reais. Pós-F1: prep screen, `GameCatalogHero` compartilhado, ranking com reload na aba.
+**Decisões Fase 1:** Provider + `shared_preferences` para perfil/ranking local; Flame para jogos; ads/Firebase permanecem stub até credenciais reais. Pós-F1: prep screen, `GameCatalogHero` compartilhado, ranking reativo. Pós-review: bootstrap em `lib/bootstrap/`, economia separada (`recordGameSession` vs `addBonusCoins`), Perfil alinhado ao hub, Memory com `components/`, persistência defensiva.
+
+### Pós-F1 — Hardening ✅ (review de código)
+
+- [x] `recordGameSession` / `addBonusCoins` — “dobrar moedas” não infla `gamesPlayed`
+- [x] try/catch em `PlayerRepository.load` e `LeaderboardRepository.getEntries`
+- [x] Botão “Dobrar moedas” com loading/disabled durante anúncio
+- [x] Ranking sem medalhas cross-game; ordenação por título
+- [x] `LeaderboardRepository` reativo (`ChangeNotifier`)
+- [x] `registerBundledGames()` em `lib/bootstrap/games.dart`
+- [x] `GameRegistry.resetForTesting()`
+- [x] Perfil com `HubTheme.background` (sem Scaffold aninhado)
+- [x] Memory: `components/memory_card.dart` + guarda `_sessionActive` pós-dispose
+- [x] `GameResultDialog`: stats da Memória + scroll em telas baixas
+- [x] Testes: `leaderboard_repository_test`, `game_runner_screen_test`, repos expandidos
+- [x] Removidos PNGs órfãos em `assets/games/` (arte = CustomPaint)
 
 ### Fase 2 — Lançamento Android ⏳
 
@@ -381,8 +424,8 @@ Ver `PLANO.md`.
 
 - Firebase não configurado — auth/ranking na nuvem pendente.
 - AdMob não configurado — IDs de teste prontos para quando ativar.
-- Ranking e Perfil ainda sem fundo creme do hub (`HubTheme.background`).
-- Memória: polir flip animado e FX (Tap Rush já é referência).
+- Memória: polir flip animado e FX (Tap Rush já é referência); fase countdown opcional.
+- `GameRunnerScreen` ainda acopla ads/economia — extrair `SessionResultHandler` na Fase 2.
 - Emulador ainda pode usar imagem API 37 16KB — trocar para API 34 se travar.
 - KVM: usuário pode precisar de `sudo usermod -aG kvm $USER` + relogin.
 
@@ -405,3 +448,9 @@ Ver `PLANO.md`.
 | Pós-F1 | `GameCatalogHero` em `core/theme/game_card_art.dart` | Mesma arte no catálogo e na prep |
 | Pós-F1 | Ranking reload na aba (`isActive`) | IndexedStack não remonta filhos ao voltar do jogo |
 | Pós-F1 | Scoring Memória em `memory_config.dart` | Testável sem Flame; prep explica regras |
+| Pós-review | `recordGameSession` vs `addBonusCoins` | Rewarded ad não conta como segunda partida |
+| Pós-review | Persistência defensiva (try/catch JSON) | App sobrevive a prefs corrompidos |
+| Pós-review | `lib/bootstrap/games.dart` | Registro de jogos fora da feature Home |
+| Pós-review | `LeaderboardRepository` reativo | Ranking atualiza via `watch` + `refresh` |
+| Pós-review | Ranking por jogo sem medalhas globais | UX alinhada ao subtítulo “melhor por jogo” |
+| Pós-review | `AppTheme` usa `HubTheme.background` | Uma fonte para cor creme do hub |

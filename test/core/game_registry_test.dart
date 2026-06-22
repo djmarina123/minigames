@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:minigames_hub/bootstrap/games.dart';
 import 'package:minigames_hub/core/firebase/firebase_bootstrap.dart';
 import 'package:minigames_hub/core/game_sdk/game_registry.dart';
 import 'package:minigames_hub/games/demo/demo_game.dart';
@@ -16,11 +17,16 @@ void main() {
 
   group('GameRegistry', () {
     setUp(() {
+      GameRegistry.instance.resetForTesting();
       GameRegistry.instance.registerAll([
         DemoGame(),
         MemoryGame(),
         TapRushGame(),
       ]);
+    });
+
+    tearDown(() {
+      GameRegistry.instance.resetForTesting();
     });
 
     test('registra e encontra jogo por id', () {
@@ -38,6 +44,15 @@ void main() {
     test('lista jogos em destaque', () {
       final featured = GameRegistry.instance.featured;
       expect(featured.any((g) => g.metadata.id == 'demo_tap'), isTrue);
+    });
+
+    test('registerBundledGames registra jogos da Fase 1', () {
+      GameRegistry.instance.resetForTesting();
+      registerBundledGames();
+
+      expect(GameRegistry.instance.findById('memory'), isNotNull);
+      expect(GameRegistry.instance.findById('tap_rush'), isNotNull);
+      expect(GameRegistry.instance.enabled, hasLength(2));
     });
   });
 }

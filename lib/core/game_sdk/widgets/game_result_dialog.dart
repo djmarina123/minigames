@@ -21,9 +21,12 @@ class GameResultDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxCombo = result.metadata['maxCombo'] as int?;
-    final hits = result.metadata['hits'] as int?;
-    final misses = result.metadata['misses'] as int?;
+    final maxCombo = _metaInt(result.metadata['maxCombo']);
+    final hits = _metaInt(result.metadata['hits']);
+    final misses = _metaInt(result.metadata['misses']);
+    final moves = _metaInt(result.metadata['moves']);
+    final timeBonus = _metaInt(result.metadata['timeBonus']);
+    final perfectBonus = _metaInt(result.metadata['perfectBonus']);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -49,40 +52,48 @@ class GameResultDialog extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _ResultHeader(metadata: metadata),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                  child: Column(
-                    children: [
-                      _ScoreHero(score: result.score),
-                      const SizedBox(height: 20),
-                      _RewardRow(
-                        coins: result.coinsEarned,
-                        xp: result.xpEarned,
-                        duration: result.duration,
-                      ),
-                      if ((maxCombo != null && maxCombo > 1) ||
-                          hits != null ||
-                          (misses != null && misses > 0)) ...[
-                        const SizedBox(height: 16),
-                        _StatsChips(
-                          maxCombo: maxCombo,
-                          hits: hits,
-                          misses: misses,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ResultHeader(metadata: metadata),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                    child: Column(
+                      children: [
+                        _ScoreHero(score: result.score),
+                        const SizedBox(height: 20),
+                        _RewardRow(
+                          coins: result.coinsEarned,
+                          xp: result.xpEarned,
+                          duration: result.duration,
+                        ),
+                        if ((maxCombo != null && maxCombo > 1) ||
+                            hits != null ||
+                            (misses != null && misses > 0) ||
+                            moves != null ||
+                            (timeBonus != null && timeBonus > 0) ||
+                            (perfectBonus != null && perfectBonus > 0)) ...[
+                          const SizedBox(height: 16),
+                          _StatsChips(
+                            maxCombo: maxCombo,
+                            hits: hits,
+                            misses: misses,
+                            moves: moves,
+                            timeBonus: timeBonus,
+                            perfectBonus: perfectBonus,
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        _ActionButtons(
+                          onExit: onExit,
+                          onDoubleCoins: onDoubleCoins,
                         ),
                       ],
-                      const SizedBox(height: 24),
-                      _ActionButtons(
-                        onExit: onExit,
-                        onDoubleCoins: onDoubleCoins,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -295,11 +306,17 @@ class _StatsChips extends StatelessWidget {
     this.maxCombo,
     this.hits,
     this.misses,
+    this.moves,
+    this.timeBonus,
+    this.perfectBonus,
   });
 
   final int? maxCombo;
   final int? hits;
   final int? misses;
+  final int? moves;
+  final int? timeBonus;
+  final int? perfectBonus;
 
   @override
   Widget build(BuildContext context) {
@@ -314,6 +331,12 @@ class _StatsChips extends StatelessWidget {
           _Chip(label: 'Acertos', value: '$hits', color: GameUi.teal),
         if (misses != null && misses! > 0)
           _Chip(label: 'Erros', value: '$misses', color: GameUi.purpleLight),
+        if (moves != null)
+          _Chip(label: 'Jogadas', value: '$moves', color: GameUi.purpleLight),
+        if (timeBonus != null && timeBonus! > 0)
+          _Chip(label: 'Bônus tempo', value: '+$timeBonus', color: GameUi.teal),
+        if (perfectBonus != null && perfectBonus! > 0)
+          _Chip(label: 'Perfeito', value: '+$perfectBonus', color: GameUi.gold),
       ],
     );
   }
@@ -364,7 +387,7 @@ class _Chip extends StatelessWidget {
   }
 }
 
-class _ActionButtons extends StatelessWidget {
+class _ActionButtons extends StatefulWidget {
   const _ActionButtons({
     required this.onExit,
     this.onDoubleCoins,
@@ -374,12 +397,29 @@ class _ActionButtons extends StatelessWidget {
   final Future<void> Function()? onDoubleCoins;
 
   @override
+  State<_ActionButtons> createState() => _ActionButtonsState();
+}
+
+class _ActionButtonsState extends State<_ActionButtons> {
+  bool _doubling = false;
+
+  Future<void> _handleDoubleCoins() async {
+    if (_doubling || widget.onDoubleCoins == null) return;
+    setState(() => _doubling = true);
+    try {
+      await widget.onDoubleCoins!();
+    } finally {
+      if (mounted) setState(() => _doubling = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FilledButton.icon(
-          onPressed: onExit,
+          onPressed: _doubling ? null : widget.onExit,
           icon: const Icon(Icons.home_rounded, size: 20),
           label: const Text('Voltar ao hub'),
           style: FilledButton.styleFrom(
@@ -391,12 +431,21 @@ class _ActionButtons extends StatelessWidget {
             ),
           ),
         ),
-        if (onDoubleCoins != null) ...[
+        if (widget.onDoubleCoins != null) ...[
           const SizedBox(height: 10),
           OutlinedButton.icon(
-            onPressed: () async => onDoubleCoins!(),
-            icon: const Icon(Icons.play_circle_outline_rounded, size: 20),
-            label: const Text('Dobrar moedas (anúncio)'),
+            onPressed: _doubling ? null : _handleDoubleCoins,
+            icon: _doubling
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: GameUi.gold.withValues(alpha: 0.9),
+                    ),
+                  )
+                : const Icon(Icons.play_circle_outline_rounded, size: 20),
+            label: Text(_doubling ? 'Carregando anúncio…' : 'Dobrar moedas (anúncio)'),
             style: OutlinedButton.styleFrom(
               foregroundColor: GameUi.gold,
               side: BorderSide(color: GameUi.gold.withValues(alpha: 0.5)),
@@ -410,6 +459,12 @@ class _ActionButtons extends StatelessWidget {
       ],
     );
   }
+}
+
+int? _metaInt(Object? value) {
+  if (value is int) return value;
+  if (value is num) return value.round();
+  return null;
 }
 
 /// Exibe o placar final com animação de entrada.

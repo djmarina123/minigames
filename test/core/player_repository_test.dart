@@ -24,11 +24,29 @@ void main() {
       expect(repo.canClaimDaily, isFalse);
     });
 
-    test('applyGameResult incrementa moedas e xp', () async {
-      await repo.applyGameResult(coinsEarned: 10, xpEarned: 50);
+    test('recordGameSession incrementa moedas, xp e partidas', () async {
+      await repo.recordGameSession(coinsEarned: 10, xpEarned: 50);
       expect(repo.profile.coins, 10);
       expect(repo.profile.xp, 50);
       expect(repo.profile.gamesPlayed, 1);
+    });
+
+    test('addBonusCoins incrementa moedas sem contar partida', () async {
+      await repo.recordGameSession(coinsEarned: 10, xpEarned: 50);
+      await repo.addBonusCoins(5);
+
+      expect(repo.profile.coins, 15);
+      expect(repo.profile.gamesPlayed, 1);
+    });
+
+    test('load usa perfil default com JSON inválido', () async {
+      SharedPreferences.setMockInitialValues({'player_profile': '{bad json'});
+      final prefs = await SharedPreferences.getInstance();
+      repo = PlayerRepository(prefs);
+      await repo.load();
+
+      expect(repo.profile.coins, 0);
+      expect(repo.profile.gamesPlayed, 0);
     });
   });
 }
