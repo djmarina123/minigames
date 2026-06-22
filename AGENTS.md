@@ -85,14 +85,14 @@ lib/
 │   └── profile/              # stats com HubTheme.background
 └── games/
     ├── demo/                 # Demo Tap (legado — fora do catálogo público)
-    ├── memory/               # Flame — pares
+    ├── memory/               # ⭐ Referência visual + HUD + scoring (copiar polish)
     │   ├── memory_config.dart
     │   ├── memory_game.dart
-    │   └── components/       # memory_card.dart
-    └── tap_rush/             # ⭐ Referência Flame (copiar estrutura)
+    │   └── components/       # memory_card.dart, memory_fx.dart
+    └── tap_rush/             # ⭐ Referência gameplay arcade (copiar loop/fases)
         ├── tap_rush_game.dart
         ├── tap_rush_config.dart
-        └── components/
+        └── components/       # alvo, HitBurst, FloatingLabel
 
 assets/
 └── branding/
@@ -108,29 +108,89 @@ test/
 
 ---
 
-## Jogo referência: Tap Rush
+## Jogos referência
 
-**Copie `lib/games/tap_rush/` como template** ao criar jogos Flame novos.
+Todo jogo Flame novo deve atingir o **mesmo nível de polish** de **Tap Rush** (gameplay) + **Memória** (visual/HUD/scoring). Copie a **estrutura de pastas** de um dos dois e cumpra o checklist abaixo antes de considerar o jogo pronto.
+
+| Referência | Copiar principalmente |
+|---|---|
+| `lib/games/tap_rush/` | Fases, loop `update`/`render`, combo, dificuldade progressiva, FX arcade |
+| `lib/games/memory/` | Paleta do hub in-game, HUD com stats de scoring, animações, `*_fx.dart` |
+
+### Estrutura de arquivos (obrigatória)
 
 | Arquivo | Responsabilidade |
 |---|---|
-| `*_game.dart` | Só `HubGame` + `GameWidget` |
-| `*_config.dart` | Duração, cores, scoring (testável sem Flame) |
-| `components/` | Componentes reutilizáveis (alvo, HUD, FX) |
-| `*_flame_game.dart` | Loop `update`/`render`, fases, callbacks (pode ficar no mesmo `*_game.dart` que Tap Rush) |
+| `*_game.dart` | `HubGame` + `GameWidget` + `FlameGame` (loop, render, callbacks) |
+| `*_config.dart` | Cores, duração, scoring, timings de animação — **testável sem Flame** |
+| `components/` | Entidades Flame + FX (`*_card.dart`, `*_fx.dart`, alvos, HUD pieces) |
+| `test/games/*_config_test.dart` | Funções puras de pontuação, progresso, previews do HUD |
 
-**Padrões obrigatórios (Tap Rush):**
+### Checklist de qualidade — jogos Flame
 
-1. **Fases** — countdown → playing → finished (nunca iniciar no `onGameResize` sem flag `_sessionStarted`).
-2. **Estado síncrono antes do grid** — dados usados em `onGameResize`/`_buildGrid` devem existir no **construtor** (ou initializer), não só em `onLoad()` async. Flame pode chamar `onGameResize` antes de `onLoad` terminar → `LateInitializationError` (corrigido na Memória: `_symbols` no construtor).
-3. **Timer no `update(dt)`** — não usar `Timer.periodic` para gameplay (HUD fica suave).
-4. **Dificuldade progressiva** — funções puras em `*_config.dart` (`progress → radius/lifetime`).
-5. **Combo / feedback** — labels flutuantes + flash visual em erro.
-6. **Score via callback** — `onScoreUpdate(total)`; **não** forçar rebuild do `GameWidget`.
-7. **GameResult** — incluir `metadata` útil (hits, misses, maxCombo).
-8. **Testes** — scoring e curva de dificuldade em `test/games/`.
-9. **UI compartilhada** — AppBar e placar final em `core/game_sdk/widgets/` (`GameSessionAppBar`, `GameResultDialog`); não duplicar por jogo.
-10. **Tela de preparação** — opções de dificuldade + ajuda via `GamePrepDefinition` (ver seção abaixo).
+**Antes de abrir PR ou encerrar tarefa, marque mentalmente cada item:**
+
+#### Arquitetura e loop
+
+1. **Fases** — `countdown → playing → finished` (ou equivalente claro). Nunca iniciar gameplay no `onGameResize` sem flag (`_sessionStarted` / `_gridBuilt`).
+2. **Estado síncrono antes do layout** — dados usados em `onGameResize`/`_buildGrid` no **construtor**, não só em `onLoad()` async (`LateInitializationError` se violar).
+3. **Timer no `update(dt)`** — tempo, animações e decaimento no loop Flame; **não** `Timer.periodic` para gameplay.
+4. **Score via callback** — `onScoreUpdate(int)` durante a partida; **nunca** `setState` no pai que recria o `GameWidget`.
+5. **`GameResult.metadata`** — stats úteis para o placar final (`moves`, `hits`, `timeBonus`, etc.).
+6. **`_sessionActive`** — guardas após `await` / `onRemove` para não chamar callbacks pós-dispose.
+
+#### Visual in-game (identidade MiniPlay)
+
+7. **Paleta em `*_config.dart`** — derivar de `HubTheme._themes[gameId]` (`cardColor`, `accentColor`, `blendColor`, `accentSoft`). Mesmas cores do card do catálogo, **não** hex genérico solto (`#16213E`, etc.).
+8. **Fundo** — gradiente (`bgTop` → `bgBottom`) + detalhe decorativo leve (bolhas, como `_MemoryArt` / Tap Rush).
+9. **Elementos jogáveis** — borda branca + sombra onde fizer sentido (cartas, tiles, alvos); cantos arredondados proporcionais ao tamanho.
+10. **Usar o viewport** — evitar elemento principal minúsculo no centro com faixas vazias; calcular tamanho pelo espaço disponível **menos** área do HUD.
+
+#### HUD in-game (obrigatório)
+
+11. **Barra compacta** abaixo da `GameSessionAppBar` (~48–56 px reservados no topo do canvas Flame).
+12. **Mostrar o que afeta o score** — se a regra usa tempo, jogadas, combo ou progresso, o jogador **vê** isso ao vivo (não só no modal **?** nem só no placar final).
+13. **Preview de bônus** — se houver bônus decrescente (ex.: tempo), exibir valor ou barra restante (padrão Memória: `+160 tempo` + barra).
+14. **Pintar HUD em `render()`** — após `super.render()`, texto via `TextPainter`; cores `hudText` / `hudMuted` definidas no config.
+
+#### Feedback e animação (obrigatório)
+
+15. **Acerto** — FX positivo mínimo: label flutuante (`+pts`) e/ou burst/partículas no ponto de interação.
+16. **Erro** — FX negativo mínimo: shake, flash de tela suave ou label (“Errou!”, “Tente de novo”).
+17. **Transições** — evitar mudanças instantâneas de estado visual; animar no `update(dt)` dos componentes (flip, scale, fade).
+18. **Bloqueio de input** durante animações críticas (`_lockInput`, `isFlipSettled`, etc.).
+
+#### Prep, scoring e testes
+
+19. **`GamePrepDefinition`** — opções de dificuldade + `GameHelpContent` (como jogar + pontuação em PT-BR).
+20. **Scoring em funções puras** — `progressScore`, `finalScore`, previews do HUD em `*_config.dart`.
+21. **Testes unitários** — cobrir scoring, penalidades, bônus e helpers de formatação em `test/games/`.
+22. **UI compartilhada** — `GameSessionAppBar` e `GameResultDialog` usam `GameCatalogThumbnail` (mesma arte do catálogo); estender `_GameResultStats` se o jogo tiver stats novas.
+
+### Padrões por referência
+
+**Tap Rush** (`tap_rush_config.dart`, `tap_rush_game.dart`):
+
+- Countdown 3 s antes de `playing`.
+- Dificuldade progressiva via funções puras (`progress → radius/lifetime`).
+- Combo com multiplicador + `FloatingLabel` + `HitBurst`.
+- Barra de tempo no HUD; flash vermelho em miss.
+
+**Memória** (`memory_config.dart`, `memory_game.dart`, `components/`):
+
+- Paleta alinhada ao hub (`cardColor` `#5B4BB7`, `accentColor` `#FF7675`).
+- HUD: bolinhas de progresso, timer `m:ss`, contador de jogadas, preview de bônus tempo + barra.
+- Cartas: flip animado, shake em erro, pulse em par, verso com padrão + borda branca.
+- `MemoryMatchBurst` + `MemoryFloatingLabel` em `memory_fx.dart`.
+- `memoryProgressScore` / `memoryFinalScore` / `memoryTimeBonusRemaining` testados sem Flame.
+
+### Anti-padrões (não entregar assim)
+
+- Fundo cinza/azul genérico sem relação com o card do catálogo.
+- Placar só na AppBar — jogador não entende **por que** o score muda.
+- Estado visual que “teleporta” (carta vira sem animação, alvo some seco).
+- Cores hardcoded espalhadas no `render()` — centralizar no config.
+- Regras de pontuação só no código ou só no help — duplicar: funções testáveis + texto na prep.
 
 ---
 
@@ -228,11 +288,11 @@ Todo jogo no catálogo **deve** seguir:
 |---|---|
 | `GameCardArt` | Ilustração vetorial full-bleed; `compact: true` omite bolhas/sparkles (listas) |
 | `GameCatalogHero` | Banner do catálogo e da prep (título + linha + arte) |
-| `GameCatalogThumbnail` | Miniatura quadrada (~52px) — **ranking**, estados vazios |
+| `GameCatalogThumbnail` | Miniatura quadrada (~38–52px) — **ranking**, `GameSessionAppBar`, `GameResultDialog`, estados vazios |
 
-**Regra:** face visual do jogo no hub = `gameId` + `HubTheme.themeFor()` → **nunca** `metadata.icon` em UI (emoji fica só para fallback genérico / uso interno).
+**Regra:** face visual do jogo no hub = `gameId` + `HubTheme.themeFor()` → **nunca** `metadata.icon` em UI (emoji fica só para fallback genérico / uso interno). Isso inclui **AppBar da partida** e **modal de fim de jogo** — usar `GameCatalogThumbnail`, não emoji.
 
-Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep e ranking passam a herdar automaticamente via `GameCatalogHero` / `GameCatalogThumbnail`.
+Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep, ranking, sessão de jogo e placar final passam a herdar automaticamente via `GameCatalogHero` / `GameCatalogThumbnail`.
 
 ### Tokens de cor (`hub_theme.dart`)
 
@@ -258,7 +318,10 @@ Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep e ranki
 1. Registrar em `registerBundledGames()` (`lib/bootstrap/games.dart`).
 2. Adicionar entrada em `HubTheme._themes` com `cardColor` + `accentColor`.
 3. Implementar arte em `core/theme/game_card_art.dart` (CustomPaint) — ver jogos existentes.
-4. Escolher emoji em `metadata.icon` apenas para fallback — UI usa `GameCardArt` por `gameId`.
+4. Escolher emoji em `metadata.icon` apenas para fallback — **toda** UI visível usa `GameCardArt` por `gameId` (incl. AppBar e placar final).
+5. **Espelhar cores do passo 2** em `*_config.dart` do jogo (`bgTop`, `bgBottom`, `accentColor`, etc.).
+6. Cumprir o **Checklist de qualidade — jogos Flame** (seção acima) antes de considerar pronto.
+7. Adicionar `test/games/<jogo>_config_test.dart` com scoring e helpers do HUD.
 
 ### Arquivos do hub
 
@@ -298,7 +361,15 @@ Melhor score **por jogo** (`LeaderboardRepository.allBest`), persistido em `shar
 | Bônus tempo | até 200 pts (decai 4 pts/s) |
 | Partida perfeita | +100 pts (mínimo de jogadas) |
 
-Grid adapta ao nº de pares (4 → 4×2, 6 → 4×3, 8 → 4×4).
+Grid adapta ao nº de pares (4 → 4×2, 6 → 4×3, 8 → 4×4). HUD exibe pares, timer, jogadas e preview do bônus tempo (`memoryTimeBonusRemaining`).
+
+### Pontuação — Tap Rush (`tap_rush_config.dart`)
+
+| Componente | Valor |
+|---|---|
+| Base | 10 pts / acerto × combo (até ×5) |
+| Dificuldade | alvo menor e lifetime menor conforme `progress` |
+| HUD | barra de tempo restante + combo |
 
 ---
 
@@ -370,7 +441,7 @@ Persistência defensiva: JSON inválido em `load()` cai para perfil default (nã
 `GameRegistry.instance.resetForTesting()` em `setUp`/`tearDown` — evita vazamento entre arquivos.
 `test/helpers/test_app.dart` centraliza providers + `registerBundledGames()`.
 
----
+**Jogos Flame:** todo jogo com scoring não-trivial deve ter `test/games/<jogo>_config_test.dart` (funções puras de `*_config.dart` — scoring, penalidades, previews de HUD). Não exige golden por jogo; goldens ficam no hub (`test/golden/`).
 
 ## Convenções de código
 
@@ -378,7 +449,7 @@ Persistência defensiva: JSON inválido em `load()` cai para perfil default (nã
 2. **Seguir padrões existentes** — nomes, pastas, imports relativos a `lib/`.
 3. **Stub first** — Firebase e AdMob funcionam em modo offline até o usuário configurar (`kFirebaseConfigured`, `kAdsConfigured`).
 4. **Persistência local no MVP** — ranking e perfil em `shared_preferences`; migrar para Firestore na Fase 2+.
-5. **Testes** — unit/widget/golden; rodar `flutter test` antes de encerrar tarefa. Após mudar UI do hub: `--update-goldens`.
+5. **Testes** — unit/widget/golden; rodar `flutter test` antes de encerrar tarefa. Jogo Flame novo: incluir `test/games/*_config_test.dart`. Após mudar UI do hub: `--update-goldens`.
 6. **Idioma UI** — PT-BR para strings visíveis ao usuário.
 7. **Commits** — só quando o usuário pedir; mensagens em português, foco no *porquê*.
 
@@ -429,7 +500,7 @@ Emulador recomendado: **Pixel 6a**, API 34, x86_64, **sem** imagem 16KB.
 - [x] Golden tests da Home (mobile + tablet) — `test/goldens/*.png`
 - [x] AdMob stub (`kAdsConfigured = false`; ID de teste no AndroidManifest)
 - [x] Game Runner integrado com economia (moedas/XP ao terminar + opção “dobrar moedas”)
-- [x] Testes: **24** passando (widget + unit + golden + repos + runner)
+- [x] Testes: widget + unit + golden + repos + runner (ver CI; `memory_config_test` expandido pós-polish)
 - [x] Tela de prep (dificuldade + ajuda) — Memória (cartas) e Tap Rush (tempo)
 - [x] Ranking estilizado + refresh ao abrir aba
 - [x] Regras de pontuação da Memória em `memory_config.dart`
@@ -454,6 +525,7 @@ Emulador recomendado: **Pixel 6a**, API 34, x86_64, **sem** imagem 16KB.
 - [x] Removidos PNGs órfãos em `assets/games/` (arte = CustomPaint)
 - [x] Identidade visual unificada: `GameCatalogThumbnail` no ranking + tokens `HubTheme` (`textPrimary`, `textSecondary`, `featuredBadge`)
 - [x] Arte vetorial deriva cores de `HubGameTheme` (`blendColor`, `accentSoft`); goldens da Home atualizados
+- [x] Memória — polish completo: identidade hub in-game, flip/FX, HUD (pares/tempo/jogadas/bônus)
 
 ### Fase 2 — Lançamento Android ⏳
 
@@ -478,7 +550,8 @@ Ver `PLANO.md`.
 
 - Firebase não configurado — auth/ranking na nuvem pendente.
 - AdMob não configurado — IDs de teste prontos para quando ativar.
-- Memória: polir flip animado e FX (Tap Rush já é referência); fase countdown opcional.
+- Memória: countdown / modo “Memorizar” na prep — opcional; restante do polish concluído.
+- Novos jogos Fase 2: seguir checklist **Jogos referência**; Tap Rush ainda pode receber alinhamento de paleta ao hub (`HubTheme`).
 - `GameRunnerScreen` ainda acopla ads/economia — extrair `SessionResultHandler` na Fase 2.
 - Emulador ainda pode usar imagem API 37 16KB — trocar para API 34 se travar.
 - KVM: usuário pode precisar de `sudo usermod -aG kvm $USER` + relogin.
@@ -512,3 +585,8 @@ Ver `PLANO.md`.
 | Pós-review | `GameCardArt(compact: true)` para listas | Thumbnail legível sem duplicar painters |
 | Fase 2 | App **MiniPlay**, ID `com.miniplay.games` | Nome comercial e ASO; pacote Dart `minigames_hub` intacto |
 | Fase 2 | Memória: estado do grid no construtor | `onGameResize` pode preceder `onLoad` no Flame |
+| Pós-polish | Barra de qualidade Flame = Tap Rush + Memória | Novos jogos com identidade hub, HUD, FX e scoring testável |
+| Pós-polish | Paleta in-game em `*_config.dart` espelha `HubTheme` | Catálogo e partida visualmente coerentes |
+| Pós-polish | `GameSessionAppBar` + `GameResultDialog` com `GameCatalogThumbnail` | Mesma arte vetorial do catálogo; sem emoji solto na sessão de jogo |
+| Pós-polish | HUD in-game obrigatório | Jogador vê regras de score ao vivo; AppBar não basta |
+| Pós-polish | FX mínimo acerto/erro + animações no `update(dt)` | Evita sensação de protótipo |

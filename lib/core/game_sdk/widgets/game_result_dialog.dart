@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../game_metadata.dart';
 import '../game_result.dart';
+import '../../theme/game_card_art.dart';
 import '../../theme/game_ui.dart';
+import '../../theme/hub_theme.dart';
 
 /// Placar final estilizado — exibido ao terminar qualquer jogo.
 class GameResultDialog extends StatelessWidget {
@@ -124,7 +126,11 @@ class _ResultHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(metadata.icon, style: const TextStyle(fontSize: 36)),
+          GameCatalogThumbnail(
+            gameId: metadata.id,
+            theme: HubTheme.themeFor(metadata),
+            size: 52,
+          ),
           const SizedBox(height: 8),
           Text(
             'Fim de jogo',

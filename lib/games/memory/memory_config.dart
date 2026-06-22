@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 /// Constantes e regras de pontuação do Jogo da Memória.
 abstract final class MemoryConfig {
   static const optionKeyPairCount = 'pairCount';
@@ -18,6 +20,23 @@ abstract final class MemoryConfig {
   static const perfectGameBonus = 100;
 
   static const maxScore = 9999;
+
+  /// Paleta alinhada ao card do hub (`HubTheme` id `memory`).
+  static const cardColor = Color(0xFF5B4BB7);
+  static const accentColor = Color(0xFFFF7675);
+  static const blendColor = Color(0xFFBF6289);
+  static const accentSoft = Color(0xFFFF9A99);
+  static const faceFront = Color(0xFFF5F0E8);
+  static const bgTop = Color(0xFF3D3489);
+  static const bgBottom = Color(0xFF2A2468);
+  static const cardBorder = Color(0xFFFFFFFF);
+  static const missRed = Color(0xFFFF7675);
+  static const matchGlow = Color(0xFFFDCB6E);
+
+  static const flipDurationSec = 0.22;
+  static const shakeDurationSec = 0.35;
+  static const mismatchViewSec = 0.65;
+  static const matchSettleSec = 0.28;
 
   static const symbolPool = [
     '🎮',

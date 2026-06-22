@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../game_metadata.dart';
+import '../../theme/game_card_art.dart';
 import '../../theme/game_ui.dart';
+import '../../theme/hub_theme.dart';
 
 /// AppBar estilizada para sessões de jogo — título + placar ao vivo.
 class GameSessionAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -32,7 +34,11 @@ class GameSessionAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _GameIconBadge(icon: metadata.icon),
+          GameCatalogThumbnail(
+            gameId: metadata.id,
+            theme: HubTheme.themeFor(metadata),
+            size: 38,
+          ),
           const SizedBox(width: 10),
           Flexible(
             child: Column(
@@ -79,34 +85,6 @@ class GameSessionAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _GameIconBadge extends StatelessWidget {
-  const _GameIconBadge({required this.icon});
-
-  final String icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            GameUi.purple.withValues(alpha: 0.35),
-            GameUi.purpleLight.withValues(alpha: 0.2),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: GameUi.purple.withValues(alpha: 0.5)),
-      ),
-      alignment: Alignment.center,
-      child: Text(icon, style: const TextStyle(fontSize: 20)),
     );
   }
 }

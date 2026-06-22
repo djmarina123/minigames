@@ -11,6 +11,7 @@ import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/memory_card.dart';
+import 'components/memory_fx.dart';
 import 'memory_config.dart';
 
 class MemoryGame implements HubGame {
@@ -88,11 +89,12 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   MemoryCard? _firstPick;
   MemoryCard? _secondPick;
   bool _lockInput = false;
-
-  @override
-  Color backgroundColor() => const Color(0xFF16213E);
+  double _missFlash = 0;
 
   bool _gridBuilt = false;
+
+  @override
+  Color backgroundColor() => MemoryConfig.bgBottom;
 
   @override
   Future<void> onLoad() async {
@@ -103,6 +105,14 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   void onRemove() {
     _sessionActive = false;
     super.onRemove();
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (_missFlash > 0) {
+      _missFlash = (_missFlash - dt * 3).clamp(0.0, 1.0);
+    }
   }
 
   @override
@@ -117,17 +127,18 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   void _buildGrid() {
     final deck = [..._symbols, ..._symbols]..shuffle(_random);
     final (cols, rows) = memoryGridForPairs(pairCount);
-    const gap = 10.0;
-    const maxCard = 72.0;
-    final gridW = size.x - 32;
-    final gridH = size.y - 80;
-    final cardW = min(maxCard, (gridW - (cols - 1) * gap) / cols);
-    final cardH = min(maxCard, (gridH - (rows - 1) * gap) / rows);
-    final cardSize = min(cardW, cardH);
+    const gap = 12.0;
+    const minCard = 52.0;
+    const gridPadding = 20.0;
+    final gridW = size.x - gridPadding * 2;
+    final gridH = size.y - gridPadding * 2;
+    final cardW = (gridW - (cols - 1) * gap) / cols;
+    final cardH = (gridH - (rows - 1) * gap) / rows;
+    final cardSize = max(minCard, min(cardW, cardH));
     final totalW = cols * cardSize + (cols - 1) * gap;
     final totalH = rows * cardSize + (rows - 1) * gap;
     final offsetX = (size.x - totalW) / 2;
-    final offsetY = (size.y - totalH) / 2 + 16;
+    final offsetY = (size.y - totalH) / 2;
 
     for (var i = 0; i < deck.length; i++) {
       final col = i % cols;
@@ -147,7 +158,12 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   }
 
   Future<void> _onCardTap(MemoryCard card) async {
-    if (!_sessionActive || _lockInput || _finished || card.isFaceUp || card.isMatched) {
+    if (!_sessionActive ||
+        _lockInput ||
+        _finished ||
+        card.isFaceUp ||
+        card.isMatched ||
+        !card.isFlipSettled) {
       return;
     }
 
@@ -158,31 +174,94 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
       return;
     }
 
+    if (_firstPick == card) return;
+
     _secondPick = card;
     _lockInput = true;
     _moves++;
 
+    await _waitForFlip(_firstPick!, _secondPick!);
+    if (!_sessionActive || _finished) return;
+
     if (_firstPick!.symbol == _secondPick!.symbol) {
-      _firstPick!.markMatched();
-      _secondPick!.markMatched();
-      _pairsFound++;
-      if (_sessionActive && !_finished) {
-        callbacks.onScoreUpdate(
-          memoryProgressScore(pairsFound: _pairsFound, moves: _moves),
-        );
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-      if (!_sessionActive || _finished) return;
-      _resetPick();
-      if (_pairsFound == pairCount) {
-        _finish();
-      }
+      await _handleMatch();
     } else {
-      await Future<void>.delayed(const Duration(milliseconds: 600));
-      if (!_sessionActive || _finished) return;
-      _firstPick?.hide();
-      _secondPick?.hide();
-      _resetPick();
+      await _handleMismatch();
+    }
+  }
+
+  Future<void> _handleMatch() async {
+    final a = _firstPick!;
+    final b = _secondPick!;
+
+    a.markMatched();
+    b.markMatched();
+    _pairsFound++;
+
+    final mid = Vector2(
+      (a.absoluteCenter.x + b.absoluteCenter.x) / 2,
+      (a.absoluteCenter.y + b.absoluteCenter.y) / 2,
+    );
+    add(MemoryMatchBurst(position: mid.clone()));
+    add(
+      MemoryFloatingLabel(
+        position: mid.clone()..y -= 24,
+        text: '+${MemoryConfig.pointsPerPair}',
+        color: MemoryConfig.matchGlow,
+      ),
+    );
+
+    if (_sessionActive && !_finished) {
+      callbacks.onScoreUpdate(
+        memoryProgressScore(pairsFound: _pairsFound, moves: _moves),
+      );
+    }
+
+    await Future<void>.delayed(
+      Duration(milliseconds: (MemoryConfig.matchSettleSec * 1000).round()),
+    );
+    if (!_sessionActive || _finished) return;
+
+    _resetPick();
+    if (_pairsFound == pairCount) {
+      _finish();
+    }
+  }
+
+  Future<void> _handleMismatch() async {
+    final a = _firstPick!;
+    final b = _secondPick!;
+
+    a.shake();
+    b.shake();
+    _missFlash = 1;
+
+    add(
+      MemoryFloatingLabel(
+        position: Vector2(size.x / 2, size.y * 0.22),
+        text: 'Tente de novo',
+        color: MemoryConfig.missRed,
+      ),
+    );
+
+    await Future<void>.delayed(
+      Duration(milliseconds: (MemoryConfig.mismatchViewSec * 1000).round()),
+    );
+    if (!_sessionActive || _finished) return;
+
+    a.hide();
+    b.hide();
+    await _waitForFlip(a, b);
+    if (!_sessionActive || _finished) return;
+
+    _resetPick();
+  }
+
+  Future<void> _waitForFlip(MemoryCard a, MemoryCard b) async {
+    while (_sessionActive &&
+        !_finished &&
+        (!a.isFlipSettled || !b.isFlipSettled)) {
+      await Future<void>.delayed(const Duration(milliseconds: 16));
     }
   }
 
@@ -215,6 +294,50 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
           'perfectBonus': breakdown.perfectBonus,
         },
       ),
+    );
+  }
+
+  @override
+  void render(Canvas canvas) {
+    _paintBackground(canvas);
+    super.render(canvas);
+    if (_missFlash > 0) {
+      canvas.drawRect(
+        Offset.zero & Size(size.x, size.y),
+        Paint()
+          ..color = MemoryConfig.missRed.withValues(alpha: _missFlash * 0.12),
+      );
+    }
+  }
+
+  void _paintBackground(Canvas canvas) {
+    final rect = Offset.zero & Size(size.x, size.y);
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [MemoryConfig.bgTop, MemoryConfig.bgBottom],
+        ).createShader(rect),
+    );
+
+    final bubblePaint = Paint()
+      ..color = MemoryConfig.blendColor.withValues(alpha: 0.12);
+    canvas.drawCircle(
+      Offset(size.x * 0.12, size.y * 0.18),
+      size.x * 0.22,
+      bubblePaint,
+    );
+    canvas.drawCircle(
+      Offset(size.x * 0.88, size.y * 0.72),
+      size.x * 0.28,
+      bubblePaint,
+    );
+    canvas.drawCircle(
+      Offset(size.x * 0.75, size.y * 0.12),
+      size.x * 0.1,
+      Paint()..color = MemoryConfig.accentSoft.withValues(alpha: 0.1),
     );
   }
 }
