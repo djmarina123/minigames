@@ -1,29 +1,60 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minigames_hub/app.dart';
 import 'package:minigames_hub/core/game_sdk/game_registry.dart';
-import 'package:minigames_hub/games/demo/demo_game.dart';
+import 'package:minigames_hub/core/leaderboard/leaderboard_repository.dart';
+import 'package:minigames_hub/core/storage/player_repository.dart';
+import 'package:minigames_hub/games/memory/memory_game.dart';
+import 'package:minigames_hub/games/tap_rush/tap_rush_game.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  setUp(() {
-    GameRegistry.instance.register(DemoGame());
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  late PlayerRepository playerRepo;
+  late LeaderboardRepository leaderboardRepo;
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    playerRepo = PlayerRepository(prefs);
+    await playerRepo.load();
+    leaderboardRepo = LeaderboardRepository(prefs);
+
+    GameRegistry.instance.registerAll([
+      MemoryGame(),
+      TapRushGame(),
+    ]);
   });
 
-  testWidgets('Home exibe jogo demo no catálogo', (tester) async {
-    await tester.pumpWidget(const MinigamesApp());
+  Widget buildApp() {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<PlayerRepository>.value(value: playerRepo),
+        Provider<LeaderboardRepository>.value(value: leaderboardRepo),
+      ],
+      child: const MinigamesApp(),
+    );
+  }
+
+  testWidgets('Home exibe jogos da Fase 1', (tester) async {
+    await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Minigames Hub'), findsOneWidget);
-    expect(find.text('Demo Tap'), findsOneWidget);
-    expect(find.textContaining('Toque o botão'), findsOneWidget);
+    expect(find.text('REMOVER ADS'), findsOneWidget);
+    expect(find.text('TAP RUSH'), findsOneWidget);
+    expect(find.text('JOGO DA MEMÓRIA'), findsOneWidget);
   });
 
-  testWidgets('abre o jogo demo ao tocar no card', (tester) async {
-    await tester.pumpWidget(const MinigamesApp());
+  testWidgets('navega para aba Perfil', (tester) async {
+    await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Demo Tap'));
+    await tester.tap(find.text('Perfil'));
     await tester.pumpAndSettle();
 
-    expect(find.text('10 s'), findsOneWidget);
+    expect(find.text('Moedas'), findsOneWidget);
+    expect(find.text('XP'), findsOneWidget);
   });
 }

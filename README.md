@@ -2,13 +2,14 @@
 
 Hub de jogos casuais para mobile (Android primeiro, iOS depois).
 
-## Fase 0 — concluída
+## Fase 1 — concluída
 
-- Projeto Flutter com estrutura `lib/core`, `lib/features`, `lib/games`
-- **Game SDK** (`lib/core/game_sdk/`) — contrato comum para todos os jogos
-- **Firebase** preparado em modo stub (`kFirebaseConfigured = false`)
-- **CI** — análise estática + testes no GitHub Actions
-- Jogo demo **Demo Tap** para validar o fluxo hub → jogo → resultado
+- Bottom nav: **Jogos**, **Ranking**, **Perfil**
+- Moedas, XP, recompensa diária, ranking local
+- Jogos Flame: **Jogo da Memória**, **Tap Rush** (+ Demo Tap)
+- AdMob stub (`kAdsConfigured = false`)
+
+Guia para agentes de IA: [`AGENTS.md`](AGENTS.md)
 
 ## Pré-requisitos
 
@@ -119,5 +120,4 @@ Identidade Git **só neste repositório** (não altera projetos do Senado):
 
 O workflow `.github/workflows/ci.yml` roda `flutter analyze` e `flutter test` em cada push/PR para `main`.
 
-
-Ver [PLANO.md](PLANO.md) — casca completa, 2 jogos Flame, moedas, ranking e AdMob.
+Próxima etapa: **Fase 2** — ver [PLANO.md](PLANO.md).

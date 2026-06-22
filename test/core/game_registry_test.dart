@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:minigames_hub/core/firebase/firebase_bootstrap.dart';
 import 'package:minigames_hub/core/game_sdk/game_registry.dart';
 import 'package:minigames_hub/games/demo/demo_game.dart';
+import 'package:minigames_hub/games/memory/memory_game.dart';
+import 'package:minigames_hub/games/tap_rush/tap_rush_game.dart';
 
 void main() {
   group('FirebaseBootstrap', () {
@@ -14,7 +16,11 @@ void main() {
 
   group('GameRegistry', () {
     setUp(() {
-      GameRegistry.instance.register(DemoGame());
+      GameRegistry.instance.registerAll([
+        DemoGame(),
+        MemoryGame(),
+        TapRushGame(),
+      ]);
     });
 
     test('registra e encontra jogo por id', () {

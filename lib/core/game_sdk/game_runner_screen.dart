@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../ads/ads_service.dart';
+import '../leaderboard/leaderboard_repository.dart';
+import '../storage/player_repository.dart';
+import '../theme/game_ui.dart';
 import 'game_result.dart';
 import 'game_session_callbacks.dart';
 import 'hub_game.dart';
+import 'widgets/game_result_dialog.dart';
+import 'widgets/game_session_app_bar.dart';
 
 /// Tela sandbox que abre qualquer jogo registrado no hub.
 class GameRunnerScreen extends StatefulWidget {
@@ -15,57 +22,75 @@ class GameRunnerScreen extends StatefulWidget {
 }
 
 class _GameRunnerScreenState extends State<GameRunnerScreen> {
-  int _score = 0;
+  final _score = ValueNotifier<int>(0);
   bool _finished = false;
+  late final GameSessionCallbacks _callbacks;
+  Widget? _gameWidget;
 
-  GameSessionCallbacks get _callbacks => GameSessionCallbacks(
-        onScoreUpdate: (score) => setState(() => _score = score),
-        onGameOver: _handleGameOver,
-        onRewardEarned: (_, amount) {},
-        onExit: () => Navigator.of(context).pop(),
-      );
+  @override
+  void initState() {
+    super.initState();
+    _callbacks = GameSessionCallbacks(
+      onScoreUpdate: (score) => _score.value = score,
+      onGameOver: _handleGameOver,
+      onRewardEarned: (_, amount) {},
+      onExit: () => Navigator.of(context).pop(),
+    );
+  }
 
-  void _handleGameOver(GameResult result) {
+  @override
+  void dispose() {
+    _score.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleGameOver(GameResult result) async {
     if (_finished) return;
     _finished = true;
 
-    showDialog<void>(
+    final playerRepo = context.read<PlayerRepository>();
+    final leaderboardRepo = context.read<LeaderboardRepository>();
+    await playerRepo.applyGameResult(
+      coinsEarned: result.coinsEarned,
+      xpEarned: result.xpEarned,
+    );
+    await leaderboardRepo.submitScore(
+      gameId: widget.game.metadata.id,
+      gameTitle: widget.game.metadata.title,
+      score: result.score,
+    );
+
+    if (!mounted) return;
+
+    await showGameResultDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Fim de jogo'),
-        content: Text(
-          'Pontuação: ${result.score}\n'
-          'Moedas: +${result.coinsEarned}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop(result);
-            },
-            child: const Text('Voltar ao hub'),
-          ),
-        ],
-      ),
+      metadata: widget.game.metadata,
+      result: result,
+      onExit: () {
+        Navigator.of(context).pop();
+        if (mounted) Navigator.of(context).pop(result);
+      },
+      onDoubleCoins: () async {
+        final bonus = await AdsService.showRewardedAd();
+        await playerRepo.applyGameResult(coinsEarned: bonus, xpEarned: 0);
+        if (!mounted) return;
+        Navigator.of(context).pop();
+        if (mounted) Navigator.of(context).pop(result);
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final meta = widget.game.metadata;
+    _gameWidget ??= widget.game.buildGame(context, _callbacks);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(meta.title),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(child: Text('$_score pts')),
-          ),
-        ],
+      backgroundColor: GameUi.surfaceDark,
+      appBar: GameSessionAppBar(
+        metadata: widget.game.metadata,
+        scoreListenable: _score,
       ),
-      body: widget.game.buildGame(context, _callbacks),
+      body: _gameWidget!,
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
-import 'features/home/home_screen.dart';
+import 'core/theme/app_theme.dart';
+import 'features/shell/main_shell.dart';
 
 class MinigamesApp extends StatelessWidget {
   const MinigamesApp({super.key});
@@ -12,7 +12,7 @@ class MinigamesApp extends StatelessWidget {
       title: 'Minigames Hub',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      home: const HomeScreen(),
+      home: const MainShell(),
     );
   }
 }

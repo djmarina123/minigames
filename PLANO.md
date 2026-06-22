@@ -125,17 +125,110 @@ A lista de jogos vem do **Remote Config/Firestore** (não fixa no código): perm
 
 ---
 
-## 5. Catálogo Inicial de Jogos (sugestão)
+## 5. Plano de Jogos
 
-Começar com **3–5 jogos** simples mas polidos, variados em estilo:
+### Princípios de seleção
 
-1. **Puzzle de blocos** (estilo "2048" ou encaixe) — lógica, sessão longa.
-2. **Arcade infinito** (estilo "flappy"/runner) — reflexo, sessão curta, viciante.
-3. **Jogo da memória / pares** — casual leve, todas as idades.
-4. **Palavras / caça-palavras** — bom para retenção e dailies.
-5. **Cartas (Paciência/Solitaire)** — público amplo, sessões médias.
+Cada jogo do hub deve passar por estes critérios antes de entrar no catálogo:
 
-Critério: baixa complexidade de produção, alto apelo casual, variedade de "humor de jogo".
+| Critério | Pergunta |
+|---|---|
+| **Sessão** | Dá para jogar uma partida em 1–5 min? |
+| **Curva** | Entende em 5 segundos sem tutorial longo? |
+| **Replay** | Quer jogar de novo imediatamente? |
+| **Escopo** | Dá para polir em 1–2 semanas (vibecoding)? |
+| **Variedade** | É diferente dos jogos que já existem no hub? |
+| **Offline** | Funciona sem internet? (obrigatório no MVP) |
+
+**Mix ideal do catálogo:** 1 puzzle · 1 arcade/reflexo · 1 palavras/cartas · 1 “zen” (sessão longa opcional).
+
+---
+
+### Estado atual (pós-Fase 1)
+
+| Jogo | ID | Engine | Status | Notas |
+|---|---|---|---|---|
+| Jogo da Memória | `memory` | Flame | ✅ MVP | 4 pares, grid 4×2; polir animações Fase 2 |
+| Tap Rush | `tap_rush` | Flame | ✅ MVP | 15 s, alvos aleatórios |
+| Demo Tap | `demo_tap` | Flutter | 🗑️ Remover | Substituído pelos Flame; manter só em dev se útil |
+
+---
+
+### Roadmap de jogos por fase
+
+#### Fase 2 — completar variedade (3 jogos novos)
+
+Prioridade: **polir os 2 existentes** + **1 jogo novo** antes de abrir Play Store.
+
+| # | Jogo | Categoria | Sessão | Por quê |
+|---|---|---|---|---|
+| 1 | **2048** (ou variantes) | Puzzle | 3–8 min | Viciante, lógica simples, ranking claro |
+| 2 | **Runner infinito** (obstáculos, 1 toque) | Arcade | 30 s–2 min | Complementa Tap Rush com skill diferente |
+| 3 | **Paciência (Solitaire)** | Cartas | 5–15 min | Público amplo, retenção alta |
+
+**Polimento dos existentes (Fase 2):**
+- Memória: flip animado, som ao acertar/errar, grid responsivo
+- Tap Rush: ✅ combo, alvo com timeout, dificuldade progressiva, FX — **padrão de referência**
+
+#### Fase 3 — retenção e iOS
+
+| # | Jogo | Categoria | Por quê |
+|---|---|---|---|
+| 4 | **Caça-palavras** | Palavras | Missões diárias (“ache 5 palavras”) |
+| 5 | **Match-3 simplificado** | Puzzle | Eventos sazonais, moedas |
+
+#### Fase 4 — expansão
+
+| # | Jogo | Tipo | Por quê |
+|---|---|---|---|
+| 6+ | Slots via **HTML5/WebView** | WebView | Iterar sem passar pela loja |
+| — | Torneios semanais por jogo | Meta | Reusar ranking existente |
+
+---
+
+### Template de implementação (todo jogo novo)
+
+```
+lib/games/<id>/
+  <id>_game.dart      # implements HubGame
+  <id>_flame.dart     # FlameGame (ou widgets Flutter se puzzle puro)
+```
+
+**Checklist antes de merge:**
+
+- [ ] Implementa `HubGame` + registrado em `registerBundledGames()`
+- [ ] `onScoreUpdate` / `onGameOver` corretos
+- [ ] Partida tem **início e fim claros** (evitar jogos “infinitos” sem objetivo)
+- [ ] Testado em **Chrome** e **Android**
+- [ ] Game Runner **não recria** o jogo ao atualizar placar (ver `AGENTS.md`)
+- [ ] Metadados: título, descrição, categoria, ícone emoji
+- [ ] Moedas/XP balanceados (partida curta ≈ 5–20 moedas)
+
+---
+
+### Balanceamento econômico (referência)
+
+| Tipo de partida | Moedas | XP |
+|---|---|---|
+| Curta (< 1 min) | 5–15 | 10–30 |
+| Média (1–5 min) | 15–40 | 30–100 |
+| Longa (> 5 min) | 40–80 | 100–200 |
+
+Recompensa diária permanece independente (10 + bônus de sequência).
+
+---
+
+### Jogos descartados por enquanto
+
+- **Flappy clone puro** — difícil de diferenciar; runner com obstáculos é melhor
+- **Quiz online** — exige backend cedo demais
+- **Multijogador realtime** — escopo Fase 4+
+
+---
+
+### Critério legado (referência)
+
+Variety pack original: puzzle de blocos, arcade infinito, memória, palavras, cartas — **memória e arcade já cobertos**; próximos: **2048, runner, solitaire**.
 
 ---
 
@@ -176,12 +269,12 @@ config/global             (via Remote Config também)
 - [x] Definir o **Game SDK** interno (interface comum de jogo).
 - [x] Jogo demo **Demo Tap** para validar fluxo hub → jogo → resultado.
 
-### Fase 1 — MVP Android (4–6 semanas)
-- Casca: Home/Catálogo + Game Runner + Perfil básico.
-- **2 jogos** em Flame.
-- Moedas + recompensa diária + 1 ranking.
-- AdMob (rewarded + interstitial).
-- **Beta fechado** na Play Store (faixa interna/fechada).
+### Fase 1 — MVP Android (4–6 semanas) ✅
+- [x] Casca: Home/Catálogo + Game Runner + Perfil básico + bottom nav + Ranking.
+- [x] **2 jogos** em Flame (Memória + Tap Rush).
+- [x] Moedas + recompensa diária + ranking local.
+- [x] AdMob stub (rewarded + interstitial) — aguarda `kAdsConfigured = true`.
+- [ ] **Beta fechado** na Play Store (faixa interna/fechada) — manual.
 
 ### Fase 2 — Lançamento Android (3–4 semanas)
 - +2/3 jogos, conquistas, missões diárias.

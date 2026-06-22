@@ -1,0 +1,47 @@
+import 'dart:ui';
+
+/// Constantes e paleta do Tap Rush — referência para novos jogos Flame.
+abstract final class TapRushConfig {
+  static const gameDurationSec = 15;
+  static const countdownSec = 3;
+
+  static const baseTargetRadius = 44.0;
+  static const minTargetRadius = 26.0;
+
+  /// Tempo máximo (ms) antes do alvo sumir — diminui com a partida.
+  static const maxTargetLifetimeMs = 1400.0;
+  static const minTargetLifetimeMs = 650.0;
+
+  static const maxComboMultiplier = 5;
+  static const basePointsPerHit = 10;
+
+  static const bgTop = Color(0xFF0F0C29);
+  static const bgBottom = Color(0xFF302B63);
+  static const targetOuter = Color(0xFF6C5CE7);
+  static const targetInner = Color(0xFFa29bfe);
+  static const targetCore = Color(0xFFFD79A8);
+  static const comboGold = Color(0xFFFDCB6E);
+  static const missRed = Color(0xFFFF7675);
+  static const hudText = Color(0xFFF8F9FA);
+  static const timerBar = Color(0xFF00CEC9);
+  static const timerBarLow = Color(0xFFFF7675);
+}
+
+/// Pontos por acerto conforme combo atual (1..maxComboMultiplier).
+int tapRushPointsForHit(int combo) {
+  final mult = combo.clamp(1, TapRushConfig.maxComboMultiplier);
+  return TapRushConfig.basePointsPerHit * mult;
+}
+
+/// Progresso da partida 0.0 → 1.0.
+double tapRushProgress(double elapsedSec) =>
+    (elapsedSec / TapRushConfig.gameDurationSec).clamp(0.0, 1.0);
+
+double tapRushTargetRadius(double progress) =>
+    TapRushConfig.baseTargetRadius -
+    (TapRushConfig.baseTargetRadius - TapRushConfig.minTargetRadius) * progress;
+
+double tapRushTargetLifetimeMs(double progress) =>
+    TapRushConfig.maxTargetLifetimeMs -
+    (TapRushConfig.maxTargetLifetimeMs - TapRushConfig.minTargetLifetimeMs) *
+        progress;
