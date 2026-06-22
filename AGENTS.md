@@ -191,7 +191,7 @@ Todo jogo no catálogo **deve** seguir:
 2. **Título** — canto superior esquerdo, **CAIXA ALTA**, bold, branco; vinheta leve no topo (~64px).
 3. **Linha decorativa** — barra curta colorida abaixo do título (cor `accentColor`, largura proporcional à 1ª palavra).
 4. **Ilustração** — vetorial em `core/theme/game_card_art.dart` (`CustomPaint` + `GameCatalogHero`), **full-bleed** no card (Stack `fit: expand`). Arte centralizada com bolhas decorativas no fundo — **não** colocar PNG pequeno em `BoxFit.contain` (fica “caixa colada” com espaço vazio).
-5. **Badge "NOVO!"** — vermelho, canto superior direito, só se `metadata.featured == true`.
+5. **Badge "NOVO!"** — `HubTheme.featuredBadge`, canto superior direito, só se `metadata.featured == true`.
 6. **Feedback** — `AnimatedScale(0.96)` no toque; card inteiro é clicável.
 7. **Cores por jogo** — registrar em `HubTheme._themes` em `core/theme/hub_theme.dart` (não hardcodar no card).
 
@@ -201,7 +201,32 @@ Todo jogo no catálogo **deve** seguir:
 - PNG com `BoxFit.contain` em área branca → arte pequena, faixa colorida vazia em cima.
 - Emojis pequenos no canto → parece placeholder, não capa de jogo.
 
-**Preferir:** `CustomPaint` por jogo (`_TapRushArt`, `_MemoryArt`) ou PNG **sem alpha** com fundo igual ao `cardColor` (export sólido, não checkerboard).
+**Preferir:** `CustomPaint` por jogo (`_TapRushArt`, `_MemoryArt`) ou PNG **sem alpha** com fundo igual ao `cardColor` (export sólido, não checkerboard). Cores internas da arte derivam de `HubGameTheme` (`cardColor`, `accentColor`, `blendColor`, `accentSoft`) — não hardcodar hex na pintura.
+
+### Identidade visual compartilhada (`game_card_art.dart`)
+
+| Widget | Uso |
+|---|---|
+| `GameCardArt` | Ilustração vetorial full-bleed; `compact: true` omite bolhas/sparkles (listas) |
+| `GameCatalogHero` | Banner do catálogo e da prep (título + linha + arte) |
+| `GameCatalogThumbnail` | Miniatura quadrada (~52px) — **ranking**, estados vazios |
+
+**Regra:** face visual do jogo no hub = `gameId` + `HubTheme.themeFor()` → **nunca** `metadata.icon` em UI (emoji fica só para fallback genérico / uso interno).
+
+Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep e ranking passam a herdar automaticamente via `GameCatalogHero` / `GameCatalogThumbnail`.
+
+### Tokens de cor (`hub_theme.dart`)
+
+| Token | Uso |
+|---|---|
+| `background` | Fundo creme do hub |
+| `textPrimary` / `textSecondary` | Títulos e corpo (header, ranking, perfil, prep, ajuda) |
+| `featuredBadge` | Badge "NOVO!" nos cards |
+| `cardColor` + `accentColor` | Por jogo em `HubTheme._themes` |
+| `blendColor` / `accentSoft` | Derivados em `HubGameTheme` — detalhes da arte vetorial |
+| `hubUnderlineWidth(titleLead)` | Largura da barra decorativa (proporcional à 1ª palavra do título) |
+
+**Não** usar `Color(0xFF2D3436)` etc. solto — sempre `HubTheme.textPrimary` / `textSecondary`.
 
 ### Header (`HubHeader`)
 
@@ -214,7 +239,7 @@ Todo jogo no catálogo **deve** seguir:
 1. Registrar em `registerBundledGames()` (`lib/bootstrap/games.dart`).
 2. Adicionar entrada em `HubTheme._themes` com `cardColor` + `accentColor`.
 3. Implementar arte em `core/theme/game_card_art.dart` (CustomPaint) — ver jogos existentes.
-4. Escolher emoji forte para fallback genérico.
+4. Escolher emoji em `metadata.icon` apenas para fallback — UI usa `GameCardArt` por `gameId`.
 
 ### Arquivos do hub
 
@@ -242,6 +267,8 @@ Melhor score **por jogo** (`LeaderboardRepository.allBest`), persistido em `shar
 - Lista ordenada **por título do jogo** (não ranking global cross-game); sem medalhas 🥇🥈🥉 enganosas.
 - Pull-to-refresh disponível.
 - Regras de pontuação **não** aparecem na lista — só no modal **?** da prep.
+- Cada linha usa `GameCatalogThumbnail` (mesma arte do catálogo) + `HubTheme.themeFor()` — alinhado visualmente à Home.
+- Estado vazio: `GameCatalogThumbnail` com tema hub (`removeAdsPurple` + `coinGold`), não ícone Material.
 
 ### Pontuação — Memória (`memory_config.dart`)
 
@@ -405,6 +432,8 @@ Emulador recomendado: **Pixel 6a**, API 34, x86_64, **sem** imagem 16KB.
 - [x] `GameResultDialog`: stats da Memória + scroll em telas baixas
 - [x] Testes: `leaderboard_repository_test`, `game_runner_screen_test`, repos expandidos
 - [x] Removidos PNGs órfãos em `assets/games/` (arte = CustomPaint)
+- [x] Identidade visual unificada: `GameCatalogThumbnail` no ranking + tokens `HubTheme` (`textPrimary`, `textSecondary`, `featuredBadge`)
+- [x] Arte vetorial deriva cores de `HubGameTheme` (`blendColor`, `accentSoft`); goldens da Home atualizados
 
 ### Fase 2 — Lançamento Android ⏳
 
@@ -454,3 +483,5 @@ Ver `PLANO.md`.
 | Pós-review | `LeaderboardRepository` reativo | Ranking atualiza via `watch` + `refresh` |
 | Pós-review | Ranking por jogo sem medalhas globais | UX alinhada ao subtítulo “melhor por jogo” |
 | Pós-review | `AppTheme` usa `HubTheme.background` | Uma fonte para cor creme do hub |
+| Pós-review | `GameCatalogThumbnail` + tokens de texto no hub | Ranking e Home com mesma arte; sem hex solto na UI |
+| Pós-review | `GameCardArt(compact: true)` para listas | Thumbnail legível sem duplicar painters |

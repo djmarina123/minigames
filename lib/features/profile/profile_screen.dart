@@ -24,7 +24,7 @@ class ProfileScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
-                      color: const Color(0xFF2D3436),
+                      color: HubTheme.textPrimary,
                     ),
               ),
             ),
@@ -153,7 +153,7 @@ class _StatTile extends StatelessWidget {
           label,
           style: const TextStyle(
             fontWeight: FontWeight.w600,
-            color: Color(0xFF636E72),
+            color: HubTheme.textSecondary,
           ),
         ),
         trailing: Text(
@@ -161,7 +161,7 @@ class _StatTile extends StatelessWidget {
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 16,
-            color: Color(0xFF2D3436),
+            color: HubTheme.textPrimary,
           ),
         ),
       ),

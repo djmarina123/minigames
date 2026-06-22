@@ -10,30 +10,72 @@ class GameCardArt extends StatelessWidget {
     super.key,
     required this.gameId,
     required this.theme,
+    this.compact = false,
   });
 
   final String gameId;
   final HubGameTheme theme;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: switch (gameId) {
-        'tap_rush' => _TapRushArt(theme),
-        'memory' => _MemoryArt(theme),
-        _ => _GenericArt(theme, gameId),
+        'tap_rush' => _TapRushArt(theme, compact: compact),
+        'memory' => _MemoryArt(theme, compact: compact),
+        _ => _GenericArt(theme, gameId, compact: compact),
       },
       size: Size.infinite,
     );
   }
 }
 
+/// Miniatura quadrada — mesma arte do catálogo para listas (ranking, etc.).
+class GameCatalogThumbnail extends StatelessWidget {
+  const GameCatalogThumbnail({
+    super.key,
+    required this.gameId,
+    required this.theme,
+    this.size = 52,
+  });
+
+  final String gameId;
+  final HubGameTheme theme;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = size * 0.22;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(radius),
+          border: Border.all(color: HubTheme.cardBorder, width: 3),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(radius - 3),
+          child: GameCardArt(
+            gameId: gameId,
+            theme: theme,
+            compact: true,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 sealed class _CardArtPainter extends CustomPainter {
-  _CardArtPainter(this.theme);
+  _CardArtPainter(this.theme, {this.compact = false});
 
   final HubGameTheme theme;
+  final bool compact;
 
   void drawBackgroundBubbles(Canvas canvas, Size size) {
+    if (compact) return;
     final bubbles = [
       (0.85, 0.18, 0.42, 0.12),
       (0.12, 0.35, 0.28, 0.10),
@@ -51,15 +93,15 @@ sealed class _CardArtPainter extends CustomPainter {
 }
 
 class _TapRushArt extends _CardArtPainter {
-  _TapRushArt(super.theme);
+  _TapRushArt(super.theme, {super.compact});
 
   @override
   void paint(Canvas canvas, Size size) {
     drawBackgroundBubbles(canvas, size);
 
     final cx = size.width * 0.5;
-    final cy = size.height * 0.56;
-    final r = math.min(size.width, size.height) * 0.36;
+    final cy = size.height * (compact ? 0.52 : 0.56);
+    final r = math.min(size.width, size.height) * (compact ? 0.40 : 0.36);
 
     canvas.drawCircle(
       Offset(cx, cy),
@@ -69,9 +111,9 @@ class _TapRushArt extends _CardArtPainter {
 
     final rings = [
       (r, Colors.white.withValues(alpha: 0.25)),
-      (r * 0.82, const Color(0xFF9B59B6)),
+      (r * 0.82, theme.cardColor),
       (r * 0.60, theme.accentColor),
-      (r * 0.38, const Color(0xFFFD79A8)),
+      (r * 0.38, theme.accentSoft),
       (r * 0.16, Colors.white),
     ];
     for (final (radius, color) in rings) {
@@ -97,18 +139,22 @@ class _TapRushArt extends _CardArtPainter {
         ..color = Colors.white
         ..style = PaintingStyle.fill,
     );
-    canvas.drawRRect(
-      fingerRect,
-      Paint()
-        ..color = Colors.black.withValues(alpha: 0.08)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
+    if (!compact) {
+      canvas.drawRRect(
+        fingerRect,
+        Paint()
+          ..color = Colors.black.withValues(alpha: 0.08)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+    }
     canvas.restore();
 
-    _sparkle(canvas, Offset(cx - r * 0.85, cy - r * 0.55), 7, theme.accentColor);
-    _sparkle(canvas, Offset(cx + r * 0.9, cy - r * 0.2), 6, Colors.white);
-    _sparkle(canvas, Offset(cx - r * 0.5, cy + r * 0.65), 5, Colors.white70);
+    if (!compact) {
+      _sparkle(canvas, Offset(cx - r * 0.85, cy - r * 0.55), 7, theme.accentColor);
+      _sparkle(canvas, Offset(cx + r * 0.9, cy - r * 0.2), 6, Colors.white);
+      _sparkle(canvas, Offset(cx - r * 0.5, cy + r * 0.65), 5, Colors.white70);
+    }
   }
 
   void _sparkle(Canvas canvas, Offset p, double size, Color color) {
@@ -129,25 +175,27 @@ class _TapRushArt extends _CardArtPainter {
 }
 
 class _MemoryArt extends _CardArtPainter {
-  _MemoryArt(super.theme);
+  _MemoryArt(super.theme, {super.compact});
 
   @override
   void paint(Canvas canvas, Size size) {
     drawBackgroundBubbles(canvas, size);
 
     final cards = <_CardSpec>[
-      _CardSpec('🎮', -0.28, 0.08, -0.22, const Color(0xFF6C5CE7)),
-      _CardSpec('🎯', 0.02, 0.02, 0.08, const Color(0xFFE17055)),
-      _CardSpec('🎲', -0.12, 0.18, -0.05, const Color(0xFF00CEC9)),
-      _CardSpec('🎪', 0.22, 0.12, 0.18, const Color(0xFFFDCB6E)),
+      _CardSpec('🎮', -0.28, 0.08, -0.22, theme.cardColor),
+      _CardSpec('🎯', 0.02, 0.02, 0.08, theme.accentColor),
+      _CardSpec('🎲', -0.12, 0.18, -0.05, theme.blendColor),
+      _CardSpec('🎪', 0.22, 0.12, 0.18, theme.accentSoft),
     ];
 
-    final cardW = size.width * 0.42;
-    final cardH = size.width * 0.54;
-    final baseX = size.width * 0.48;
-    final baseY = size.height * 0.58;
+    final cardW = size.width * (compact ? 0.48 : 0.42);
+    final cardH = size.width * (compact ? 0.58 : 0.54);
+    final baseX = size.width * (compact ? 0.5 : 0.48);
+    final baseY = size.height * (compact ? 0.54 : 0.58);
 
-    for (final c in cards) {
+    final visible = compact ? cards.sublist(0, 2) : cards;
+
+    for (final c in visible) {
       canvas.save();
       canvas.translate(baseX + c.dx * size.width, baseY + c.dy * size.height);
       canvas.rotate(c.angle);
@@ -203,7 +251,7 @@ class _CardSpec {
 }
 
 class _GenericArt extends _CardArtPainter {
-  _GenericArt(super.theme, this.gameId);
+  _GenericArt(super.theme, this.gameId, {super.compact});
 
   final String gameId;
 
@@ -317,7 +365,7 @@ class GameCatalogHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  width: _underlineWidth(titleLead),
+                  width: hubUnderlineWidth(titleLead),
                   height: 4,
                   decoration: BoxDecoration(
                     color: theme.accentColor,
@@ -334,7 +382,7 @@ class GameCatalogHero extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF4757),
+                  color: HubTheme.featuredBadge,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: const [
                     BoxShadow(
@@ -357,10 +405,5 @@ class GameCatalogHero extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  double _underlineWidth(String word) {
-    final len = word.length.clamp(3, 10);
-    return 24.0 + len * 4.5;
   }
 }

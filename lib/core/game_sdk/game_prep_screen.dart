@@ -93,7 +93,7 @@ class _GamePrepScreenState extends State<GamePrepScreen> {
                       meta.category,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Color(0xFF636E72),
+                        color: HubTheme.textSecondary,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -231,7 +231,7 @@ class _OptionGroupPanel extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                   fontSize: 13,
                   letterSpacing: 0.7,
-                  color: Color(0xFF2D3436),
+                  color: HubTheme.textPrimary,
                 ),
               ),
             ],
@@ -320,7 +320,7 @@ class _OptionTile extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                     fontSize: 20,
                     height: 1,
-                    color: selected ? Colors.white : const Color(0xFF2D3436),
+                    color: selected ? Colors.white : HubTheme.textPrimary,
                   ),
                 ),
                 if (choice.subtitle != null) ...[
@@ -333,7 +333,7 @@ class _OptionTile extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: selected
                           ? Colors.white.withValues(alpha: 0.8)
-                          : const Color(0xFF636E72),
+                          : HubTheme.textSecondary,
                     ),
                   ),
                 ],

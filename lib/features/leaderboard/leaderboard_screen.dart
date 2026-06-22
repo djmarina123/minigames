@@ -5,6 +5,7 @@ import '../../core/game_sdk/game_metadata.dart';
 import '../../core/game_sdk/game_registry.dart';
 import '../../core/leaderboard/leaderboard_repository.dart';
 import '../../core/models/leaderboard_entry.dart';
+import '../../core/theme/game_card_art.dart';
 import '../../core/theme/hub_theme.dart';
 
 class LeaderboardScreen extends StatefulWidget {
@@ -99,14 +100,14 @@ class _LeaderboardHeader extends StatelessWidget {
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.5,
-                  color: const Color(0xFF2D3436),
+                  color: HubTheme.textPrimary,
                 ),
           ),
           const SizedBox(height: 4),
           Text(
             'Seu melhor score em cada jogo',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF636E72),
+                  color: HubTheme.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
           ),
@@ -119,24 +120,21 @@ class _LeaderboardHeader extends StatelessWidget {
 class _EmptyRanking extends StatelessWidget {
   const _EmptyRanking();
 
+  static const _emptyTheme = HubGameTheme(
+    cardColor: HubTheme.removeAdsPurple,
+    accentColor: HubTheme.coinGold,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
       child: Column(
         children: [
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              color: HubTheme.removeAdsPurple.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.emoji_events_outlined,
-              size: 44,
-              color: HubTheme.removeAdsPurple,
-            ),
+          const GameCatalogThumbnail(
+            gameId: 'tap_rush',
+            theme: _emptyTheme,
+            size: 80,
           ),
           const SizedBox(height: 20),
           Text(
@@ -144,7 +142,7 @@ class _EmptyRanking extends StatelessWidget {
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF2D3436),
+                  color: HubTheme.textPrimary,
                 ),
           ),
           const SizedBox(height: 8),
@@ -152,7 +150,7 @@ class _EmptyRanking extends StatelessWidget {
             'Complete uma partida para aparecer aqui com seu melhor resultado.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF636E72),
+                  color: HubTheme.textSecondary,
                   height: 1.4,
                 ),
           ),
@@ -179,7 +177,8 @@ class _RankingCard extends StatelessWidget {
             category: '',
           ),
     );
-    final icon = meta?.icon ?? '🎮';
+    final gameId = meta?.id ?? entry.gameId;
+    final titleLead = hubTitleLead(entry.gameTitle);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -199,7 +198,10 @@ class _RankingCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Text(icon, style: const TextStyle(fontSize: 28)),
+            GameCatalogThumbnail(
+              gameId: gameId,
+              theme: theme,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -216,7 +218,7 @@ class _RankingCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    width: 36,
+                    width: hubUnderlineWidth(titleLead),
                     height: 4,
                     decoration: BoxDecoration(
                       color: theme.accentColor,

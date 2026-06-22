@@ -49,7 +49,7 @@ class DailyRewardBanner extends StatelessWidget {
                     'Recompensa diária disponível!',
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF2D3436),
+                      color: HubTheme.textPrimary,
                     ),
                   ),
                 ),

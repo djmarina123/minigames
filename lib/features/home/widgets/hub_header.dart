@@ -77,7 +77,7 @@ class _CoinPill extends StatelessWidget {
             style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF2D3436),
+              color: HubTheme.textPrimary,
             ),
           ),
         ],

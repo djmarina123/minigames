@@ -59,7 +59,7 @@ class _GameHelpSheet extends StatelessWidget {
                 gameTitle,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF2D3436),
+                      color: HubTheme.textPrimary,
                     ),
               ),
               const SizedBox(height: 20),
@@ -125,7 +125,7 @@ class _Section extends StatelessWidget {
                 style: const TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 15,
-                  color: Color(0xFF2D3436),
+                  color: HubTheme.textPrimary,
                 ),
               ),
             ],
@@ -134,7 +134,7 @@ class _Section extends StatelessWidget {
           Text(
             body,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF636E72),
+                  color: HubTheme.textSecondary,
                   height: 1.5,
                 ),
           ),
