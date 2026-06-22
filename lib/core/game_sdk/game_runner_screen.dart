@@ -7,15 +7,21 @@ import '../storage/player_repository.dart';
 import '../theme/game_ui.dart';
 import 'game_result.dart';
 import 'game_session_callbacks.dart';
+import 'game_session_config.dart';
 import 'hub_game.dart';
 import 'widgets/game_result_dialog.dart';
 import 'widgets/game_session_app_bar.dart';
 
 /// Tela sandbox que abre qualquer jogo registrado no hub.
 class GameRunnerScreen extends StatefulWidget {
-  const GameRunnerScreen({super.key, required this.game});
+  const GameRunnerScreen({
+    super.key,
+    required this.game,
+    this.config = const GameSessionConfig(),
+  });
 
   final HubGame game;
+  final GameSessionConfig config;
 
   @override
   State<GameRunnerScreen> createState() => _GameRunnerScreenState();
@@ -82,7 +88,7 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _gameWidget ??= widget.game.buildGame(context, _callbacks);
+    _gameWidget ??= widget.game.buildGame(context, _callbacks, config: widget.config);
 
     return Scaffold(
       backgroundColor: GameUi.surfaceDark,

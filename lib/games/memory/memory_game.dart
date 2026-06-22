@@ -6,9 +6,12 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/game_sdk/game_metadata.dart';
+import '../../core/game_sdk/game_prep.dart';
 import '../../core/game_sdk/game_result.dart';
 import '../../core/game_sdk/game_session_callbacks.dart';
+import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
+import 'memory_config.dart';
 
 class MemoryGame implements HubGame {
   @override
@@ -22,20 +25,57 @@ class MemoryGame implements HubGame {
       );
 
   @override
-  Widget buildGame(BuildContext context, GameSessionCallbacks callbacks) {
+  GamePrepDefinition get prep => GamePrepDefinition(
+        help: const GameHelpContent(
+          howToPlay:
+              'Toque em uma carta para virá-la. Toque em outra para tentar '
+              'formar um par. Cartas iguais ficam abertas; diferentes voltam '
+              'a fechar. Encontre todos os pares para vencer.',
+          scoring:
+              'Cada par vale 150 pts. Cada jogada (tentativa de par) tira 10 pts. '
+              'Termine rápido para ganhar até 200 pts de bônus de tempo. '
+              'Acertar todos os pares no mínimo de jogadas dá +100 pts extra.',
+        ),
+        optionGroups: [
+          GamePrepOptionGroup(
+            label: 'Cartas',
+            optionKey: MemoryConfig.optionKeyPairCount,
+            choices: const [
+              GamePrepChoice(label: '8', subtitle: '4 pares', value: 4),
+              GamePrepChoice(label: '12', subtitle: '6 pares', value: 6),
+              GamePrepChoice(label: '16', subtitle: '8 pares', value: 8),
+            ],
+          ),
+        ],
+      );
+
+  @override
+  Widget buildGame(
+    BuildContext context,
+    GameSessionCallbacks callbacks, {
+    GameSessionConfig config = const GameSessionConfig(),
+  }) {
+    final pairCount = config.value(
+      MemoryConfig.optionKeyPairCount,
+      4,
+    );
     return GameWidget(
-      game: _MemoryFlameGame(callbacks: callbacks),
+      game: _MemoryFlameGame(
+        callbacks: callbacks,
+        pairCount: pairCount,
+      ),
     );
   }
 }
 
 class _MemoryFlameGame extends FlameGame with TapCallbacks {
-  _MemoryFlameGame({required this.callbacks});
+  _MemoryFlameGame({
+    required this.callbacks,
+    required this.pairCount,
+  });
 
   final GameSessionCallbacks callbacks;
-  static const _symbols = ['🎮', '🎯', '🎲', '🎪'];
-  static const _cols = 4;
-  static const _rows = 2;
+  final int pairCount;
 
   final _random = Random();
   late DateTime _startedAt;
@@ -47,6 +87,8 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   _MemoryCard? _secondPick;
   bool _lockInput = false;
 
+  late List<String> _symbols;
+
   @override
   Color backgroundColor() => const Color(0xFF16213E);
 
@@ -55,6 +97,7 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   @override
   Future<void> onLoad() async {
     _startedAt = DateTime.now();
+    _symbols = MemoryConfig.symbolPool.take(pairCount).toList();
   }
 
   @override
@@ -67,20 +110,26 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   }
 
   void _buildGrid() {
-    final symbols = [..._symbols, ..._symbols]..shuffle(_random);
-    const cardSize = 72.0;
-    const gap = 12.0;
-    final gridW = _cols * cardSize + (_cols - 1) * gap;
-    final gridH = _rows * cardSize + (_rows - 1) * gap;
-    final offsetX = (size.x - gridW) / 2;
-    final offsetY = (size.y - gridH) / 2 + 20;
+    final deck = [..._symbols, ..._symbols]..shuffle(_random);
+    final (cols, rows) = memoryGridForPairs(pairCount);
+    const gap = 10.0;
+    const maxCard = 72.0;
+    final gridW = size.x - 32;
+    final gridH = size.y - 80;
+    final cardW = min(maxCard, (gridW - (cols - 1) * gap) / cols);
+    final cardH = min(maxCard, (gridH - (rows - 1) * gap) / rows);
+    final cardSize = min(cardW, cardH);
+    final totalW = cols * cardSize + (cols - 1) * gap;
+    final totalH = rows * cardSize + (rows - 1) * gap;
+    final offsetX = (size.x - totalW) / 2;
+    final offsetY = (size.y - totalH) / 2 + 16;
 
-    for (var i = 0; i < symbols.length; i++) {
-      final col = i % _cols;
-      final row = i ~/ _cols;
+    for (var i = 0; i < deck.length; i++) {
+      final col = i % cols;
+      final row = i ~/ cols;
       add(
         _MemoryCard(
-          symbol: symbols[i],
+          symbol: deck[i],
           position: Vector2(
             offsetX + col * (cardSize + gap),
             offsetY + row * (cardSize + gap),
@@ -110,10 +159,12 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
       _firstPick!.markMatched();
       _secondPick!.markMatched();
       _pairsFound++;
-      callbacks.onScoreUpdate(_pairsFound * 100 - _moves * 5);
+      callbacks.onScoreUpdate(
+        memoryProgressScore(pairsFound: _pairsFound, moves: _moves),
+      );
       await Future<void>.delayed(const Duration(milliseconds: 200));
       _resetPick();
-      if (_pairsFound == _symbols.length) {
+      if (_pairsFound == pairCount) {
         _finish();
       }
     } else {
@@ -133,13 +184,25 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   void _finish() {
     if (_finished) return;
     _finished = true;
-    final score = (_pairsFound * 100 - _moves * 5).clamp(0, 9999);
+    final duration = DateTime.now().difference(_startedAt);
+    final breakdown = memoryFinalScore(
+      pairCount: pairCount,
+      pairsFound: _pairsFound,
+      moves: _moves,
+      duration: duration,
+    );
     callbacks.onGameOver(
       GameResult(
-        score: score,
-        duration: DateTime.now().difference(_startedAt),
-        coinsEarned: score ~/ 20,
-        xpEarned: score ~/ 2,
+        score: breakdown.score,
+        duration: duration,
+        coinsEarned: breakdown.score ~/ 15,
+        xpEarned: breakdown.score ~/ 2,
+        metadata: {
+          'pairCount': pairCount,
+          'moves': _moves,
+          'timeBonus': breakdown.timeBonus,
+          'perfectBonus': breakdown.perfectBonus,
+        },
       ),
     );
   }
@@ -180,8 +243,12 @@ class _MemoryCard extends PositionComponent with TapCallbacks {
     );
 
     if (isFaceUp) {
+      final fontSize = size.x * 0.42;
       final painter = TextPainter(
-        text: TextSpan(text: symbol, style: const TextStyle(fontSize: 32)),
+        text: TextSpan(
+          text: symbol,
+          style: TextStyle(fontSize: fontSize),
+        ),
         textDirection: TextDirection.ltr,
       )..layout();
       painter.paint(

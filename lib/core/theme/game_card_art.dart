@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/hub_theme.dart';
+import 'hub_theme.dart';
 
 /// Ilustração vetorial desenhada no card — escala com o tamanho, sem PNG.
 class GameCardArt extends StatelessWidget {
@@ -33,7 +33,6 @@ sealed class _CardArtPainter extends CustomPainter {
 
   final HubGameTheme theme;
 
-  /// Bolhas suaves para preencher o fundo e evitar área “vazia”.
   void drawBackgroundBubbles(Canvas canvas, Size size) {
     final bubbles = [
       (0.85, 0.18, 0.42, 0.12),
@@ -51,7 +50,6 @@ sealed class _CardArtPainter extends CustomPainter {
   }
 }
 
-/// Alvo grande + dedo — estilo arcade.
 class _TapRushArt extends _CardArtPainter {
   _TapRushArt(super.theme);
 
@@ -80,7 +78,6 @@ class _TapRushArt extends _CardArtPainter {
       canvas.drawCircle(Offset(cx, cy), radius, Paint()..color = color);
     }
 
-    // Dedo apontando
     canvas.save();
     canvas.translate(cx + r * 0.12, cy + r * 0.08);
     canvas.rotate(-0.35);
@@ -131,7 +128,6 @@ class _TapRushArt extends _CardArtPainter {
   bool shouldRepaint(covariant _TapRushArt oldDelegate) => false;
 }
 
-/// Cartas grandes em leque — memória.
 class _MemoryArt extends _CardArtPainter {
   _MemoryArt(super.theme);
 
@@ -206,7 +202,6 @@ class _CardSpec {
   final Color color;
 }
 
-/// Fallback: emoji gigante.
 class _GenericArt extends _CardArtPainter {
   _GenericArt(super.theme, this.gameId);
 
@@ -233,4 +228,139 @@ class _GenericArt extends _CardArtPainter {
 
   @override
   bool shouldRepaint(covariant _GenericArt oldDelegate) => false;
+}
+
+/// Banner do jogo — mesma identidade visual do [GameCard] do catálogo.
+class GameCatalogHero extends StatelessWidget {
+  const GameCatalogHero({
+    super.key,
+    required this.gameId,
+    required this.title,
+    required this.theme,
+    this.height = 200,
+    this.showFeaturedBadge = false,
+  });
+
+  final String gameId;
+  final String title;
+  final HubGameTheme theme;
+  final double height;
+  final bool showFeaturedBadge;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayTitle = hubDisplayTitle(title);
+    final titleLead = hubTitleLead(title);
+
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(HubTheme.cardRadius),
+        border: Border.all(color: HubTheme.cardBorder, width: 4),
+        boxShadow: [
+          BoxShadow(
+            color: theme.cardColor.withValues(alpha: 0.35),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          GameCardArt(gameId: gameId, theme: theme),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 72,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    theme.cardColor.withValues(alpha: 0.95),
+                    theme.cardColor.withValues(alpha: 0.35),
+                    theme.cardColor.withValues(alpha: 0),
+                  ],
+                  stops: const [0, 0.5, 1],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  displayTitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
+                    letterSpacing: 0.2,
+                    shadows: [
+                      Shadow(
+                        color: Color(0x66000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  width: _underlineWidth(titleLead),
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.accentColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (showFeaturedBadge)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF4757),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x66000000),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  'NOVO!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  double _underlineWidth(String word) {
+    final len = word.length.clamp(3, 10);
+    return 24.0 + len * 4.5;
+  }
 }

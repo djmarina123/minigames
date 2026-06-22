@@ -25,7 +25,7 @@ class _MainShellState extends State<MainShell> {
         index: _index,
         children: [
           HomeScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer()),
-          const LeaderboardScreen(),
+          LeaderboardScreen(isActive: _index == 1),
           const ProfileScreen(),
         ],
       ),

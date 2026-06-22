@@ -5,8 +5,10 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/game_sdk/game_metadata.dart';
+import '../../core/game_sdk/game_prep.dart';
 import '../../core/game_sdk/game_result.dart';
 import '../../core/game_sdk/game_session_callbacks.dart';
+import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/tap_rush_components.dart';
 import 'tap_rush_config.dart';
@@ -24,9 +26,43 @@ class TapRushGame implements HubGame {
       );
 
   @override
-  Widget buildGame(BuildContext context, GameSessionCallbacks callbacks) {
+  GamePrepDefinition get prep => GamePrepDefinition(
+        help: const GameHelpContent(
+          howToPlay:
+              'Toque nos alvos antes que desapareçam. Acertos seguidos formam '
+              'combo e valem mais pontos. Errar ou deixar o alvo sumir zera o combo.',
+          scoring:
+              'Cada acerto vale 10 pts × combo (até ×5). Quanto mais tempo '
+              'passa, os alvos ficam menores e somem mais rápido.',
+        ),
+        optionGroups: [
+          GamePrepOptionGroup(
+            label: 'Tempo',
+            optionKey: TapRushConfig.optionKeyDurationSec,
+            choices: const [
+              GamePrepChoice(label: '15 s', value: 15),
+              GamePrepChoice(label: '30 s', value: 30),
+              GamePrepChoice(label: '60 s', value: 60),
+            ],
+          ),
+        ],
+      );
+
+  @override
+  Widget buildGame(
+    BuildContext context,
+    GameSessionCallbacks callbacks, {
+    GameSessionConfig config = const GameSessionConfig(),
+  }) {
+    final durationSec = config.value(
+      TapRushConfig.optionKeyDurationSec,
+      TapRushConfig.gameDurationSec,
+    );
     return GameWidget(
-      game: TapRushFlameGame(callbacks: callbacks),
+      game: TapRushFlameGame(
+        callbacks: callbacks,
+        durationSec: durationSec,
+      ),
     );
   }
 }
@@ -35,9 +71,13 @@ enum _Phase { countdown, playing, finished }
 
 /// Implementação Flame — referência de qualidade para o hub.
 class TapRushFlameGame extends FlameGame with TapCallbacks {
-  TapRushFlameGame({required this.callbacks});
+  TapRushFlameGame({
+    required this.callbacks,
+    required this.durationSec,
+  });
 
   final GameSessionCallbacks callbacks;
+  final int durationSec;
 
   _Phase _phase = _Phase.countdown;
   double _countdownLeft = TapRushConfig.countdownSec.toDouble();
@@ -54,7 +94,7 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
   bool _sessionStarted = false;
   RushTarget? _activeTarget;
 
-  double get _progress => tapRushProgress(_elapsed);
+  double get _progress => tapRushProgress(_elapsed, durationSec);
 
   @override
   Color backgroundColor() => TapRushConfig.bgTop;
@@ -90,7 +130,7 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
         }
       case _Phase.playing:
         _elapsed += dt;
-        if (_elapsed >= TapRushConfig.gameDurationSec) {
+        if (_elapsed >= durationSec) {
           _finish();
         } else if (_activeTarget == null || !_activeTarget!.isMounted) {
           _spawnTarget();
@@ -175,6 +215,7 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
         coinsEarned: _score ~/ 10,
         xpEarned: _score ~/ 2,
         metadata: {
+          'durationSec': durationSec,
           'hits': _hits,
           'misses': _misses,
           'maxCombo': _maxCombo,
@@ -226,12 +267,11 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
 
     if (_phase == _Phase.finished) return;
 
-    // Barra de tempo
     const barH = 8.0;
     const margin = 16.0;
     final barW = size.x - margin * 2;
-    final timeLeft = (TapRushConfig.gameDurationSec - _elapsed).clamp(0.0, TapRushConfig.gameDurationSec.toDouble());
-    final ratio = timeLeft / TapRushConfig.gameDurationSec;
+    final timeLeft = (durationSec - _elapsed).clamp(0.0, durationSec.toDouble());
+    final ratio = timeLeft / durationSec;
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -249,7 +289,6 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
         ..color = ratio < 0.25 ? TapRushConfig.timerBarLow : TapRushConfig.timerBar,
     );
 
-    // Combo
     if (_combo > 1) {
       _paintText(
         canvas,
@@ -261,7 +300,6 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
       );
     }
 
-    // Timer numérico
     _paintText(
       canvas,
       '${timeLeft.ceil()}s',

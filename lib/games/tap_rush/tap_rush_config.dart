@@ -5,6 +5,10 @@ abstract final class TapRushConfig {
   static const gameDurationSec = 15;
   static const countdownSec = 3;
 
+  static const optionKeyDurationSec = 'durationSec';
+
+  static const durationChoicesSec = [15, 30, 60];
+
   static const baseTargetRadius = 44.0;
   static const minTargetRadius = 26.0;
 
@@ -34,8 +38,8 @@ int tapRushPointsForHit(int combo) {
 }
 
 /// Progresso da partida 0.0 → 1.0.
-double tapRushProgress(double elapsedSec) =>
-    (elapsedSec / TapRushConfig.gameDurationSec).clamp(0.0, 1.0);
+double tapRushProgress(double elapsedSec, int durationSec) =>
+    (elapsedSec / durationSec).clamp(0.0, 1.0);
 
 double tapRushTargetRadius(double progress) =>
     TapRushConfig.baseTargetRadius -

@@ -17,6 +17,8 @@ void main() {
         tapRushTargetLifetimeMs(1),
         lessThan(tapRushTargetLifetimeMs(0)),
       );
+      expect(tapRushProgress(7.5, 15), 0.5);
+      expect(tapRushProgress(30, 60), 0.5);
     });
   });
 }

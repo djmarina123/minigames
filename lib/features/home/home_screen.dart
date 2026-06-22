@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/game_sdk/game_registry.dart';
+import '../../core/game_sdk/game_prep_screen.dart';
 import '../../core/game_sdk/game_runner_screen.dart';
 import '../../core/game_sdk/hub_game.dart';
 import '../../core/ads/ads_service.dart';
@@ -56,11 +57,13 @@ class HomeScreen extends StatelessWidget {
   }
 
   Future<void> _openGame(BuildContext context, HubGame game) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) => GameRunnerScreen(game: game),
-      ),
-    );
+    final route = game.prep != null
+        ? MaterialPageRoute<void>(builder: (_) => GamePrepScreen(game: game))
+        : MaterialPageRoute<void>(
+            builder: (_) => GameRunnerScreen(game: game),
+          );
+
+    await Navigator.of(context).push<void>(route);
     await AdsService.maybeShowInterstitial();
   }
 }

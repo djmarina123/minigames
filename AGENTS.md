@@ -53,19 +53,23 @@ lib/
 ├── core/
 │   ├── firebase/             # bootstrap stub
 │   ├── ads/                  # AdMob stub (Fase 1+)
-│   ├── game_sdk/             # HubGame, registry, runner
+│   ├── game_sdk/             # HubGame, registry, prep, runner, widgets
+│   │   ├── game_prep.dart
+│   │   ├── game_prep_screen.dart
+│   │   ├── game_session_config.dart
+│   │   └── widgets/          # GameSessionAppBar, GameResultDialog, game_help_dialog
 │   ├── models/               # PlayerProfile, LeaderboardEntry
 │   ├── storage/              # PlayerRepository (shared_preferences)
 │   ├── leaderboard/          # LeaderboardRepository
-│   └── theme/                # app_theme, game_ui, hub_theme
+│   └── theme/                # app_theme, game_ui, hub_theme, game_card_art
 ├── features/
 │   ├── shell/                # bottom nav + drawer
-│   ├── home/                 # grid + hub_header + game_card + game_card_art
-│   ├── profile/
-│   └── leaderboard/
+│   ├── home/                 # grid + hub_header + game_card
+│   ├── leaderboard/          # ranking estilizado (melhor score por jogo)
+│   └── profile/
 └── games/
     ├── demo/                 # Demo Tap (legado — fora do catálogo público)
-    ├── memory/               # Flame — pares
+    ├── memory/               # Flame — pares (memory_config.dart + memory_game.dart)
     └── tap_rush/             # ⭐ Referência Flame (copiar estrutura)
         ├── tap_rush_game.dart
         ├── tap_rush_config.dart
@@ -102,6 +106,62 @@ test/
 6. **GameResult** — incluir `metadata` útil (hits, misses, maxCombo).
 7. **Testes** — scoring e curva de dificuldade em `test/games/`.
 8. **UI compartilhada** — AppBar e placar final em `core/game_sdk/widgets/` (`GameSessionAppBar`, `GameResultDialog`); não duplicar por jogo.
+9. **Tela de preparação** — opções de dificuldade + ajuda via `GamePrepDefinition` (ver seção abaixo).
+
+---
+
+## Tela de preparação (Game Prep)
+
+Fluxo ao tocar em um jogo no catálogo:
+
+```
+Home → GamePrepScreen (se game.prep != null) → GameRunnerScreen
+     → GameRunnerScreen direto (se game.prep == null)
+```
+
+### Arquivos
+
+| Arquivo | Responsabilidade |
+|---|---|
+| `game_prep.dart` | Modelos: `GamePrepDefinition`, `GamePrepOptionGroup`, `GameHelpContent` |
+| `game_session_config.dart` | Valores escolhidos (`Map` tipado via `.value(key, fallback)`) |
+| `game_prep_screen.dart` | UI: `GameCatalogHero`, painéis de opção, botão JOGAR |
+| `widgets/game_help_dialog.dart` | Modal bottom sheet: como jogar + pontuação |
+
+### Contrato `HubGame`
+
+```dart
+abstract class HubGame {
+  GameMetadata get metadata;
+  GamePrepDefinition? get prep => null;  // null = sem tela intermediária
+  Widget buildGame(context, callbacks, {GameSessionConfig config});
+}
+```
+
+### Quando usar opções
+
+| Jogo | `optionKey` | Escolhas |
+|---|---|---|
+| Memória | `MemoryConfig.optionKeyPairCount` | 8 / 12 / 16 cartas (4 / 6 / 8 pares) |
+| Tap Rush | `TapRushConfig.optionKeyDurationSec` | 15 / 30 / 60 s |
+
+Regras de pontuação ficam em `GameHelpContent.scoring` (modal **?**) — **não** repetir no ranking.
+
+### Ao adicionar jogo novo com prep
+
+1. Definir constantes de opção em `*_config.dart`.
+2. Sobrescrever `prep` no `HubGame` com textos PT-BR.
+3. Ler `config.value(optionKey, default)` em `buildGame`.
+4. Manter defaults iguais ao valor `defaultIndex` do grupo.
+
+### UI da prep (`GamePrepScreen`)
+
+- **Hero:** `GameCatalogHero` — mesma arte vetorial do catálogo (`GameCardArt`), nunca emoji solto.
+- **Opções:** painel branco + tiles em `Row` (largura igual); selecionado = cor do jogo + ✓.
+- **Ajuda:** ícone **?** no topo → `showGameHelpDialog` (como jogar + pontuação).
+- **JOGAR:** botão fixo no rodapé; navega com `pushReplacement` para `GameRunnerScreen`.
+
+**Importante:** jogos que usam `implements HubGame` devem sobrescrever `prep` explicitamente (default `=> null` só vale com `extends`).
 
 ---
 
@@ -125,7 +185,7 @@ Todo jogo no catálogo **deve** seguir:
 1. **Container** — cantos `22px`, borda branca **4px**, cor de fundo única por jogo.
 2. **Título** — canto superior esquerdo, **CAIXA ALTA**, bold, branco; vinheta leve no topo (~64px).
 3. **Linha decorativa** — barra curta colorida abaixo do título (cor `accentColor`, largura proporcional à 1ª palavra).
-4. **Ilustração** — vetorial em `game_card_art.dart` (`CustomPaint`), **full-bleed** no card (Stack `fit: expand`). Arte centralizada com bolhas decorativas no fundo — **não** colocar PNG pequeno em `BoxFit.contain` (fica “caixa colada” com espaço vazio).
+4. **Ilustração** — vetorial em `core/theme/game_card_art.dart` (`CustomPaint` + `GameCatalogHero`), **full-bleed** no card (Stack `fit: expand`). Arte centralizada com bolhas decorativas no fundo — **não** colocar PNG pequeno em `BoxFit.contain` (fica “caixa colada” com espaço vazio).
 5. **Badge "NOVO!"** — vermelho, canto superior direito, só se `metadata.featured == true`.
 6. **Feedback** — `AnimatedScale(0.96)` no toque; card inteiro é clicável.
 7. **Cores por jogo** — registrar em `HubTheme._themes` em `core/theme/hub_theme.dart` (não hardcodar no card).
@@ -148,19 +208,44 @@ Todo jogo no catálogo **deve** seguir:
 
 1. Registrar em `registerBundledGames()`.
 2. Adicionar entrada em `HubTheme._themes` com `cardColor` + `accentColor`.
-3. Implementar arte em `game_card_art.dart` (CustomPaint) — ver jogos existentes.
+3. Implementar arte em `core/theme/game_card_art.dart` (CustomPaint) — ver jogos existentes.
 4. Escolher emoji forte para fallback genérico.
 
 ### Arquivos do hub
 
 ```
+lib/core/theme/game_card_art.dart
 lib/core/theme/hub_theme.dart
 lib/features/home/widgets/hub_header.dart
 lib/features/home/widgets/game_card.dart
-lib/features/home/widgets/game_card_art.dart
 lib/features/home/widgets/daily_reward_banner.dart
 lib/features/home/home_screen.dart
+lib/features/leaderboard/leaderboard_screen.dart
 ```
+
+---
+
+## Ranking local
+
+Melhor score **por jogo** (`LeaderboardRepository.getAllBest()`), persistido em `shared_preferences`.
+
+### Comportamento
+
+- `GameRunnerScreen` chama `submitScore` ao fim da partida.
+- Aba Ranking usa `IndexedStack` — **recarregar** quando a aba fica ativa (`LeaderboardScreen(isActive: …)`).
+- Pull-to-refresh disponível.
+- Regras de pontuação **não** aparecem na lista — só no modal **?** da prep.
+
+### Pontuação — Memória (`memory_config.dart`)
+
+| Componente | Valor |
+|---|---|
+| Base | 150 pts / par |
+| Penalidade | −10 pts / jogada |
+| Bônus tempo | até 200 pts (decai 4 pts/s) |
+| Partida perfeita | +100 pts (mínimo de jogadas) |
+
+Grid adapta ao nº de pares (4 → 4×2, 6 → 4×3, 8 → 4×4).
 
 ---
 
@@ -195,7 +280,8 @@ Agentes **não veem** o Chrome do usuário em tempo real. Para revisar layout/co
 Todo jogo implementa `HubGame`:
 
 - `GameMetadata metadata` — id, título, categoria, ícone
-- `Widget buildGame(BuildContext, GameSessionCallbacks)` — UI do jogo
+- `GamePrepDefinition? prep` — tela intermediária (opções + ajuda); `null` se não aplicável
+- `Widget buildGame(BuildContext, GameSessionCallbacks, {GameSessionConfig config})` — UI do jogo
 
 Callbacks que o jogo **deve** usar:
 
@@ -269,10 +355,13 @@ Emulador recomendado: **Pixel 6a**, API 34, x86_64, **sem** imagem 16KB.
 - [x] Golden tests da Home (mobile + tablet) — `test/goldens/*.png`
 - [x] AdMob stub (`kAdsConfigured = false`; ID de teste no AndroidManifest)
 - [x] Game Runner integrado com economia (moedas/XP ao terminar + opção “dobrar moedas”)
-- [x] Testes: **12** passando (widget + unit + golden)
+- [x] Testes: **15** passando (widget + unit + golden + memory_config)
+- [x] Tela de prep (dificuldade + ajuda) — Memória (cartas) e Tap Rush (tempo)
+- [x] Ranking estilizado + refresh ao abrir aba
+- [x] Regras de pontuação da Memória em `memory_config.dart`
 - [ ] Beta fechado Play Store — **ação manual do usuário**
 
-**Decisões Fase 1:** Provider + `shared_preferences` para perfil/ranking local; Flame para jogos; ads/Firebase permanecem stub até credenciais reais.
+**Decisões Fase 1:** Provider + `shared_preferences` para perfil/ranking local; Flame para jogos; ads/Firebase permanecem stub até credenciais reais. Pós-F1: prep screen, `GameCatalogHero` compartilhado, ranking com reload na aba.
 
 ### Fase 2 — Lançamento Android ⏳
 
@@ -312,3 +401,7 @@ Ver `PLANO.md`.
 | Pós-F1 | Hub grid 2 colunas + HubTheme | Referência visual de app casual; Tap Rush = ref. gameplay |
 | Pós-F1 | Arte de card em CustomPaint (não PNG IA) | PNG com checkerboard/`contain` quebrava layout |
 | Pós-F1 | Golden tests Home (390×844, 768×1024) | Agentes revisam UI lendo `test/goldens/*.png` |
+| Pós-F1 | `GamePrepScreen` + `GameSessionConfig` | Dificuldade/tempo antes da partida; ajuda no modal ? |
+| Pós-F1 | `GameCatalogHero` em `core/theme/game_card_art.dart` | Mesma arte no catálogo e na prep |
+| Pós-F1 | Ranking reload na aba (`isActive`) | IndexedStack não remonta filhos ao voltar do jogo |
+| Pós-F1 | Scoring Memória em `memory_config.dart` | Testável sem Flame; prep explica regras |

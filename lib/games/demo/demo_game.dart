@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../core/game_sdk/game_metadata.dart';
 import '../../core/game_sdk/game_result.dart';
 import '../../core/game_sdk/game_session_callbacks.dart';
+import '../../core/game_sdk/game_prep.dart';
+import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
 
 /// Jogo de demonstração da Fase 0 — toque para pontuar.
@@ -20,7 +22,14 @@ class DemoGame implements HubGame {
       );
 
   @override
-  Widget buildGame(BuildContext context, GameSessionCallbacks callbacks) {
+  GamePrepDefinition? get prep => null;
+
+  @override
+  Widget buildGame(
+    BuildContext context,
+    GameSessionCallbacks callbacks, {
+    GameSessionConfig config = const GameSessionConfig(),
+  }) {
     return _DemoGameView(callbacks: callbacks);
   }
 }
