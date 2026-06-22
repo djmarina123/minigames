@@ -79,6 +79,35 @@ lib/
     └── demo/              # jogo de exemplo
 ```
 
-## Próxima fase (Fase 1)
+## GitHub
+
+Repositório remoto: **https://github.com/djmarina123/minigames**
+
+### Autenticação (faça uma vez)
+
+A chave SSH desta máquina ainda **não está** no GitHub. Adicione:
+
+1. Copie a chave pública:
+
+```bash
+cat ~/.ssh/id_rsa.pub
+```
+
+2. No GitHub: **Settings → SSH and GPG keys → New SSH key** → cole e salve.
+
+3. Teste e envie o código:
+
+```bash
+ssh -T git@github.com
+cd /home/marina/projetos/minigames
+git push -u origin main
+```
+
+**Alternativa (HTTPS + token):** crie um [Personal Access Token](https://github.com/settings/tokens) e use como senha no push.
+
+### CI
+
+O workflow `.github/workflows/ci.yml` roda `flutter analyze` e `flutter test` em cada push/PR para `main`.
+
 
 Ver [PLANO.md](PLANO.md) — casca completa, 2 jogos Flame, moedas, ranking e AdMob.
