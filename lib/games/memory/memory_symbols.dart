@@ -1,8 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:flutter/material.dart' show Colors;
-
 /// Identificadores dos pares — ícones vetoriais desenhados na frente da carta.
 enum MemorySymbolId {
   gamepad,
