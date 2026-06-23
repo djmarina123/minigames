@@ -89,6 +89,10 @@ lib/
     │   ├── memory_config.dart
     │   ├── memory_game.dart
     │   └── components/       # memory_card.dart, memory_fx.dart
+    ├── game_2048/            # puzzle — HUD em 3 colunas com TextPainter seguro
+    │   ├── game_2048_config.dart
+    │   ├── game_2048_game.dart
+    │   └── components/       # game_2048_fx.dart
     └── tap_rush/             # ⭐ Referência gameplay arcade (copiar loop/fases)
         ├── tap_rush_game.dart
         ├── tap_rush_config.dart
@@ -148,24 +152,31 @@ Todo jogo Flame novo deve atingir o **mesmo nível de polish** de **Tap Rush** (
 
 #### HUD in-game (obrigatório)
 
-11. **Barra compacta** abaixo da `GameSessionAppBar` (~48–56 px reservados no topo do canvas Flame).
+11. **Barra compacta** abaixo da `GameSessionAppBar` (~48–56 px reservados no topo do canvas Flame). O tabuleiro começa **depois** dessa faixa (`_hudHeight` + margem) — nunca sobrepor stats ao grid.
 12. **Mostrar o que afeta o score** — se a regra usa tempo, jogadas, combo ou progresso, o jogador **vê** isso ao vivo (não só no modal **?** nem só no placar final).
 13. **Preview de bônus** — se houver bônus decrescente (ex.: tempo), exibir valor ou barra restante (padrão Memória: `+160 tempo` + barra).
 14. **Pintar HUD em `render()`** — após `super.render()`, texto via `TextPainter`; cores `hudText` / `hudMuted` definidas no config.
+15. **Layout seguro (sem texto cortado)** — ao usar `TextPainter` no HUD:
+    - **Esquerda:** `pos.dx` = borda esquerda do texto (`paint` em `pos.dx`, não `pos.dx - width`).
+    - **Direita:** `pos.dx` = borda direita (`paint` em `pos.dx - width`).
+    - **Centro:** `pos.dx - width / 2`.
+    - Margem horizontal mínima **16 px** da borda do canvas; em 3 colunas, dividir `(size.x - 2×margem) / 3` e passar `maxWidth` + `ellipsis` em cada coluna.
+    - Validar em viewport **390 px** de largura (mobile) — nenhum label pode sair da tela.
+    - Preferir textos curtos no HUD (`Deslize p/ jogar` em vez de frases longas).
 
 #### Feedback e animação (obrigatório)
 
-15. **Acerto** — FX positivo mínimo: label flutuante (`+pts`) e/ou burst/partículas no ponto de interação.
-16. **Erro** — FX negativo mínimo: shake, flash de tela suave ou label (“Errou!”, “Tente de novo”).
-17. **Transições** — evitar mudanças instantâneas de estado visual; animar no `update(dt)` dos componentes (flip, scale, fade).
-18. **Bloqueio de input** durante animações críticas (`_lockInput`, `isFlipSettled`, etc.).
+16. **Acerto** — FX positivo mínimo: label flutuante (`+pts`) e/ou burst/partículas no ponto de interação.
+17. **Erro** — FX negativo mínimo: shake, flash de tela suave ou label (“Errou!”, “Tente de novo”).
+18. **Transições** — evitar mudanças instantâneas de estado visual; animar no `update(dt)` dos componentes (flip, scale, fade).
+19. **Bloqueio de input** durante animações críticas (`_lockInput`, `isFlipSettled`, etc.).
 
 #### Prep, scoring e testes
 
-19. **`GamePrepDefinition`** — opções de dificuldade + `GameHelpContent` (como jogar + pontuação em PT-BR).
-20. **Scoring em funções puras** — `progressScore`, `finalScore`, previews do HUD em `*_config.dart`.
-21. **Testes unitários** — cobrir scoring, penalidades, bônus e helpers de formatação em `test/games/`.
-22. **UI compartilhada** — `GameSessionAppBar` e `GameResultDialog` usam `GameCatalogThumbnail` (mesma arte do catálogo); estender `_GameResultStats` se o jogo tiver stats novas.
+20. **`GamePrepDefinition`** — opções de dificuldade + `GameHelpContent` (como jogar + pontuação em PT-BR).
+21. **Scoring em funções puras** — `progressScore`, `finalScore`, previews do HUD em `*_config.dart`.
+22. **Testes unitários** — cobrir scoring, penalidades, bônus e helpers de formatação em `test/games/`.
+23. **UI compartilhada** — `GameSessionAppBar` e `GameResultDialog` usam `GameCatalogThumbnail` (mesma arte do catálogo); estender `_GameResultStats` se o jogo tiver stats novas.
 
 ### Padrões por referência
 
@@ -188,6 +199,7 @@ Todo jogo Flame novo deve atingir o **mesmo nível de polish** de **Tap Rush** (
 
 - Fundo cinza/azul genérico sem relação com o card do catálogo.
 - Placar só na AppBar — jogador não entende **por que** o score muda.
+- **HUD com texto cortado** — `TextPainter` tratando borda esquerda como direita (`pos.dx - width` para coluna esquerda); sempre testar em 390 px.
 - Estado visual que “teleporta” (carta vira sem animação, alvo some seco).
 - Cores hardcoded espalhadas no `render()` — centralizar no config.
 - Regras de pontuação só no código ou só no help — duplicar: funções testáveis + texto na prep.
