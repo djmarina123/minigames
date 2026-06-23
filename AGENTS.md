@@ -67,12 +67,20 @@ lib/
 │   └── games.dart            # registerBundledGames()
 ├── app.dart                  # MaterialApp
 ├── core/
+│   ├── economy/              # moedas, XP, nível, recompensa de sessão (testável)
+│   │   ├── economy_config.dart
+│   │   ├── economy_copy.dart
+│   │   ├── economy_help_dialog.dart
+│   │   ├── level_curve.dart
+│   │   ├── performance_tier.dart
+│   │   └── session_rewards.dart
 │   ├── firebase/             # bootstrap stub
 │   ├── ads/                  # AdMob stub (Fase 1+)
 │   ├── game_sdk/             # HubGame, registry, prep, runner, widgets
 │   │   ├── game_prep.dart
 │   │   ├── game_prep_screen.dart
 │   │   ├── game_session_config.dart
+│   │   ├── game_session_hud_actions.dart  # barra de botões (dica paga, undo…)
 │   │   └── widgets/          # GameSessionAppBar, GameResultDialog, game_help_dialog
 │   ├── models/               # PlayerProfile, LeaderboardEntry
 │   ├── storage/              # PlayerRepository (shared_preferences)
@@ -85,18 +93,14 @@ lib/
 │   └── profile/              # stats com HubTheme.background
 └── games/
     ├── demo/                 # Demo Tap (legado — fora do catálogo público)
-    ├── memory/               # ⭐ Referência visual + HUD + scoring (copiar polish)
-    │   ├── memory_config.dart
-    │   ├── memory_game.dart
-    │   └── components/       # memory_card.dart, memory_fx.dart
-    ├── game_2048/            # puzzle — HUD em 3 colunas com TextPainter seguro
-    │   ├── game_2048_config.dart
-    │   ├── game_2048_game.dart
-    │   └── components/       # game_2048_fx.dart
-    └── tap_rush/             # ⭐ Referência gameplay arcade (copiar loop/fases)
-        ├── tap_rush_game.dart
-        ├── tap_rush_config.dart
-        └── components/       # alvo, HitBurst, FloatingLabel
+    ├── memory/               # ⭐ Referência visual + HUD + scoring
+    ├── tap_rush/             # ⭐ Referência gameplay arcade
+    ├── game_2048/
+    ├── infinite_runner/
+    ├── solitaire/            # dica paga via GameSessionHudActionBar
+    ├── snake/
+    ├── domino/
+    └── sudoku/               # dica paga via GameSessionHudActionBar
 
 assets/
 └── branding/
@@ -106,8 +110,8 @@ test/
 ├── golden/                   # golden tests (Home mobile + tablet)
 ├── goldens/                  # PNGs de referência — commitar no git
 ├── helpers/                  # test_app.dart, mock_game.dart, load_test_fonts.dart
-├── games/                    # testes de scoring/config
-└── core/                     # registry, player/leaderboard repos, game_runner
+├── games/                    # testes de scoring/config + performanceTier
+└── core/                     # registry, repos, economy, game_runner
 ```
 
 ---
@@ -140,23 +144,24 @@ Todo jogo Flame novo deve atingir o **mesmo nível de polish** de **Tap Rush** (
 2. **Estado síncrono antes do layout** — dados usados em `onGameResize`/`_buildGrid` no **construtor**, não só em `onLoad()` async (`LateInitializationError` se violar).
 3. **Timer no `update(dt)`** — tempo, animações e decaimento no loop Flame; **não** `Timer.periodic` para gameplay.
 4. **Score via callback** — `onScoreUpdate(int)` durante a partida; **nunca** `setState` no pai que recria o `GameWidget`.
-5. **`GameResult.metadata`** — stats úteis para o placar final (`moves`, `hits`, `timeBonus`, etc.).
+5. **`GameResult.metadata`** — stats úteis para o placar final (`moves`, `hits`, `timeBonus`, etc.) **e** `performanceTier` (`bronze` / `silver` / `gold`) para a economia global.
 6. **`_sessionActive`** — guardas após `await` / `onRemove` para não chamar callbacks pós-dispose.
+7. **Recompensa de sessão** — jogos **não** calculam `coinsEarned`/`xpEarned` a partir do score de ranking; o runner chama `resolveSessionReward()` em `core/economy/`.
 
 #### Visual in-game (identidade MiniPlay)
 
-7. **Paleta em `*_config.dart`** — derivar de `HubTheme._themes[gameId]` (`cardColor`, `accentColor`, `blendColor`, `accentSoft`). Mesmas cores do card do catálogo, **não** hex genérico solto (`#16213E`, etc.).
-8. **Fundo** — gradiente (`bgTop` → `bgBottom`) + detalhe decorativo leve (bolhas, como `_MemoryArt` / Tap Rush).
-9. **Elementos jogáveis** — borda branca + sombra onde fizer sentido (cartas, tiles, alvos); cantos arredondados proporcionais ao tamanho.
-10. **Usar o viewport** — evitar elemento principal minúsculo no centro com faixas vazias; calcular tamanho pelo espaço disponível **menos** área do HUD.
+8. **Paleta em `*_config.dart`** — derivar de `HubTheme._themes[gameId]` (`cardColor`, `accentColor`, `blendColor`, `accentSoft`). Mesmas cores do card do catálogo, **não** hex genérico solto (`#16213E`, etc.).
+9. **Fundo** — gradiente (`bgTop` → `bgBottom`) + detalhe decorativo leve (bolhas, como `_MemoryArt` / Tap Rush).
+10. **Elementos jogáveis** — borda branca + sombra onde fizer sentido (cartas, tiles, alvos); cantos arredondados proporcionais ao tamanho.
+11. **Usar o viewport** — evitar elemento principal minúsculo no centro com faixas vazias; calcular tamanho pelo espaço disponível **menos** área do HUD.
 
 #### HUD in-game (obrigatório)
 
-11. **Barra compacta** abaixo da `GameSessionAppBar` (~48–56 px reservados no topo do canvas Flame). O tabuleiro começa **depois** dessa faixa (`_hudHeight` + margem) — nunca sobrepor stats ao grid.
-12. **Mostrar o que afeta o score** — se a regra usa tempo, jogadas, combo ou progresso, o jogador **vê** isso ao vivo (não só no modal **?** nem só no placar final).
-13. **Preview de bônus** — se houver bônus decrescente (ex.: tempo), exibir valor ou barra restante (padrão Memória: `+160 tempo` + barra).
-14. **Pintar HUD em `render()`** — após `super.render()`, texto via `TextPainter`; cores `hudText` / `hudMuted` definidas no config.
-15. **Layout seguro (sem texto cortado)** — ao usar `TextPainter` no HUD:
+12. **Barra compacta** abaixo da `GameSessionAppBar` (~48–56 px reservados no topo do canvas Flame). O tabuleiro começa **depois** dessa faixa (`_hudHeight` + margem) — nunca sobrepor stats ao grid.
+13. **Mostrar o que afeta o score** — se a regra usa tempo, jogadas, combo ou progresso, o jogador **vê** isso ao vivo (não só no modal **?** nem só no placar final).
+14. **Preview de bônus** — se houver bônus decrescente (ex.: tempo), exibir valor ou barra restante (padrão Memória: `+160 tempo` + barra).
+15. **Pintar HUD em `render()`** — após `super.render()`, texto via `TextPainter`; cores `hudText` / `hudMuted` definidas no config.
+16. **Layout seguro (sem texto cortado)** — ao usar `TextPainter` no HUD:
     - **Esquerda:** `pos.dx` = borda esquerda do texto (`paint` em `pos.dx`, não `pos.dx - width`).
     - **Direita:** `pos.dx` = borda direita (`paint` em `pos.dx - width`).
     - **Centro:** `pos.dx - width / 2`.
@@ -166,17 +171,18 @@ Todo jogo Flame novo deve atingir o **mesmo nível de polish** de **Tap Rush** (
 
 #### Feedback e animação (obrigatório)
 
-16. **Acerto** — FX positivo mínimo: label flutuante (`+pts`) e/ou burst/partículas no ponto de interação.
-17. **Erro** — FX negativo mínimo: shake, flash de tela suave ou label (“Errou!”, “Tente de novo”).
-18. **Transições** — evitar mudanças instantâneas de estado visual; animar no `update(dt)` dos componentes (flip, scale, fade).
-19. **Bloqueio de input** durante animações críticas (`_lockInput`, `isFlipSettled`, etc.).
+17. **Acerto** — FX positivo mínimo: label flutuante (`+pts`) e/ou burst/partículas no ponto de interação.
+18. **Erro** — FX negativo mínimo: shake, flash de tela suave ou label (“Errou!”, “Tente de novo”).
+19. **Transições** — evitar mudanças instantâneas de estado visual; animar no `update(dt)` dos componentes (flip, scale, fade).
+20. **Bloqueio de input** durante animações críticas (`_lockInput`, `isFlipSettled`, etc.).
 
 #### Prep, scoring e testes
 
-20. **`GamePrepDefinition`** — opções de dificuldade + `GameHelpContent` (como jogar + pontuação em PT-BR).
-21. **Scoring em funções puras** — `progressScore`, `finalScore`, previews do HUD em `*_config.dart`.
-22. **Testes unitários** — cobrir scoring, penalidades, bônus e helpers de formatação em `test/games/`.
-23. **UI compartilhada** — `GameSessionAppBar` e `GameResultDialog` usam `GameCatalogThumbnail` (mesma arte do catálogo); estender `_GameResultStats` se o jogo tiver stats novas.
+21. **`GamePrepDefinition`** — opções de dificuldade + `GameHelpContent` (como jogar + pontuação em PT-BR).
+22. **Scoring em funções puras** — `progressScore`, `finalScore`, previews do HUD em `*_config.dart`; `*PerformanceTier()` para economia.
+23. **Testes unitários** — cobrir scoring, penalidades, bônus e helpers de formatação em `test/games/`.
+24. **UI compartilhada** — `GameSessionAppBar` e `GameResultDialog` usam `GameCatalogThumbnail` (mesma arte do catálogo); estender `_GameResultStats` se o jogo tiver stats novas.
+25. **Dicas pagas** — usar `GameSessionHudAction(coinCost: …)` + `callbacks.trySpendCoins`; custos em `EconomyConfig`, não hardcoded no `render()`.
 
 ### Padrões por referência
 
@@ -203,6 +209,7 @@ Todo jogo Flame novo deve atingir o **mesmo nível de polish** de **Tap Rush** (
 - Estado visual que “teleporta” (carta vira sem animação, alvo some seco).
 - Cores hardcoded espalhadas no `render()` — centralizar no config.
 - Regras de pontuação só no código ou só no help — duplicar: funções testáveis + texto na prep.
+- **`coinsEarned` / `xpEarned` derivados do score de ranking** — score é para leaderboard; economia usa `performanceTier` + `session_rewards.dart`.
 
 ---
 
@@ -270,7 +277,7 @@ Referência: apps de minijogos casuais com **grid colorido 2 colunas**, fundo cr
 | Zona | Regra |
 |---|---|
 | **Fundo** | Creme `#F5F0E8` (`HubTheme.background`) |
-| **Header** | Menu (drawer) · pill de moedas · botão "REMOVER ADS" |
+| **Header** | Menu (drawer) · pill de **nível** (anel de progresso, toque → Perfil) · pill de **moedas** · ícone remover ads |
 | **Grid** | 2 colunas, `childAspectRatio: 0.92`, spacing 14px, padding 16px |
 | **Nav secundária** | Bottom nav (Jogos / Ranking / Perfil) + drawer pelo menu |
 
@@ -313,6 +320,10 @@ Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep, rankin
 | `background` | Fundo creme do hub |
 | `textPrimary` / `textSecondary` | Títulos e corpo (header, ranking, perfil, prep, ajuda) |
 | `featuredBadge` | Badge "NOVO!" nos cards |
+| `coinGold` | Moedas — pill, dicas, barra de XP no perfil |
+| `coinIcon` | Ícone padrão de moeda (`Icons.monetization_on_rounded`) — **único** em todo o hub |
+| `levelIcon` | Ícone de XP/nível (`Icons.star_rounded`) |
+| `levelPillBg` | Fundo do pill de nível no header |
 | `cardColor` + `accentColor` | Por jogo em `HubTheme._themes` |
 | `blendColor` / `accentSoft` | Derivados em `HubGameTheme` — detalhes da arte vetorial |
 | `hubUnderlineWidth(titleLead)` | Largura da barra decorativa (proporcional à 1ª palavra do título) |
@@ -321,9 +332,10 @@ Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep, rankin
 
 ### Header (`HubHeader`)
 
-- Moedas vêm de `PlayerRepository.profile.coins` (Provider).
-- Botão ads: stub até IAP Fase 2; nunca bloquear navegação.
-- Recompensa diária: banner compacto abaixo do header (`DailyRewardBanner`), não `MaterialBanner` full-width.
+- **Nível:** anel circular com progresso de XP + número; toque navega para aba Perfil (`onProfileTap` no `MainShell`).
+- **Moedas:** `PlayerRepository.profile.coins` (Provider); ícone `HubTheme.coinIcon`.
+- **Remover ads:** ícone compacto (tooltip); stub até IAP Fase 2 — nunca bloquear navegação.
+- Recompensa diária: banner compacto abaixo do header (`DailyRewardBanner`) com valor previsto (`dailyRewardAmount`); não `MaterialBanner` full-width.
 
 ### Ao adicionar jogo novo
 
@@ -338,12 +350,14 @@ Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep, rankin
 ### Arquivos do hub
 
 ```
+lib/core/economy/
 lib/core/theme/game_card_art.dart
 lib/core/theme/hub_theme.dart
 lib/features/home/widgets/hub_header.dart
 lib/features/home/widgets/game_card.dart
 lib/features/home/widgets/daily_reward_banner.dart
 lib/features/home/home_screen.dart
+lib/features/profile/profile_screen.dart
 lib/features/leaderboard/leaderboard_screen.dart
 ```
 
@@ -423,26 +437,66 @@ Callbacks que o jogo **deve** usar:
 
 | Callback | Quando |
 |---|---|
-| `onScoreUpdate(int)` | Durante a partida |
-| `onGameOver(GameResult)` | Fim da partida (score, moedas, xp) |
-| `onRewardEarned(type, amount)` | Recompensa mid-game (ex.: ad) |
+| `onScoreUpdate(int)` | Durante a partida (score de **ranking**) |
+| `onGameOver(GameResult)` | Fim da partida — incluir `metadata['performanceTier']` |
+| `onRewardEarned(type, amount)` | Recompensa mid-game (ex.: ad) — reservado |
 | `onExit()` | Jogador desiste |
+| `trySpendCoins(amount)` | Gasto mid-game (dicas Sudoku/Paciência) — retorna `false` se saldo insuficiente |
+| `currentCoins()` | Saldo atual para habilitar botões pagos no HUD |
 
-**Importante:** o `GameRunnerScreen` instancia o jogo **uma única vez**. Atualizar placar usa `ValueNotifier` — **nunca** `setState` no widget pai que recria o `GameWidget`, senão Flame reseta (timer volta a 15 s, memória embaralha de novo).
+**Importante:** o `GameRunnerScreen` resolve moedas/XP via `resolveSessionReward()` **antes** de `recordGameSession`. O jogo **uma única vez** — placar usa `ValueNotifier`; **nunca** `setState` no pai que recria o `GameWidget`.
 
 Registrar em `registerBundledGames()` (`lib/bootstrap/games.dart`).
 
 ---
 
-## Economia do jogador (`PlayerRepository`)
+## Economia do jogador
 
-| Método | Uso |
+### Separação score vs. recompensa
+
+| Sistema | Fonte | Uso |
+|---|---|---|
+| **Score** | Regras do jogo em `*_config.dart` | Ranking local (`LeaderboardRepository`) |
+| **Moedas / XP** | `core/economy/session_rewards.dart` | Perfil, dicas, level up |
+
+Cada jogo define `*PerformanceTier()` em `*_config.dart` e grava `performanceTier` no `GameResult.metadata`. O `GameRunnerScreen` combina tier + recorde + primeira partida do dia.
+
+### `PlayerRepository`
+
+| Método / getter | Uso |
 |---|---|
-| `recordGameSession(coins, xp)` | Fim de partida — incrementa moedas, XP **e** `gamesPlayed` |
-| `addBonusCoins(amount)` | Anúncio rewarded, bônus mid-game — **não** conta partida |
+| `recordGameSession(coins, xp)` | Fim de partida — moedas, XP, `gamesPlayed`, bônus de level up |
+| `addBonusCoins(amount)` | Anúncio “dobrar moedas” — **não** conta partida |
+| `trySpendCoins(amount)` | Dicas pagas mid-game — **não** conta partida |
 | `claimDailyReward()` | Banner de recompensa diária |
+| `isFirstGameToday` | Bônus de XP na primeira partida do dia civil |
+| `dailyRewardAmount` / `nextDailyStreak` | Preview no banner |
 
-`GameRunnerScreen` usa `recordGameSession` no `onGameOver` e `addBonusCoins` no fluxo “Dobrar moedas”.
+Saldo inicial: **`EconomyConfig.startingCoins` (50)** — perfis sem partidas com menos moedas recebem no `load()`.
+
+### Constantes (`EconomyConfig`)
+
+| Item | Valor |
+|---|---|
+| Moedas por partida | 8 base + bônus tier (+4 prata, +8 ouro) + 10 recorde — **cap 20** |
+| XP por partida | 20 base + bônus tier (+5/+10) + 15 recorde + 10 1ª do dia — **cap 45** |
+| Daily | 15 + 3 × streak (cap 30 dias → 105 moedas) |
+| Dica Sudoku | 25 moedas (`sudokuHintPaid` — sem penalidade de score) |
+| Dica Paciência | 20 moedas (destaca jogada válida) |
+| Level up | +`(10 + nível)` moedas por nível ganho |
+
+Curva de nível: `level_curve.dart` — quadrática (`nível 2` = 100 XP total).
+
+### UI da economia
+
+| Onde | O quê |
+|---|---|
+| Header | Pill de nível (anel) + pill de moedas |
+| Perfil | Hero com barra XP, card “Moedas e XP”, tile XP total, **?** → `showEconomyHelpDialog` |
+| Placar final | Colunas moedas + “XP nível”; banner “Nível up!” com moedas bônus |
+| HUD dica | `GameSessionHudAction.coinCost` — ícone + número em dourado |
+
+Textos PT-BR centralizados em `economy_copy.dart`.
 
 Persistência defensiva: JSON inválido em `load()` cai para perfil default (não derruba o app).
 
@@ -453,7 +507,7 @@ Persistência defensiva: JSON inválido em `load()` cai para perfil default (nã
 `GameRegistry.instance.resetForTesting()` em `setUp`/`tearDown` — evita vazamento entre arquivos.
 `test/helpers/test_app.dart` centraliza providers + `registerBundledGames()`.
 
-**Jogos Flame:** todo jogo com scoring não-trivial deve ter `test/games/<jogo>_config_test.dart` (funções puras de `*_config.dart` — scoring, penalidades, previews de HUD). Não exige golden por jogo; goldens ficam no hub (`test/golden/`).
+**Jogos Flame:** todo jogo com scoring não-trivial deve ter `test/games/<jogo>_config_test.dart` (scoring, tiers, helpers do HUD). Economia global: `test/core/session_rewards_test.dart`, `level_curve_test.dart`, `economy_copy_test.dart`. Goldens ficam no hub (`test/golden/`).
 
 ## Convenções de código
 
@@ -544,7 +598,10 @@ Emulador recomendado: **Pixel 6a**, API 34, x86_64, **sem** imagem 16KB.
 Ver `PLANO.md`.
 
 - [x] Rebrand **MiniPlay**: nome na UI, `applicationId`/`bundleId` `com.miniplay.games`, ícones Android/iOS/web
-- [ ] +2/3 jogos novos, conquistas, missões diárias
+- [x] Catálogo expandido: **2048**, **Runner**, **Paciência**, **Snake**, **Dominó**, **Sudoku** (8 jogos públicos)
+- [x] Economia centralizada (`core/economy/`) — moedas/XP desacoplados do score; nível no header; dicas pagas; moedas iniciais
+- [ ] Conquistas, missões diárias
+- [ ] Mais sinks de moedas (continue Runner/Snake, cosméticos)
 - [ ] IAP (remover ads + moedas), FCM, Remote Config
 - [ ] ASO completo e lançamento público Play Store
 
@@ -563,8 +620,11 @@ Ver `PLANO.md`.
 - Firebase não configurado — auth/ranking na nuvem pendente.
 - AdMob não configurado — IDs de teste prontos para quando ativar.
 - Memória: countdown / modo “Memorizar” na prep — opcional; restante do polish concluído.
-- Novos jogos Fase 2: seguir checklist **Jogos referência**; Tap Rush ainda pode receber alinhamento de paleta ao hub (`HubTheme`).
+- Tap Rush ainda pode receber alinhamento de paleta ao hub (`HubTheme`).
 - `GameRunnerScreen` ainda acopla ads/economia — extrair `SessionResultHandler` na Fase 2.
+- `onRewardEarned` nos callbacks ainda sem uso real.
+- Sinks de moedas: só Sudoku + Paciência; faltam continue (Runner/Snake), Memória, cosméticos.
+- Header mobile 390px: botão ads só ícone — texto “REMOVER ADS” removido por espaço; restaurar em tablet se desejado.
 - Emulador ainda pode usar imagem API 37 16KB — trocar para API 34 se travar.
 - KVM: usuário pode precisar de `sudo usermod -aG kvm $USER` + relogin.
 
@@ -602,3 +662,8 @@ Ver `PLANO.md`.
 | Pós-polish | `GameSessionAppBar` + `GameResultDialog` com `GameCatalogThumbnail` | Mesma arte vetorial do catálogo; sem emoji solto na sessão de jogo |
 | Pós-polish | HUD in-game obrigatório | Jogador vê regras de score ao vivo; AppBar não basta |
 | Pós-polish | FX mínimo acerto/erro + animações no `update(dt)` | Evita sensação de protótipo |
+| Fase 2 econ. | `core/economy/` — score ≠ moedas/XP | Ranking e progressão com regras distintas |
+| Fase 2 econ. | `performanceTier` por jogo em `*_config.dart` | Recompensa testável e consistente entre jogos |
+| Fase 2 econ. | `HubTheme.coinIcon` / `levelIcon` | Ícones únicos de moeda e XP em todo o hub |
+| Fase 2 econ. | Dicas pagas via `trySpendCoins` + `coinCost` no HUD | Primeiro sink de moedas com custo visível no botão |
+| Fase 2 econ. | `showEconomyHelpDialog` no Perfil | Jogador entende loop moedas → XP → nível |
