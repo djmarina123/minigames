@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'memory_symbols.dart';
+
 /// Constantes e regras de pontuação do Jogo da Memória.
 abstract final class MemoryConfig {
   static const optionKeyPairCount = 'pairCount';
@@ -39,14 +41,15 @@ abstract final class MemoryConfig {
   static const matchSettleSec = 0.28;
 
   static const symbolPool = [
-    '🎮',
-    '🎯',
-    '🎲',
-    '🎪',
-    '🎨',
-    '🎭',
-    '🎸',
-    '🚀',
+    MemorySymbolId.gamepad,
+    MemorySymbolId.target,
+    MemorySymbolId.dice,
+    MemorySymbolId.palette,
+    MemorySymbolId.mask,
+    MemorySymbolId.guitar,
+    MemorySymbolId.rocket,
+    MemorySymbolId.balloon,
+    MemorySymbolId.star,
   ];
 }
 

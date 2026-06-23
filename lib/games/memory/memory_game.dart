@@ -13,13 +13,14 @@ import '../../core/game_sdk/hub_game.dart';
 import 'components/memory_card.dart';
 import 'components/memory_fx.dart';
 import 'memory_config.dart';
+import 'memory_symbols.dart';
 
 class MemoryGame implements HubGame {
   @override
   GameMetadata get metadata => const GameMetadata(
         id: 'memory',
         title: 'Jogo da Memória',
-        description: 'Encontre todos os pares de emoji.',
+        description: 'Encontre todos os pares de ícones.',
         category: 'Puzzle',
         icon: '🧠',
         featured: false,
@@ -77,7 +78,7 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
 
   final GameSessionCallbacks callbacks;
   final int pairCount;
-  final List<String> _symbols;
+  final List<MemorySymbolId> _symbols;
 
   final _random = Random();
   late DateTime _startedAt;
@@ -145,7 +146,7 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
       final row = i ~/ cols;
       add(
         MemoryCard(
-          symbol: deck[i],
+          symbolId: deck[i],
           position: Vector2(
             offsetX + col * (cardSize + gap),
             offsetY + row * (cardSize + gap),
@@ -183,7 +184,7 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
     await _waitForFlip(_firstPick!, _secondPick!);
     if (!_sessionActive || _finished) return;
 
-    if (_firstPick!.symbol == _secondPick!.symbol) {
+    if (_firstPick!.symbolId == _secondPick!.symbolId) {
       await _handleMatch();
     } else {
       await _handleMismatch();

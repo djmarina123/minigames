@@ -5,17 +5,18 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
 import '../memory_config.dart';
+import '../memory_symbols.dart';
 
 /// Carta do Jogo da Memória — flip animado, estilo hub.
 class MemoryCard extends PositionComponent with TapCallbacks {
   MemoryCard({
-    required this.symbol,
+    required this.symbolId,
     required super.position,
     required super.size,
     required this.onTap,
   });
 
-  final String symbol;
+  final MemorySymbolId symbolId;
   final Future<void> Function(MemoryCard) onTap;
 
   bool isFaceUp = false;
@@ -164,21 +165,7 @@ class MemoryCard extends PositionComponent with TapCallbacks {
   }
 
   void _paintCardFront(Canvas canvas, Rect rect) {
-    final fontSize = size.x * 0.44;
-    final painter = TextPainter(
-      text: TextSpan(
-        text: symbol,
-        style: TextStyle(fontSize: fontSize),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    painter.paint(
-      canvas,
-      Offset(
-        (size.x - painter.width) / 2,
-        (size.y - painter.height) / 2,
-      ),
-    );
+    paintMemorySymbol(canvas, rect, symbolId);
   }
 
   @override
