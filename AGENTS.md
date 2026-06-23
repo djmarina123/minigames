@@ -544,7 +544,7 @@ Persistência defensiva: JSON inválido em `load()` cai para perfil default (nã
 4. **Persistência local no MVP** — ranking e perfil em `shared_preferences`; migrar para Firestore na Fase 2+.
 5. **Testes** — unit/widget/golden; rodar `flutter test` antes de encerrar tarefa. Jogo Flame novo: incluir `test/games/*_config_test.dart`. Após mudar UI do hub: `--update-goldens`.
 6. **Idioma UI** — PT-BR para strings visíveis ao usuário.
-7. **Commits** — só quando o usuário pedir; mensagens em português, foco no *porquê*.
+7. **Commits** — só quando o usuário pedir; mensagens em português, foco no *porquê*. Quando o usuário pedir commit, **fazer também `git push`** (o pedido de commit já autoriza o push).
 
 ---
 
