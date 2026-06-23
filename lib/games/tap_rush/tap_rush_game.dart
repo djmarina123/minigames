@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/game_sdk/game_metadata.dart';
+import '../../core/game_sdk/game_session_hud.dart';
 import '../../core/game_sdk/game_prep.dart';
 import '../../core/game_sdk/game_result.dart';
 import '../../core/game_sdk/game_session_callbacks.dart';
@@ -255,75 +256,61 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
 
   void _paintHud(Canvas canvas) {
     if (_phase == _Phase.countdown) {
-      _paintCenterText(
+      GameSessionHud.paintText(
         canvas,
         _countdownLeft.ceil().clamp(1, TapRushConfig.countdownSec).toString(),
+        Offset(size.x / 2, size.y / 2),
         72,
         TapRushConfig.hudText,
+        align: GameSessionHudAlign.center,
       );
-      _paintCenterText(canvas, 'Prepare-se...', 18, TapRushConfig.hudText.withValues(alpha: 0.7), yOffset: 50);
+      GameSessionHud.paintText(
+        canvas,
+        'Prepare-se...',
+        Offset(size.x / 2, size.y / 2 + 50),
+        18,
+        TapRushConfig.hudText.withValues(alpha: 0.7),
+        align: GameSessionHudAlign.center,
+      );
       return;
     }
 
     if (_phase == _Phase.finished) return;
 
     const barH = 8.0;
-    const margin = 16.0;
+    const margin = GameSessionHud.margin;
     final barW = size.x - margin * 2;
     final timeLeft = (durationSec - _elapsed).clamp(0.0, durationSec.toDouble());
     final ratio = timeLeft / durationSec;
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(margin, 12, barW, barH),
-        const Radius.circular(4),
+    GameSessionHud.paintProgressBar(
+      canvas,
+      Rect.fromLTWH(margin, 12, barW, barH),
+      GameSessionHudProgress(
+        ratio: ratio,
+        color: TapRushConfig.timerBar,
+        lowColor: TapRushConfig.timerBarLow,
       ),
-      Paint()..color = Colors.white.withValues(alpha: 0.15),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(margin, 12, barW * ratio, barH),
-        const Radius.circular(4),
-      ),
-      Paint()
-        ..color = ratio < 0.25 ? TapRushConfig.timerBarLow : TapRushConfig.timerBar,
     );
 
     if (_combo > 1) {
-      _paintText(
+      GameSessionHud.paintText(
         canvas,
         'COMBO x$_combo',
         Offset(size.x / 2, 36),
         20,
         TapRushConfig.comboGold,
-        centered: true,
+        align: GameSessionHudAlign.center,
       );
     }
 
-    _paintText(
+    GameSessionHud.paintText(
       canvas,
       '${timeLeft.ceil()}s',
       Offset(size.x - margin, 28),
       16,
       TapRushConfig.hudText,
+      align: GameSessionHudAlign.right,
     );
-  }
-
-  void _paintCenterText(Canvas canvas, String text, double fontSize, Color color, {double yOffset = 0}) {
-    _paintText(canvas, text, Offset(size.x / 2, size.y / 2 + yOffset), fontSize, color, centered: true);
-  }
-
-  void _paintText(Canvas canvas, String text, Offset pos, double fontSize, Color color, {bool centered = false}) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(color: color, fontSize: fontSize, fontWeight: FontWeight.w600),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    final offset = centered
-        ? Offset(pos.dx - painter.width / 2, pos.dy - painter.height / 2)
-        : Offset(pos.dx - painter.width, pos.dy - painter.height / 2);
-    painter.paint(canvas, offset);
   }
 }
