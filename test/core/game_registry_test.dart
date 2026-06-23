@@ -46,13 +46,19 @@ void main() {
       expect(featured.any((g) => g.metadata.id == 'demo_tap'), isTrue);
     });
 
-    test('registerBundledGames registra jogos da Fase 1', () {
+    test('registerBundledGames registra jogos do hub', () {
       GameRegistry.instance.resetForTesting();
       registerBundledGames();
 
       expect(GameRegistry.instance.findById('memory'), isNotNull);
       expect(GameRegistry.instance.findById('tap_rush'), isNotNull);
-      expect(GameRegistry.instance.enabled, hasLength(2));
+      expect(GameRegistry.instance.findById('game_2048'), isNotNull);
+      expect(GameRegistry.instance.findById('infinite_runner'), isNotNull);
+      expect(GameRegistry.instance.findById('solitaire'), isNotNull);
+      expect(GameRegistry.instance.findById('snake'), isNotNull);
+      expect(GameRegistry.instance.findById('domino'), isNotNull);
+      expect(GameRegistry.instance.findById('sudoku'), isNotNull);
+      expect(GameRegistry.instance.enabled, hasLength(8));
     });
   });
 }

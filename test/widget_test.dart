@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minigames_hub/core/leaderboard/leaderboard_repository.dart';
 import 'package:minigames_hub/core/storage/player_repository.dart';
@@ -17,6 +18,9 @@ void main() {
   });
 
   testWidgets('Home exibe jogos da Fase 1', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     await tester.pumpWidget(
       buildTestApp(
         playerRepo: playerRepo,
@@ -28,6 +32,15 @@ void main() {
     expect(find.text('REMOVER ADS'), findsOneWidget);
     expect(find.text('TAP RUSH'), findsOneWidget);
     expect(find.text('JOGO DA MEMÓRIA'), findsOneWidget);
+
+    final grid = find.byType(Scrollable);
+    await tester.scrollUntilVisible(
+      find.text('CORRIDA INFINITA'),
+      120,
+      scrollable: grid.first,
+    );
+    expect(find.text('CORRIDA INFINITA'), findsOneWidget);
+    expect(find.text('2048'), findsOneWidget);
   });
 
   testWidgets('navega para aba Perfil', (tester) async {
