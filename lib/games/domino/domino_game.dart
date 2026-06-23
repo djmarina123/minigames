@@ -885,6 +885,8 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       return;
     }
 
+    _paintChainSpine(canvas, chainLayout);
+
     final hiddenSlots = _flyingTiles.map((f) => f.chainIndex).toSet();
     for (final slot in chainLayout.slots) {
       if (hiddenSlots.contains(slot.index)) continue;
@@ -922,14 +924,39 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     _paintEndBadge(
       canvas,
       chainLayout.leftEndBadge,
+      chainLayout.leftEndArrow,
       _state.chainLeftEnd(),
-      isLeft: true,
     );
     _paintEndBadge(
       canvas,
       chainLayout.rightEndBadge,
+      chainLayout.rightEndArrow,
       _state.chainRightEnd(),
-      isLeft: false,
+    );
+  }
+
+  /// Traça a "espinha" da fileira ligando os centros das peças. Nos vãos entre
+  /// linhas e nas esquinas ela aparece como uma curva, deixando claro que a
+  /// fileira é contínua e para onde ela segue.
+  void _paintChainSpine(Canvas canvas, DominoChainLayout chainLayout) {
+    if (chainLayout.slots.length < 2) return;
+    final path = Path();
+    for (var i = 0; i < chainLayout.slots.length; i++) {
+      final c = chainLayout.slots[i].rect.center;
+      if (i == 0) {
+        path.moveTo(c.dx, c.dy);
+      } else {
+        path.lineTo(c.dx, c.dy);
+      }
+    }
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = DominoConfig.accentColor.withValues(alpha: 0.16)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = chainLayout.tileH * 0.55
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round,
     );
   }
 
@@ -958,18 +985,35 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
 
   void _paintEndBadge(
     Canvas canvas,
-    Offset anchor,
-    int value, {
-    required bool isLeft,
-  }) {
+    Offset center,
+    Offset arrow,
+    int value,
+  ) {
     if (value < 0) return;
-    const radius = 13.0;
-    final center = Offset(
-      anchor.dx + (isLeft ? -radius - 4 : radius + 4),
-      anchor.dy,
-    );
+    const radius = 14.0;
+
+    final pulse = (sin(DateTime.now().millisecondsSinceEpoch / 360) + 1) * 0.5;
     canvas.drawCircle(
       center,
+      radius + 4 + pulse * 2,
+      Paint()
+        ..color = DominoConfig.accentColor.withValues(alpha: 0.18 + pulse * 0.12)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
+
+    final tip = center + arrow * (radius + 11);
+    final base = center + arrow * (radius + 3);
+    final perp = Offset(-arrow.dy, arrow.dx);
+    final arrowPath = Path()
+      ..moveTo(tip.dx, tip.dy)
+      ..lineTo(base.dx + perp.dx * 5, base.dy + perp.dy * 5)
+      ..lineTo(base.dx - perp.dx * 5, base.dy - perp.dy * 5)
+      ..close();
+    canvas.drawPath(arrowPath, Paint()..color = DominoConfig.accentColor);
+
+    canvas.drawCircle(
+      center.translate(0, 1.5),
       radius + 2,
       Paint()..color = Colors.black.withValues(alpha: 0.2),
     );
@@ -978,7 +1022,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       center,
       radius,
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.35)
+        ..color = Colors.white.withValues(alpha: 0.4)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5,
     );

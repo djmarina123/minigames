@@ -621,6 +621,8 @@ class DominoChainLayout {
     required this.tableBounds,
     required this.leftEndBadge,
     required this.rightEndBadge,
+    required this.leftEndArrow,
+    required this.rightEndArrow,
   });
 
   final List<DominoChainSlot> slots;
@@ -633,6 +635,10 @@ class DominoChainLayout {
   final Offset leftEndBadge;
   final Offset rightEndBadge;
 
+  /// Direção (unitária) para onde a ponta esquerda/direita está aberta.
+  final Offset leftEndArrow;
+  final Offset rightEndArrow;
+
   Rect? slotRect(int index) {
     for (final slot in slots) {
       if (slot.index == index) return slot.rect;
@@ -641,7 +647,12 @@ class DominoChainLayout {
   }
 }
 
-/// Fileira em serpentina — mantém peças legíveis e usa altura da mesa.
+/// Fileira como uma cobra contínua: fica reta enquanto cabe e faz a curva
+/// (vira a esquina, conectada na borda) quando o espaço aperta.
+///
+/// As linhas compartilham a mesma grade de colunas, então a peça que vira a
+/// esquina fica diretamente acima/abaixo da próxima — o olho segue a fileira
+/// até a ponta atual, em vez de duas fileiras soltas e centralizadas.
 DominoChainLayout dominoChainLayout({
   required double screenW,
   required Rect tableBounds,
@@ -662,46 +673,52 @@ DominoChainLayout dominoChainLayout({
       tableBounds: tableBounds,
       leftEndBadge: emptyZone.center,
       rightEndBadge: emptyZone.center,
+      leftEndArrow: const Offset(-1, 0),
+      rightEndArrow: const Offset(1, 0),
     );
   }
 
   var tileW = baseTileH * DominoConfig.chainTileScale;
   var tileH = baseTileW * DominoConfig.chainTileScale;
   const gap = 1.5;
-  final step = tileW + gap;
 
   final availW = tableBounds.width - 20;
   final availH = tableBounds.height - 16;
-  var maxPerRow = max(1, (availW / step).floor());
-  var rowCount = ((chainLength + maxPerRow - 1) / maxPerRow).ceil();
-  var rowH = tileH + DominoConfig.chainRowGap;
 
-  var scale = 1.0;
+  var maxPerRow = max(1, (availW / (tileW + gap)).floor());
+  var rowCount = ((chainLength + maxPerRow - 1) / maxPerRow).ceil();
+  var rowGap = DominoConfig.chainRowGap;
+  var rowH = tileH + rowGap;
+
   if (rowCount * rowH > availH) {
-    scale = max(DominoConfig.chainMinScale, availH / (rowCount * rowH));
+    final scale = max(DominoConfig.chainMinScale, availH / (rowCount * rowH));
     tileW *= scale;
     tileH *= scale;
-    final scaledStep = tileW + gap;
-    maxPerRow = max(1, (availW / scaledStep).floor());
+    rowGap = DominoConfig.chainRowGap * scale;
+    maxPerRow = max(1, (availW / (tileW + gap)).floor());
     rowCount = ((chainLength + maxPerRow - 1) / maxPerRow).ceil();
-    rowH = tileH + DominoConfig.chainRowGap * scale;
+    rowH = tileH + rowGap;
   }
 
-  final scaledStep = tileW + gap;
-  final totalH = rowCount * rowH - DominoConfig.chainRowGap * scale;
+  final step = tileW + gap;
+  // Centraliza a grade pela largura de uma linha cheia, para que linhas
+  // parciais ainda se alinhem na mesma coluna da linha anterior (conexão).
+  final fullRowTiles = min(chainLength, maxPerRow);
+  final gridW = fullRowTiles * step - gap;
+  final gridLeft = tableBounds.left + max(10.0, (tableBounds.width - gridW) / 2);
+
+  final totalH = rowCount * tileH + (rowCount - 1) * rowGap;
   final startY = tableBounds.top + 10 + max(0.0, (availH - totalH) / 2);
 
   final slots = <DominoChainSlot>[];
   for (var i = 0; i < chainLength; i++) {
     final row = i ~/ maxPerRow;
     final colInRow = i % maxPerRow;
-    final tilesInRow = min(maxPerRow, chainLength - row * maxPerRow);
-    final reverse = row.isOdd;
-    final col = reverse ? tilesInRow - 1 - colInRow : colInRow;
-    final rowW = tilesInRow * scaledStep - gap;
-    final rowStartX = tableBounds.left + (tableBounds.width - rowW) / 2;
-    final x = rowStartX + col * scaledStep;
-    final y = startY + row * rowH;
+    // Linhas pares correm da esquerda p/ direita; ímpares no sentido inverso,
+    // mas sempre na mesma grade — a esquina conecta nas bordas.
+    final gridCol = row.isEven ? colInRow : (maxPerRow - 1 - colInRow);
+    final x = gridLeft + gridCol * step;
+    final y = startY + row * (tileH + rowGap);
     slots.add(
       DominoChainSlot(
         index: i,
@@ -711,16 +728,20 @@ DominoChainLayout dominoChainLayout({
     );
   }
 
-  final first = slots.first.rect;
-  final last = slots.last.rect;
-  final hitPad = 10.0;
+  final firstRect = slots.first.rect;
+  final lastRect = slots.last.rect;
+  final lastRow = (chainLength - 1) ~/ maxPerRow;
+  // A ponta direita abre no sentido em que a última linha está correndo.
+  final rightOpensLeft = lastRow.isOdd;
+  const hitPad = 14.0;
+  const badgePad = 16.0;
 
-  Rect endZone(Rect tile, {required bool isLeft}) {
-    final sideW = tile.width * 0.48 + hitPad;
+  Rect endZone(Rect tile, {required bool opensLeft}) {
+    final half = tile.width * 0.5;
     return Rect.fromLTWH(
-      isLeft ? tile.left - hitPad * 0.5 : tile.right - sideW + hitPad * 0.5,
+      opensLeft ? tile.left - hitPad : tile.left + half,
       tile.top - hitPad * 0.4,
-      sideW,
+      half + hitPad,
       tile.height + hitPad * 0.8,
     );
   }
@@ -729,12 +750,16 @@ DominoChainLayout dominoChainLayout({
     slots: slots,
     tileW: tileW,
     tileH: tileH,
-    leftDropZone: endZone(first, isLeft: true),
-    rightDropZone: endZone(last, isLeft: false),
+    leftDropZone: endZone(firstRect, opensLeft: true),
+    rightDropZone: endZone(lastRect, opensLeft: rightOpensLeft),
     emptyDropZone: emptyZone,
     tableBounds: tableBounds,
-    leftEndBadge: Offset(first.left - 4, first.center.dy),
-    rightEndBadge: Offset(last.right + 4, last.center.dy),
+    leftEndBadge: Offset(firstRect.left - badgePad, firstRect.center.dy),
+    rightEndBadge: rightOpensLeft
+        ? Offset(lastRect.left - badgePad, lastRect.center.dy)
+        : Offset(lastRect.right + badgePad, lastRect.center.dy),
+    leftEndArrow: const Offset(-1, 0),
+    rightEndArrow: rightOpensLeft ? const Offset(-1, 0) : const Offset(1, 0),
   );
 }
 

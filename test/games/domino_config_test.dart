@@ -214,6 +214,53 @@ void main() {
       expect(empty.leftDropZone, Rect.zero);
     });
 
+    test('fileira faz a curva conectada na borda ao quebrar de linha', () {
+      final table = const Rect.fromLTWH(12, 200, 366, 280);
+      final layout = dominoChainLayout(
+        screenW: 390,
+        tableBounds: table,
+        baseTileW: 48,
+        baseTileH: 92,
+        chainLength: 14,
+      );
+
+      // Descobre quantas peças cabem na primeira linha (mesma linha = mesmo Y).
+      final firstRowTop = layout.slots.first.rect.top;
+      final firstRow = layout.slots
+          .where((s) => (s.rect.top - firstRowTop).abs() < 0.5)
+          .toList();
+      expect(firstRow.length, greaterThan(1));
+
+      // A última peça da 1ª linha e a 1ª da 2ª linha ficam na mesma coluna
+      // (a fileira vira a esquina conectada, em vez de recentralizar).
+      final lastOfFirstRow = layout.slots[firstRow.length - 1].rect;
+      final firstOfSecondRow = layout.slots[firstRow.length].rect;
+      expect(firstOfSecondRow.left, closeTo(lastOfFirstRow.left, 0.5));
+      expect(firstOfSecondRow.top, greaterThan(lastOfFirstRow.top));
+    });
+
+    test('ponta direita aponta para o sentido da última linha', () {
+      final table = const Rect.fromLTWH(12, 200, 366, 280);
+      final wrapped = dominoChainLayout(
+        screenW: 390,
+        tableBounds: table,
+        baseTileW: 48,
+        baseTileH: 92,
+        chainLength: 14,
+      );
+      // 1ª linha corre p/ direita; ponta esquerda sempre abre p/ esquerda.
+      expect(wrapped.leftEndArrow, const Offset(-1, 0));
+      // Em linha única a ponta direita abre p/ direita.
+      final single = dominoChainLayout(
+        screenW: 390,
+        tableBounds: table,
+        baseTileW: 48,
+        baseTileH: 92,
+        chainLength: 3,
+      );
+      expect(single.rightEndArrow, const Offset(1, 0));
+    });
+
     test('layout da fileira com uma peça expõe slot 0', () {
       final table = const Rect.fromLTWH(12, 200, 366, 280);
       final opening = dominoChainLayout(
