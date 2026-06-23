@@ -29,7 +29,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('REMOVER ADS'), findsOneWidget);
+    expect(find.text('REMOVER ADS'), findsNothing);
+    expect(find.byTooltip('Remover anúncios'), findsOneWidget);
     expect(find.text('TAP RUSH'), findsOneWidget);
     expect(find.text('JOGO DA MEMÓRIA'), findsOneWidget);
 
@@ -57,6 +58,7 @@ void main() {
 
     expect(find.text('PERFIL'), findsOneWidget);
     expect(find.text('Moedas'), findsOneWidget);
-    expect(find.text('XP'), findsOneWidget);
+    expect(find.text('XP total'), findsOneWidget);
+    expect(find.textContaining('Nível 1'), findsOneWidget);
   });
 }

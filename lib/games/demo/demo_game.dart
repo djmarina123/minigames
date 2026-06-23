@@ -86,8 +86,7 @@ class _DemoGameViewState extends State<_DemoGameView> {
       GameResult(
         score: _score,
         duration: duration,
-        coinsEarned: _score ~/ 5,
-        xpEarned: _score,
+        metadata: {'performanceTier': 'bronze'},
       ),
     );
   }

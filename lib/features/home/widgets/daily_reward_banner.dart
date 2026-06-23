@@ -13,6 +13,12 @@ class DailyRewardBanner extends StatelessWidget {
     final player = context.watch<PlayerRepository>();
     if (!player.canClaimDaily) return const SizedBox.shrink();
 
+    final amount = player.dailyRewardAmount;
+    final streakDay = player.nextDailyStreak;
+    final streakLabel = streakDay > 1
+        ? 'Dia $streakDay da sequência'
+        : 'Comece sua sequência diária';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Material(
@@ -44,20 +50,57 @@ class DailyRewardBanner extends StatelessWidget {
                   child: const Icon(Icons.card_giftcard_rounded, color: HubTheme.coinGold),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'Recompensa diária disponível!',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: HubTheme.textPrimary,
-                    ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            HubTheme.coinIcon,
+                            size: 18,
+                            color: HubTheme.coinGold,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              'Ganhe +$amount moedas',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: HubTheme.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        streakLabel,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: HubTheme.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  'Resgatar',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
                     color: HubTheme.removeAdsPurple,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Resgatar',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],

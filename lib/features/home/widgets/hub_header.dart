@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/models/player_profile.dart';
 import '../../../core/storage/player_repository.dart';
 import '../../../core/theme/hub_theme.dart';
 
-/// Barra superior do hub: menu, moedas, remover ads.
+/// Barra superior do hub: menu, nível, moedas, remover ads.
 class HubHeader extends StatelessWidget {
   const HubHeader({
     super.key,
     this.onMenuTap,
+    this.onProfileTap,
   });
 
   final VoidCallback? onMenuTap;
+  final VoidCallback? onProfileTap;
 
   @override
   Widget build(BuildContext context) {
-    final coins = context.watch<PlayerRepository>().profile.coins;
+    final profile = context.watch<PlayerRepository>().profile;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 12, 4),
@@ -27,8 +30,13 @@ class HubHeader extends StatelessWidget {
             color: HubTheme.headerIcon,
           ),
           const Spacer(),
-          _CoinPill(coins: coins),
-          const SizedBox(width: 8),
+          _LevelPill(
+            profile: profile,
+            onTap: onProfileTap,
+          ),
+          const SizedBox(width: 6),
+          _CoinPill(coins: profile.coins),
+          const SizedBox(width: 6),
           _RemoveAdsButton(
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -38,6 +46,77 @@ class HubHeader extends StatelessWidget {
                 ),
               );
             },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LevelPill extends StatelessWidget {
+  const _LevelPill({
+    required this.profile,
+    this.onTap,
+  });
+
+  final PlayerProfile profile;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: HubTheme.levelPillBg,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+          child: _LevelRing(
+            level: profile.level,
+            progress: profile.levelProgress,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LevelRing extends StatelessWidget {
+  const _LevelRing({
+    required this.level,
+    required this.progress,
+  });
+
+  final int level;
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 30,
+      height: 30,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CircularProgressIndicator(
+            value: progress.clamp(0.0, 1.0),
+            strokeWidth: 2.5,
+            backgroundColor: HubTheme.removeAdsPurple.withValues(alpha: 0.18),
+            color: HubTheme.removeAdsPurple,
+          ),
+          Text(
+            '$level',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              color: HubTheme.removeAdsPurple,
+              height: 1,
+            ),
           ),
         ],
       ),
@@ -69,7 +148,7 @@ class _CoinPill extends StatelessWidget {
               color: HubTheme.coinGold,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.bolt_rounded, size: 16, color: Colors.white),
+            child: const Icon(HubTheme.coinIcon, size: 16, color: Colors.white),
           ),
           const SizedBox(width: 8),
           Text(
@@ -93,35 +172,23 @@ class _RemoveAdsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: HubTheme.removeAdsPurple,
-      borderRadius: BorderRadius.circular(14),
-      elevation: 2,
-      shadowColor: HubTheme.removeAdsPurple.withValues(alpha: 0.4),
-      child: InkWell(
-        onTap: onTap,
+    return Tooltip(
+      message: 'Remover anúncios',
+      child: Material(
+        color: HubTheme.removeAdsPurple,
         borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.campaign_rounded,
-                size: 18,
-                color: Colors.yellow.shade300,
-              ),
-              const SizedBox(width: 6),
-              const Text(
-                'REMOVER ADS',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
+        elevation: 2,
+        shadowColor: HubTheme.removeAdsPurple.withValues(alpha: 0.4),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: const Padding(
+            padding: EdgeInsets.all(10),
+            child: Icon(
+              Icons.campaign_rounded,
+              size: 20,
+              color: Colors.white,
+            ),
           ),
         ),
       ),

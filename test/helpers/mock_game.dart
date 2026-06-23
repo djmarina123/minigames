@@ -62,8 +62,7 @@ class _MockInstantBodyState extends State<_MockInstantBody> {
         const GameResult(
           score: 100,
           duration: Duration(seconds: 5),
-          coinsEarned: 10,
-          xpEarned: 50,
+          metadata: {'performanceTier': 'gold'},
         ),
       );
     });

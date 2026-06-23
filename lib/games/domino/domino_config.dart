@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../core/economy/performance_tier.dart';
+
 /// Constantes, paleta e regras puras do Dominó (block vs CPU).
 abstract final class DominoConfig {
   static const optionKeyDifficulty = 'difficulty';
@@ -842,4 +844,9 @@ DominoBoardLayout dominoBoardLayout({
     playerTileXs: handXs(humanHandCount),
     cpuTileXs: handXs(cpuHandCount),
   );
+}
+
+PerformanceTier dominoPerformanceTier({required bool humanWon}) {
+  if (humanWon) return PerformanceTier.gold;
+  return PerformanceTier.bronze;
 }

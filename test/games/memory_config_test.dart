@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:minigames_hub/core/economy/performance_tier.dart';
 import 'package:minigames_hub/games/memory/memory_config.dart';
 
 void main() {
@@ -42,6 +43,22 @@ void main() {
       expect(
         memoryProgressScore(pairsFound: 2, moves: 5),
         250,
+      );
+    });
+  });
+
+  group('memoryPerformanceTier', () {
+    test('partida perfeita é ouro', () {
+      expect(
+        memoryPerformanceTier(pairCount: 4, moves: 4, perfectBonus: 100),
+        PerformanceTier.gold,
+      );
+    });
+
+    test('muitas jogadas é bronze', () {
+      expect(
+        memoryPerformanceTier(pairCount: 4, moves: 12, perfectBonus: 0),
+        PerformanceTier.bronze,
       );
     });
   });

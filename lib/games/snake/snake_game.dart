@@ -245,13 +245,15 @@ class SnakeFlameGame extends FlameGame with DragCallbacks, KeyboardEvents {
       GameResult(
         score: _score,
         duration: DateTime.now().difference(_startedAt),
-        coinsEarned: _score ~/ 12,
-        xpEarned: _score ~/ 3,
         metadata: {
           'foodEaten': _foodEaten,
           'snakeLength': _snakeLength,
           'speedLevel': snakeSpeedLevel(_elapsed),
           'won': won,
+          'performanceTier': snakePerformanceTier(
+            won: won,
+            snakeLength: _snakeLength,
+          ).name,
         },
       ),
     );

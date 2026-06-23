@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:minigames_hub/core/economy/economy_config.dart';
 import 'package:minigames_hub/core/game_sdk/game_session_hud_actions.dart';
 
 void main() {
@@ -23,6 +24,7 @@ void main() {
           id: 'hint',
           icon: Icons.lightbulb_outline_rounded,
           enabled: true,
+          coinCost: EconomyConfig.hintCoinCostSudoku,
         ),
         GameSessionHudAction(
           id: 'erase',
@@ -44,7 +46,8 @@ void main() {
       expect(undo.left, lessThan(hint.left));
       expect(hint.left, lessThan(erase.left));
       expect(erase.right, lessThanOrEqualTo(canvas.width - 16));
-      expect(undo.height, GameSessionHudActionBar.buttonSize);
+      expect(undo.width, GameSessionHudActionBar.buttonSize);
+      expect(hint.width, GameSessionHudActionBar.coinButtonWidth);
     });
 
     test('hitTest retorna id só dentro do retângulo do botão', () {
@@ -59,6 +62,7 @@ void main() {
           id: 'hint',
           icon: Icons.lightbulb_outline_rounded,
           enabled: true,
+          coinCost: 25,
         ),
       ];
 

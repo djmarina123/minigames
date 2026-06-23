@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../game_metadata.dart';
 import '../game_result.dart';
 import '../../theme/game_card_art.dart';
+import '../../economy/economy_copy.dart';
 import '../../theme/hub_theme.dart';
 
 /// Placar final estilizado — exibido ao terminar qualquer jogo.
@@ -16,6 +17,8 @@ class GameResultDialog extends StatelessWidget {
     this.isNewRecord = false,
     this.onPlayAgain,
     this.onDoubleCoins,
+    this.levelUpLevels = 0,
+    this.levelUpCoins = 0,
   });
 
   final GameMetadata metadata;
@@ -26,6 +29,8 @@ class GameResultDialog extends StatelessWidget {
   final bool isNewRecord;
   final VoidCallback? onPlayAgain;
   final Future<void> Function()? onDoubleCoins;
+  final int levelUpLevels;
+  final int levelUpCoins;
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +103,13 @@ class GameResultDialog extends StatelessWidget {
                           duration: result.duration,
                           accentColor: theme.accentColor,
                         ),
+                        if (levelUpLevels > 0) ...[
+                          const SizedBox(height: 10),
+                          _LevelUpBanner(
+                            levels: levelUpLevels,
+                            bonusCoins: levelUpCoins,
+                          ),
+                        ],
                         if ((maxCombo != null && maxCombo > 1) ||
                             hits != null ||
                             (misses != null && misses > 0) ||
@@ -456,7 +468,7 @@ class _RewardRow extends StatelessWidget {
       children: [
         Expanded(
           child: _StatCard(
-            icon: Icons.monetization_on_rounded,
+            icon: HubTheme.coinIcon,
             iconColor: HubTheme.coinGold,
             label: 'Moedas',
             value: '+$coins',
@@ -465,10 +477,10 @@ class _RewardRow extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _StatCard(
-            icon: Icons.bolt_rounded,
-            iconColor: accentColor,
-            label: 'XP',
-            value: '+$xp',
+            icon: HubTheme.levelIcon,
+            iconColor: HubTheme.removeAdsPurple,
+            label: 'XP nível',
+            value: EconomyCopy.sessionXpLabel(xp),
           ),
         ),
         const SizedBox(width: 8),
@@ -489,6 +501,61 @@ class _RewardRow extends StatelessWidget {
       return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
     }
     return '${d.inSeconds}s';
+  }
+}
+
+class _LevelUpBanner extends StatelessWidget {
+  const _LevelUpBanner({
+    required this.levels,
+    required this.bonusCoins,
+  });
+
+  final int levels;
+  final int bonusCoins;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = levels == 1 ? 'Nível up!' : '+$levels níveis!';
+    final subtitle = bonusCoins > 0 ? '+$bonusCoins moedas de bônus' : null;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF00B894).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF00B894), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          const Icon(HubTheme.levelIcon, color: Color(0xFF00B894), size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: HubTheme.textPrimary,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF00B894),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -813,6 +880,8 @@ Future<void> showGameResultDialog({
   bool isNewRecord = false,
   VoidCallback? onPlayAgain,
   Future<void> Function()? onDoubleCoins,
+  int levelUpLevels = 0,
+  int levelUpCoins = 0,
 }) {
   return showGeneralDialog<void>(
     context: context,
@@ -827,6 +896,8 @@ Future<void> showGameResultDialog({
       isNewRecord: isNewRecord,
       onPlayAgain: onPlayAgain,
       onDoubleCoins: onDoubleCoins,
+      levelUpLevels: levelUpLevels,
+      levelUpCoins: levelUpCoins,
     ),
     transitionBuilder: (context, animation, secondaryAnimation, child) {
       final curve = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../core/economy/performance_tier.dart';
 import '../../core/game_sdk/game_session_hud_actions.dart';
 
 /// Constantes, paleta e regras puras da Paciência (Klondike).
@@ -49,6 +50,8 @@ abstract final class SolitaireConfig {
   static const layoutFaceDownOverlap = 0.17;
   static const layoutFaceUpOverlap = 0.27;
   static const layoutHudHeight = GameSessionHudActionBar.reservedHeight;
+  /// Fallback se o layout não couber (não deve ocorrer no grid 7 colunas).
+  static const layoutWasteFanFallback = 0.22;
 }
 
 /// Métricas de layout calculadas a partir do tamanho da tela.
@@ -60,6 +63,7 @@ class SolitaireBoardLayout {
     required this.tableauY,
     required this.faceDownStep,
     required this.faceUpStep,
+    required this.wasteFanStep,
     required this.colX,
   });
 
@@ -69,6 +73,8 @@ class SolitaireBoardLayout {
   final double tableauY;
   final double faceDownStep;
   final double faceUpStep;
+  /// Deslocamento horizontal entre cartas visíveis no descarte (modo 3 cartas).
+  final double wasteFanStep;
   final List<double> colX;
 
   double get stockX => colX[0];
@@ -113,6 +119,13 @@ SolitaireBoardLayout solitaireBoardLayout({
   final topY = hudHeight + SolitaireConfig.layoutHudGap + verticalPad;
   final tableauY = topY + cardH + topRowGap;
 
+  final cols = colX();
+  // Coluna 2 fica vazia entre descarte e fundações — usa o vão para o leque.
+  final wasteFanAvailable = cols[3] - cols[1] - cardW;
+  final wasteFanStep = wasteFanAvailable > 0
+      ? wasteFanAvailable / 2
+      : cardW * SolitaireConfig.layoutWasteFanFallback;
+
   return SolitaireBoardLayout(
     cardW: cardW,
     cardH: cardH,
@@ -120,8 +133,16 @@ SolitaireBoardLayout solitaireBoardLayout({
     tableauY: tableauY,
     faceDownStep: faceDownStep,
     faceUpStep: faceUpStep,
-    colX: colX(),
+    wasteFanStep: wasteFanStep,
+    colX: cols,
   );
+}
+
+/// Quantas cartas do descarte ficam visíveis (1 no modo 1 carta, até 3 no modo 3).
+int solitaireWasteVisibleCount(int wasteLength, int drawCount) {
+  if (wasteLength == 0) return 0;
+  if (drawCount <= 1) return 1;
+  return wasteLength.clamp(1, 3);
 }
 
 enum SolitaireSuit { hearts, diamonds, clubs, spades }
@@ -548,4 +569,13 @@ String solitaireHudElapsedLabel(Duration elapsed) {
   final m = elapsed.inMinutes;
   final s = elapsed.inSeconds.remainder(60);
   return '$m:${s.toString().padLeft(2, '0')}';
+}
+
+PerformanceTier solitairePerformanceTier({
+  required bool won,
+  required int foundationCards,
+}) {
+  if (won) return PerformanceTier.gold;
+  if (foundationCards >= 26) return PerformanceTier.silver;
+  return PerformanceTier.bronze;
 }

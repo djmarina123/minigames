@@ -306,8 +306,6 @@ class Game2048FlameGame extends FlameGame with DragCallbacks, KeyboardEvents {
       GameResult(
         score: score,
         duration: DateTime.now().difference(_startedAt),
-        coinsEarned: score ~/ 12,
-        xpEarned: score ~/ 3,
         metadata: {
           'moves': _moves,
           'highestTile': _highestTile,
@@ -315,6 +313,7 @@ class Game2048FlameGame extends FlameGame with DragCallbacks, KeyboardEvents {
           'tileBonus': game2048TileBonus(_highestTile),
           'targetTile': targetTile,
           'targetReached': _targetReached,
+          'performanceTier': game2048PerformanceTier(_highestTile).name,
         },
       ),
     );

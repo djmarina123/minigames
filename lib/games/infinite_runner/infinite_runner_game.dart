@@ -368,8 +368,6 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
       GameResult(
         score: _score,
         duration: DateTime.now().difference(_startedAt),
-        coinsEarned: _score ~/ 12,
-        xpEarned: _score ~/ 3,
         metadata: {
           'obstaclesCleared': _obstaclesCleared,
           'distanceM': infiniteRunnerDistanceMeters(
@@ -377,6 +375,13 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
             modeMultiplier: _modeMultiplier,
           ),
           'speedLevel': infiniteRunnerSpeedLevel(_elapsed),
+          'performanceTier': infiniteRunnerPerformanceTier(
+            distanceM: infiniteRunnerDistanceMeters(
+              _elapsed,
+              modeMultiplier: _modeMultiplier,
+            ),
+            obstaclesCleared: _obstaclesCleared,
+          ).name,
         },
       ),
     );

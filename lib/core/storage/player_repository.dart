@@ -1,9 +1,29 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../economy/economy_config.dart';
+import '../economy/level_curve.dart';
 import '../models/player_profile.dart';
+
+/// Resultado de [PlayerRepository.recordGameSession] — níveis ganhos e bônus.
+class GameSessionRecord {
+  const GameSessionRecord({
+    this.previousLevel = 1,
+    this.newLevel = 1,
+    this.levelUpCoins = 0,
+  });
+
+  final int previousLevel;
+  final int newLevel;
+
+  int get levelsGained => newLevel - previousLevel;
+  final int levelUpCoins;
+
+  bool get didLevelUp => levelsGained > 0;
+}
 
 class PlayerRepository extends ChangeNotifier {
   PlayerRepository(this._prefs);
@@ -27,7 +47,17 @@ class PlayerRepository extends ChangeNotifier {
         _profile = const PlayerProfile();
       }
     }
+    await _ensureStarterCoins();
     notifyListeners();
+  }
+
+  /// Jogadores sem histórico recebem o saldo inicial (inclui perfis antigos com 0).
+  Future<void> _ensureStarterCoins() async {
+    if (_profile.gamesPlayed == 0 &&
+        _profile.coins < EconomyConfig.startingCoins) {
+      _profile = _profile.copyWith(coins: EconomyConfig.startingCoins);
+      await _prefs.setString(_key, jsonEncode(_profile.toJson()));
+    }
   }
 
   Future<void> _save() async {
@@ -41,27 +71,33 @@ class PlayerRepository extends ChangeNotifier {
     return !_isSameDay(last, DateTime.now());
   }
 
-  int get dailyRewardAmount {
-    const base = 10;
-    final bonus = (_profile.dailyStreak * 5).clamp(0, 50);
-    return base + bonus;
+  /// Sequência que o jogador terá após resgatar hoje (1 se primeira vez ou quebra).
+  int get nextDailyStreak {
+    if (!canClaimDaily) return _profile.dailyStreak;
+    final last = _profile.lastDailyClaim;
+    final now = DateTime.now();
+    if (last != null && _isYesterday(last, now)) {
+      return (_profile.dailyStreak + 1).clamp(1, EconomyConfig.dailyStreakCap);
+    }
+    return 1;
+  }
+
+  int get dailyRewardAmount =>
+      EconomyConfig.dailyRewardForStreak(nextDailyStreak);
+
+  /// Primeira partida do dia civil (para bônus de XP).
+  bool get isFirstGameToday {
+    final last = _profile.lastGamePlayed;
+    if (last == null) return true;
+    return !_isSameDay(last, DateTime.now());
   }
 
   Future<int?> claimDailyReward() async {
     if (!canClaimDaily) return null;
 
     final now = DateTime.now();
-    final last = _profile.lastDailyClaim;
-    final int newStreak;
-    if (last != null && _isYesterday(last, now)) {
-      newStreak = _profile.dailyStreak + 1;
-    } else {
-      newStreak = 1;
-    }
-
-    const base = 10;
-    final bonus = ((newStreak - 1) * 5).clamp(0, 50);
-    final reward = base + bonus;
+    final newStreak = nextDailyStreak;
+    final reward = dailyRewardAmount;
 
     _profile = _profile.copyWith(
       coins: _profile.coins + reward,
@@ -72,17 +108,33 @@ class PlayerRepository extends ChangeNotifier {
     return reward;
   }
 
-  /// Registra o fim de uma partida (moedas, XP e contador de partidas).
-  Future<void> recordGameSession({
+  /// Registra o fim de uma partida (moedas, XP, nível e contador de partidas).
+  Future<GameSessionRecord> recordGameSession({
     required int coinsEarned,
     required int xpEarned,
   }) async {
+    final previousLevel = _profile.level;
+    final now = DateTime.now();
+    final newXp = _profile.xp + xpEarned;
+    final newLevel = levelFromXp(newXp);
+    final levelUpCoins = totalLevelUpCoins(
+      fromLevel: previousLevel,
+      toLevel: newLevel,
+    );
+
     _profile = _profile.copyWith(
-      coins: _profile.coins + coinsEarned,
-      xp: _profile.xp + xpEarned,
+      coins: _profile.coins + coinsEarned + levelUpCoins,
+      xp: newXp,
       gamesPlayed: _profile.gamesPlayed + 1,
+      lastGamePlayed: now,
     );
     await _save();
+
+    return GameSessionRecord(
+      previousLevel: previousLevel,
+      newLevel: newLevel,
+      levelUpCoins: levelUpCoins,
+    );
   }
 
   /// Bônus sem incrementar partidas (anúncio, recompensa mid-game, etc.).
@@ -90,6 +142,14 @@ class PlayerRepository extends ChangeNotifier {
     if (amount <= 0) return;
     _profile = _profile.copyWith(coins: _profile.coins + amount);
     await _save();
+  }
+
+  /// Gasta moedas se houver saldo — retorna `false` se insuficiente.
+  bool trySpendCoins(int amount) {
+    if (amount <= 0 || _profile.coins < amount) return false;
+    _profile = _profile.copyWith(coins: _profile.coins - amount);
+    unawaited(_save());
+    return true;
   }
 
   static bool _isSameDay(DateTime a, DateTime b) =>

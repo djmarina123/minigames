@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../core/economy/economy_config.dart';
+import '../../core/economy/performance_tier.dart';
 import '../../core/game_sdk/game_session_hud_actions.dart';
 
 /// Constantes, paleta e regras puras do Sudoku.
@@ -515,6 +517,40 @@ SudokuHintResult? sudokuHint(SudokuState state) {
   );
 }
 
+/// Dica paga com moedas — sem penalidade de pontuação.
+SudokuHintResult? sudokuHintPaid(SudokuState state) {
+  final empties = <(int, int)>[];
+  for (var r = 0; r < SudokuConfig.gridSize; r++) {
+    for (var c = 0; c < SudokuConfig.gridSize; c++) {
+      if (!state.givens[r][c] && state.player[r][c] == 0) {
+        empties.add((r, c));
+      }
+    }
+  }
+  if (empties.isEmpty) return null;
+
+  final (row, col) = empties.first;
+  final value = state.solution[row][col];
+  final nextPlayer = sudokuCopyGrid(state.player);
+  nextPlayer[row][col] = value;
+
+  final next = _cloneState(
+    state,
+    player: nextPlayer,
+    hintsUsed: state.hintsUsed + 1,
+    moves: state.moves + 1,
+  );
+
+  return SudokuHintResult(
+    state: next,
+    row: row,
+    col: col,
+    value: value,
+  );
+}
+
+int get sudokuHintCoinCost => EconomyConfig.hintCoinCostSudoku;
+
 bool sudokuIsSolved(SudokuState state) {
   if (!state.isComplete()) return false;
   for (var r = 0; r < SudokuConfig.gridSize; r++) {
@@ -566,3 +602,13 @@ String sudokuHudProgressLabel(SudokuState state) =>
     '${state.filledCount()}/${state.totalCells}';
 
 double sudokuCellFontSize(double cellSize) => cellSize * 0.46;
+
+PerformanceTier sudokuPerformanceTier({
+  required bool won,
+  required int mistakes,
+  required int hintsUsed,
+}) {
+  if (won && mistakes == 0 && hintsUsed == 0) return PerformanceTier.gold;
+  if (won && mistakes <= 2) return PerformanceTier.silver;
+  return PerformanceTier.bronze;
+}

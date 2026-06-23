@@ -286,13 +286,16 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
       GameResult(
         score: breakdown.score,
         duration: duration,
-        coinsEarned: breakdown.score ~/ 15,
-        xpEarned: breakdown.score ~/ 2,
         metadata: {
           'pairCount': pairCount,
           'moves': _moves,
           'timeBonus': breakdown.timeBonus,
           'perfectBonus': breakdown.perfectBonus,
+          'performanceTier': memoryPerformanceTier(
+            pairCount: pairCount,
+            moves: _moves,
+            perfectBonus: breakdown.perfectBonus,
+          ).name,
         },
       ),
     );

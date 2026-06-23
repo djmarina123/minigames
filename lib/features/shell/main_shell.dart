@@ -24,7 +24,10 @@ class _MainShellState extends State<MainShell> {
       body: IndexedStack(
         index: _index,
         children: [
-          HomeScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer()),
+          HomeScreen(
+            onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+            onProfileTap: () => setState(() => _index = 2),
+          ),
           LeaderboardScreen(isActive: _index == 1),
           const ProfileScreen(),
         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/hub_theme.dart';
 import 'game_session_hud.dart';
 
 /// Um botão de ação abaixo do painel de stats (ícone quadrado, padrão Paciência).
@@ -9,6 +10,7 @@ class GameSessionHudAction {
     required this.icon,
     required this.enabled,
     this.accent,
+    this.coinCost,
   });
 
   final String id;
@@ -17,6 +19,9 @@ class GameSessionHudAction {
 
   /// Borda/fundo levemente coloridos quando habilitado (ex.: dourado na dica).
   final Color? accent;
+
+  /// Quando definido, exibe o custo em moedas no botão (ex.: dica paga).
+  final int? coinCost;
 }
 
 /// Layout dos botões — calcular no `render` e reutilizar no hit-test do toque.
@@ -26,6 +31,7 @@ class GameSessionHudActionBar {
   final Map<String, Rect> rects;
 
   static const buttonSize = 34.0;
+  static const coinButtonWidth = 44.0;
   static const gap = 8.0;
   static const edgePad = 8.0;
   static const belowPanelGap = 4.0;
@@ -35,6 +41,9 @@ class GameSessionHudActionBar {
       GameSessionHud.panelHeightWithBar +
       belowPanelGap +
       buttonSize;
+
+  static double buttonWidth(GameSessionHudAction action) =>
+      action.coinCost != null ? coinButtonWidth : buttonSize;
 
   /// Faixa vertical dos botões — útil para filtrar toques antes do tabuleiro.
   static Rect bandRect(
@@ -67,11 +76,13 @@ class GameSessionHudActionBar {
     final right = panel.right - edgePad;
     final rects = <String, Rect>{};
 
-    for (var i = 0; i < actions.length; i++) {
-      final indexFromRight = actions.length - 1 - i;
-      final left =
-          right - buttonSize * (indexFromRight + 1) - gap * indexFromRight;
-      rects[actions[i].id] = Rect.fromLTWH(left, y, buttonSize, buttonSize);
+    var cursorRight = right;
+    for (var i = actions.length - 1; i >= 0; i--) {
+      final action = actions[i];
+      final w = buttonWidth(action);
+      cursorRight -= w;
+      rects[action.id] = Rect.fromLTWH(cursorRight, y, w, buttonSize);
+      if (i > 0) cursorRight -= gap;
     }
 
     return GameSessionHudActionBar._(rects);
@@ -127,11 +138,71 @@ class GameSessionHudActionBar {
         ..strokeWidth = 1.2,
     );
 
-    final icon = action.icon;
-    final iconSize = rect.height * 0.52;
+    if (action.coinCost != null) {
+      _paintCoinCostButton(canvas, rect, action, palette, enabled, accent);
+      return;
+    }
+
+    _paintIcon(
+      canvas,
+      rect,
+      action.icon,
+      enabled ? (accent ?? palette.text) : palette.muted.withValues(alpha: 0.65),
+      rect.height * 0.52,
+    );
+  }
+
+  static void _paintCoinCostButton(
+    Canvas canvas,
+    Rect rect,
+    GameSessionHudAction action,
+    GameSessionHudPalette palette,
+    bool enabled,
+    Color? accent,
+  ) {
+    final cost = action.coinCost!;
     final iconColor = enabled
         ? (accent ?? palette.text)
         : palette.muted.withValues(alpha: 0.65);
+    final costColor = enabled ? HubTheme.coinGold : palette.muted.withValues(alpha: 0.55);
+
+    final iconRect = Rect.fromLTWH(
+      rect.left,
+      rect.top + rect.height * 0.06,
+      rect.width,
+      rect.height * 0.48,
+    );
+    _paintIcon(canvas, iconRect, action.icon, iconColor, iconRect.height * 0.72);
+
+    final costPainter = TextPainter(
+      text: TextSpan(
+        text: '$cost',
+        style: TextStyle(
+          fontSize: (rect.height * 0.28).clamp(9.0, 11.0),
+          fontWeight: FontWeight.w900,
+          color: costColor,
+          height: 1,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: rect.width);
+
+    costPainter.paint(
+      canvas,
+      Offset(
+        rect.left + (rect.width - costPainter.width) / 2,
+        rect.bottom - costPainter.height - rect.height * 0.08,
+      ),
+    );
+  }
+
+  static void _paintIcon(
+    Canvas canvas,
+    Rect rect,
+    IconData icon,
+    Color color,
+    double iconSize,
+  ) {
     final painter = TextPainter(
       text: TextSpan(
         text: String.fromCharCode(icon.codePoint),
@@ -139,7 +210,7 @@ class GameSessionHudActionBar {
           fontFamily: icon.fontFamily,
           package: icon.fontPackage,
           fontSize: iconSize,
-          color: iconColor,
+          color: color,
         ),
       ),
       textDirection: TextDirection.ltr,

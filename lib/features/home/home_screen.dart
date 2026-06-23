@@ -11,9 +11,14 @@ import 'widgets/game_card.dart';
 import 'widgets/hub_header.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, this.onMenuTap});
+  const HomeScreen({
+    super.key,
+    this.onMenuTap,
+    this.onProfileTap,
+  });
 
   final VoidCallback? onMenuTap;
+  final VoidCallback? onProfileTap;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +30,10 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HubHeader(onMenuTap: onMenuTap),
+            HubHeader(
+              onMenuTap: onMenuTap,
+              onProfileTap: onProfileTap,
+            ),
             const DailyRewardBanner(),
             Expanded(
               child: games.isEmpty

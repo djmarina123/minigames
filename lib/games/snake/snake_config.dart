@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import '../../core/economy/performance_tier.dart';
+
 /// Constantes, paleta e regras puras da Cobra.
 abstract final class SnakeConfig {
   static const countdownSec = 3;
@@ -210,4 +212,13 @@ String snakeHudElapsedLabel(Duration elapsed) {
   final m = s ~/ 60;
   final r = s % 60;
   return '$m:${r.toString().padLeft(2, '0')}';
+}
+
+PerformanceTier snakePerformanceTier({
+  required bool won,
+  required int snakeLength,
+}) {
+  if (won || snakeLength >= 20) return PerformanceTier.gold;
+  if (snakeLength >= 12) return PerformanceTier.silver;
+  return PerformanceTier.bronze;
 }

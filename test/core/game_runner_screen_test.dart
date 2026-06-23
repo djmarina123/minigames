@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:minigames_hub/core/ads/ads_service.dart';
+import 'package:minigames_hub/core/economy/economy_config.dart';
+import 'package:minigames_hub/core/economy/session_rewards.dart';
+import 'package:minigames_hub/core/game_sdk/game_result.dart';
 import 'package:minigames_hub/core/game_sdk/game_runner_screen.dart';
 import 'package:minigames_hub/core/leaderboard/leaderboard_repository.dart';
 import 'package:minigames_hub/core/storage/player_repository.dart';
@@ -40,7 +43,7 @@ void main() {
       );
     }
 
-    testWidgets('recordGameSession incrementa partidas ao terminar', (tester) async {
+    testWidgets('recordGameSession aplica economia centralizada', (tester) async {
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -48,26 +51,38 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 800));
 
+      final expected = resolveSessionReward(
+        result: const GameResult(
+          score: 100,
+          duration: Duration(seconds: 5),
+          metadata: {'performanceTier': 'gold'},
+        ),
+        isNewRecord: true,
+        isFirstGameToday: true,
+      );
+
       expect(playerRepo.profile.gamesPlayed, 1);
-      expect(playerRepo.profile.coins, 10);
-      expect(playerRepo.profile.xp, 50);
+      expect(playerRepo.profile.coins, EconomyConfig.startingCoins + expected.coins);
+      expect(playerRepo.profile.xp, expected.xp);
       expect(leaderboardRepo.allBest, hasLength(1));
     });
   });
 
   group('fluxo economia pós-partida (mesmo do runner)', () {
-    test('double coins usa addBonusCoins sem nova partida', () async {
+    test('double coins dobra o ganho da partida', () async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final repo = PlayerRepository(prefs);
       await repo.load();
 
-      await repo.recordGameSession(coinsEarned: 10, xpEarned: 50);
+      const sessionCoins = 16;
+      await repo.recordGameSession(coinsEarned: sessionCoins, xpEarned: 30);
       final bonus = await AdsService.showRewardedAd();
-      await repo.addBonusCoins(bonus);
+      expect(bonus, greaterThan(0));
+      await repo.addBonusCoins(sessionCoins);
 
       expect(repo.profile.gamesPlayed, 1);
-      expect(repo.profile.coins, 15);
+      expect(repo.profile.coins, EconomyConfig.startingCoins + sessionCoins * 2);
     });
   });
 }

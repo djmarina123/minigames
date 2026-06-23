@@ -205,7 +205,8 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
 
     final play = dominoCpuChoosePlay(_state, _random);
     if (play != null) {
-      _playTile(play, DominoPlayer.cpu);
+      if (_playTile(play, DominoPlayer.cpu)) return;
+      _cpuThinkT = _randomCpuThink();
       return;
     }
 
@@ -375,13 +376,16 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     _chainRightHit = chainLayout.rightDropZone;
   }
 
-  DominoChainLayout _chainLayout(DominoBoardLayout layout) =>
+  DominoChainLayout _chainLayout(
+    DominoBoardLayout layout, {
+    int? chainLength,
+  }) =>
       dominoChainLayout(
         screenW: size.x,
         tableBounds: layout.chainTableBounds,
         baseTileW: layout.tileW,
         baseTileH: layout.tileH,
-        chainLength: _state.chain.length,
+        chainLength: chainLength ?? _state.chain.length,
       );
 
   void _finishGame() {
@@ -404,8 +408,6 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       callbacks.onGameOver(
         GameResult(
           score: score,
-          coinsEarned: max(1, score ~/ 50),
-          xpEarned: max(5, score ~/ 20),
           duration: Duration(milliseconds: (elapsed * 1000).round()),
           metadata: {
             'won': humanWon,
@@ -418,6 +420,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
                     blocked: _state.blocked,
                   )
                 : 0,
+            'performanceTier': dominoPerformanceTier(humanWon: humanWon).name,
           },
         ),
       );
@@ -520,10 +523,10 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
 
   void _executePlay(DominoPlay play) => _playTile(play, DominoPlayer.human);
 
-  void _playTile(DominoPlay play, DominoPlayer player) {
+  bool _playTile(DominoPlay play, DominoPlayer player) {
     final layout = _layout();
     final hand = _state.handFor(player);
-    if (play.handIndex < 0 || play.handIndex >= hand.length) return;
+    if (play.handIndex < 0 || play.handIndex >= hand.length) return false;
 
     final tile = hand[play.handIndex];
     final fromRect = player == DominoPlayer.human
@@ -541,19 +544,26 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
           );
 
     final result = dominoTryPlay(_state, player, play);
-    if (result.scoreDelta == 0 && !result.finished) {
+    if (identical(result.state, _state)) {
       _shakeT = 1;
-      return;
+      return false;
+    }
+
+    final chainIndex = play.end == DominoChainEnd.left
+        ? 0
+        : result.state.chain.length - 1;
+    final chainLayout = _chainLayout(
+      layout,
+      chainLength: result.state.chain.length,
+    );
+    final toRect = chainLayout.slotRect(chainIndex);
+    if (toRect == null) {
+      _shakeT = 1;
+      return false;
     }
 
     _state = result.state;
     _selectedHandIndex = null;
-
-    final chainIndex =
-        play.end == DominoChainEnd.left ? 0 : _state.chain.length - 1;
-    final chainLayout = _chainLayout(layout);
-    final toRect = chainLayout.slotRect(chainIndex);
-    if (toRect == null) return;
 
     _flyingTiles.add(
       _FlyingTile(
@@ -604,6 +614,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
         },
       );
     }
+    return true;
   }
 
   void _drawFromBoneyard() {
@@ -856,9 +867,11 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     _paintChainTable(canvas, chainLayout.tableBounds);
 
     if (_state.chain.isEmpty) {
-      final hint = _state.turn == DominoPlayer.human && _state.openingRequired
-          ? 'Arraste a peça de abertura'
-          : 'Arraste uma peça para a mesa';
+      final hint = switch (_state.turn) {
+        DominoPlayer.cpu => 'CPU abrindo…',
+        _ when _state.openingRequired => 'Arraste a peça de abertura',
+        _ => 'Arraste uma peça para a mesa',
+      };
       _paintCenteredText(
         canvas,
         hint,

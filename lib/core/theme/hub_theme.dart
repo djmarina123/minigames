@@ -10,6 +10,11 @@ abstract final class HubTheme {
   static const headerIcon = Color(0xFFE056A0);
   static const coinPillBg = Color(0xFFF0E6D3);
   static const coinGold = Color(0xFFF5B731);
+  /// Ícone padrão de moeda no hub (pill, perfil, placar, dicas).
+  static const coinIcon = Icons.monetization_on_rounded;
+  /// Ícone de nível / XP global.
+  static const levelIcon = Icons.star_rounded;
+  static const levelPillBg = Color(0xFFEDE8FF);
   static const removeAdsPurple = Color(0xFF7B5CF0);
   static const featuredBadge = Color(0xFFFF4757);
   static const cardBorder = Colors.white;

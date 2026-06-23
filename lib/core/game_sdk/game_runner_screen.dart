@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../ads/ads_service.dart';
+import '../economy/session_rewards.dart';
 import '../leaderboard/leaderboard_repository.dart';
 import '../storage/player_repository.dart';
 import '../theme/game_ui.dart';
@@ -30,17 +31,24 @@ class GameRunnerScreen extends StatefulWidget {
 class _GameRunnerScreenState extends State<GameRunnerScreen> {
   final _score = ValueNotifier<int>(0);
   bool _finished = false;
-  late final GameSessionCallbacks _callbacks;
+  late GameSessionCallbacks _callbacks;
   Widget? _gameWidget;
 
   @override
   void initState() {
     super.initState();
-    _callbacks = GameSessionCallbacks(
+    _callbacks = _buildCallbacks();
+  }
+
+  GameSessionCallbacks _buildCallbacks() {
+    return GameSessionCallbacks(
       onScoreUpdate: (score) => _score.value = score,
       onGameOver: _handleGameOver,
-      onRewardEarned: (_, amount) {},
+      onRewardEarned: (_, _) {},
       onExit: () => Navigator.of(context).pop(),
+      trySpendCoins: (amount) =>
+          context.read<PlayerRepository>().trySpendCoins(amount),
+      currentCoins: () => context.read<PlayerRepository>().profile.coins,
     );
   }
 
@@ -58,10 +66,20 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
     final leaderboardRepo = context.read<LeaderboardRepository>();
     final gameId = widget.game.metadata.id;
     final previousBest = _bestScoreFor(leaderboardRepo, gameId);
+    final isNewRecord =
+        previousBest == null || result.score > previousBest;
+    final isFirstGameToday = playerRepo.isFirstGameToday;
 
-    await playerRepo.recordGameSession(
-      coinsEarned: result.coinsEarned,
-      xpEarned: result.xpEarned,
+    final reward = resolveSessionReward(
+      result: result,
+      isNewRecord: isNewRecord,
+      isFirstGameToday: isFirstGameToday,
+    );
+    final enriched = applySessionReward(result, reward);
+
+    final sessionRecord = await playerRepo.recordGameSession(
+      coinsEarned: enriched.coinsEarned,
+      xpEarned: enriched.xpEarned,
     );
     await leaderboardRepo.submitScore(
       gameId: gameId,
@@ -71,17 +89,17 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
 
     final bestScore =
         _bestScoreFor(leaderboardRepo, gameId) ?? result.score;
-    final isNewRecord =
-        previousBest == null || result.score > previousBest;
 
     if (!mounted) return;
 
     await showGameResultDialog(
       context: context,
       metadata: widget.game.metadata,
-      result: result,
+      result: enriched,
       bestScore: bestScore,
       isNewRecord: isNewRecord,
+      levelUpLevels: sessionRecord.levelsGained,
+      levelUpCoins: sessionRecord.levelUpCoins,
       onPlayAgain: () {
         Navigator.of(context).pop();
         if (!mounted) return;
@@ -89,18 +107,20 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
           _finished = false;
           _score.value = 0;
           _gameWidget = null;
+          _callbacks = _buildCallbacks();
         });
       },
       onExit: () {
         Navigator.of(context).pop();
-        if (mounted) Navigator.of(context).pop(result);
+        if (mounted) Navigator.of(context).pop(enriched);
       },
       onDoubleCoins: () async {
-        final bonus = await AdsService.showRewardedAd();
-        await playerRepo.addBonusCoins(bonus);
+        final watched = await AdsService.showRewardedAd();
+        if (watched <= 0) return;
+        await playerRepo.addBonusCoins(enriched.coinsEarned);
         if (!mounted) return;
         Navigator.of(context).pop();
-        if (mounted) Navigator.of(context).pop(result);
+        if (mounted) Navigator.of(context).pop(enriched);
       },
     );
   }
@@ -114,7 +134,8 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _gameWidget ??= widget.game.buildGame(context, _callbacks, config: widget.config);
+    _gameWidget ??=
+        widget.game.buildGame(context, _callbacks, config: widget.config);
 
     return Scaffold(
       backgroundColor: GameUi.surfaceDark,

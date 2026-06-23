@@ -4,6 +4,7 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/economy/economy_config.dart';
 import '../../core/game_sdk/game_metadata.dart';
 import '../../core/game_sdk/game_session_hud.dart';
 import '../../core/game_sdk/game_session_hud_actions.dart';
@@ -28,13 +29,14 @@ class SolitaireGame implements HubGame {
 
   @override
   GamePrepDefinition get prep => GamePrepDefinition(
-        help: const GameHelpContent(
+        help: GameHelpContent(
           howToPlay:
               'Monte sequências alternando cores (vermelho/preto) em ordem '
               'decrescente nas colunas — ex.: 5♥ em cima de 6♠. Mova cartas para '
               'as fundações começando pelo Ás. Toque no monte para virar; arraste '
               'ou toque a carta do descarte para uma coluna. Toque duas vezes '
-              'para enviar à fundação quando possível.',
+              'para enviar à fundação quando possível. '
+              'DICA custa ${EconomyConfig.hintCoinCostSolitaire} moedas e destaca uma jogada.',
           scoring:
               'Cada carta na fundação vale 10 pts. Virar carta na coluna +5 pts. '
               'Mover do descarte para coluna +5 pts. Complete o jogo para +500 pts '
@@ -248,7 +250,10 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     return true;
   }
 
-  List<GameSessionHudAction> _hudActions() => [
+  List<GameSessionHudAction> _hudActions() {
+    final coins = callbacks.currentCoins?.call() ?? 0;
+    final canAffordHint = coins >= EconomyConfig.hintCoinCostSolitaire;
+    return [
         GameSessionHudAction(
           id: 'undo',
           icon: GameSessionHudActionIcons.undo,
@@ -257,16 +262,18 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
         GameSessionHudAction(
           id: 'hint',
           icon: GameSessionHudActionIcons.hint,
-          enabled: true,
+          enabled: _phase == _Phase.playing && canAffordHint,
           accent: SolitaireConfig.successGlow,
+          coinCost: EconomyConfig.hintCoinCostSolitaire,
         ),
         GameSessionHudAction(
           id: 'auto',
           icon: GameSessionHudActionIcons.auto,
-          enabled: true,
+          enabled: _phase == _Phase.playing,
           accent: SolitaireConfig.accentSoft,
         ),
       ];
+  }
 
   void _handleTap(Vector2 pos) {
     final layout = _layout();
@@ -447,6 +454,19 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       );
       return;
     }
+
+    final spend = callbacks.trySpendCoins;
+    if (spend == null || !spend(EconomyConfig.hintCoinCostSolitaire)) {
+      add(
+        SolitaireFloatingLabel(
+          position: Vector2(size.x / 2, _hudHeight + 18),
+          text: '${EconomyConfig.hintCoinCostSolitaire} moedas',
+          color: SolitaireConfig.missRed,
+        ),
+      );
+      return;
+    }
+
     _hint = hint;
   }
 
@@ -498,13 +518,15 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       GameResult(
         score: score,
         duration: duration,
-        coinsEarned: score ~/ 15,
-        xpEarned: score ~/ 4,
         metadata: {
           'moves': _state.moves,
           'foundationCards': solitaireFoundationCount(_state),
           'timeBonus': won ? solitaireTimeBonusRemaining(duration) : 0,
           'won': won,
+          'performanceTier': solitairePerformanceTier(
+            won: won,
+            foundationCards: solitaireFoundationCount(_state),
+          ).name,
         },
       ),
     );
@@ -519,8 +541,11 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
         layout.cardH,
       );
     }
-    final show = _state.waste.length.clamp(1, 3);
-    final fanStep = layout.cardW * 0.12;
+    final show = solitaireWasteVisibleCount(
+      _state.waste.length,
+      _state.drawCount,
+    );
+    final fanStep = layout.wasteFanStep;
     return Rect.fromLTWH(
       layout.wasteX,
       layout.topY,
@@ -684,10 +709,17 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
           layout.stockX + layout.cardW / 2,
           layout.topY + layout.cardH / 2,
         ),
-      SolitairePileKind.waste => Vector2(
-          layout.wasteX + layout.cardW / 2,
-          layout.topY + layout.cardH / 2,
-        ),
+      SolitairePileKind.waste => () {
+          final show = solitaireWasteVisibleCount(
+            _state.waste.length,
+            _state.drawCount,
+          );
+          final offset = (show - 1) * layout.wasteFanStep;
+          return Vector2(
+            layout.wasteX + offset + layout.cardW / 2,
+            layout.topY + layout.cardH / 2,
+          );
+        }(),
       SolitairePileKind.foundation => Vector2(
           layout.foundationX(pile.index) + layout.cardW / 2,
           layout.topY + layout.cardH / 2,
@@ -795,8 +827,8 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     );
     if (_state.waste.isNotEmpty) {
       final waste = _state.waste;
-      final show = waste.length.clamp(1, 3);
-      final fanStep = layout.cardW * 0.12;
+      final show = solitaireWasteVisibleCount(waste.length, _state.drawCount);
+      final fanStep = layout.wasteFanStep;
       final hideTopWaste = _drag?.selection.pile.kind == SolitairePileKind.waste;
       for (var i = 0; i < show; i++) {
         final idx = waste.length - show + i;

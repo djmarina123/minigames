@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/economy/economy_copy.dart';
+import '../../core/economy/economy_help_dialog.dart';
 import '../../core/storage/player_repository.dart';
 import '../../core/theme/hub_theme.dart';
 
@@ -19,38 +21,53 @@ class ProfileScreen extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-              child: Text(
-                'PERFIL',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                      color: HubTheme.textPrimary,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'PERFIL',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                            color: HubTheme.textPrimary,
+                          ),
                     ),
+                  ),
+                  IconButton(
+                    tooltip: 'Como funcionam moedas e XP',
+                    onPressed: () => showEconomyHelpDialog(context),
+                    icon: const Icon(Icons.help_outline_rounded),
+                    color: HubTheme.textSecondary,
+                  ),
+                ],
               ),
             ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 children: [
-                  _ProfileHero(level: player.level),
-                  const SizedBox(height: 24),
+                  _ProfileHero(
+                    level: player.level,
+                    xpInLevel: player.xpInCurrentLevel,
+                    xpNeeded: player.xpNeededForNextLevel,
+                    progress: player.levelProgress,
+                  ),
+                  const SizedBox(height: 14),
+                  _EconomySummaryCard(
+                    onLearnMore: () => showEconomyHelpDialog(context),
+                  ),
+                  const SizedBox(height: 16),
                   _StatTile(
-                    icon: Icons.monetization_on,
+                    icon: HubTheme.coinIcon,
                     label: 'Moedas',
                     value: '${player.coins}',
                     accent: HubTheme.coinGold,
                   ),
                   _StatTile(
-                    icon: Icons.star,
-                    label: 'XP',
+                    icon: HubTheme.levelIcon,
+                    label: 'XP total',
                     value: '${player.xp}',
                     accent: HubTheme.removeAdsPurple,
-                  ),
-                  _StatTile(
-                    icon: Icons.military_tech,
-                    label: 'Nível',
-                    value: '${player.level}',
-                    accent: const Color(0xFF00B894),
                   ),
                   _StatTile(
                     icon: Icons.videogame_asset,
@@ -75,9 +92,17 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _ProfileHero extends StatelessWidget {
-  const _ProfileHero({required this.level});
+  const _ProfileHero({
+    required this.level,
+    required this.xpInLevel,
+    required this.xpNeeded,
+    required this.progress,
+  });
 
   final int level;
+  final int xpInLevel;
+  final int xpNeeded;
+  final double progress;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +136,101 @@ class _ProfileHero extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 10,
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              color: HubTheme.coinGold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            EconomyCopy.levelProgressLabel(
+              level: level,
+              xpInLevel: xpInLevel,
+              xpNeeded: xpNeeded,
+            ),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _EconomySummaryCard extends StatelessWidget {
+  const _EconomySummaryCard({required this.onLearnMore});
+
+  final VoidCallback onLearnMore;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onLearnMore,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: HubTheme.cardBorder, width: 3),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: HubTheme.removeAdsPurple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  HubTheme.levelIcon,
+                  color: HubTheme.removeAdsPurple,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Moedas e XP',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                        color: HubTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      EconomyCopy.profileSummary,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: HubTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: HubTheme.textSecondary,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

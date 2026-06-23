@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import '../../core/economy/performance_tier.dart';
 import 'memory_symbols.dart';
 
 /// Constantes e regras de pontuação do Jogo da Memória.
@@ -115,4 +116,19 @@ MemoryScoreBreakdown memoryFinalScore({
     timeBonus: timeBonus,
     perfectBonus: perfectBonus,
   );
+}
+
+/// Faixa de desempenho para recompensa da sessão.
+PerformanceTier memoryPerformanceTier({
+  required int pairCount,
+  required int moves,
+  required int perfectBonus,
+}) {
+  if (perfectBonus > 0 || moves <= pairCount + 2) {
+    return PerformanceTier.gold;
+  }
+  if (moves <= (pairCount * 1.5).ceil()) {
+    return PerformanceTier.silver;
+  }
+  return PerformanceTier.bronze;
 }

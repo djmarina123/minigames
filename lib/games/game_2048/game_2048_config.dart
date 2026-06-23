@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../core/economy/performance_tier.dart';
+
 /// Constantes, paleta e regras puras do 2048.
 abstract final class Game2048Config {
   static const gridSize = 4;
@@ -510,4 +512,10 @@ Game2048Direction? game2048DirectionFromDelta(double dx, double dy) {
     return dx > 0 ? Game2048Direction.right : Game2048Direction.left;
   }
   return dy > 0 ? Game2048Direction.down : Game2048Direction.up;
+}
+
+PerformanceTier game2048PerformanceTier(int highestTile) {
+  if (highestTile >= 1024) return PerformanceTier.gold;
+  if (highestTile >= 512) return PerformanceTier.silver;
+  return PerformanceTier.bronze;
 }

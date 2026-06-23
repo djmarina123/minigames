@@ -4,6 +4,7 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/economy/economy_config.dart';
 import '../../core/game_sdk/game_metadata.dart';
 import '../../core/game_sdk/game_session_hud.dart';
 import '../../core/game_sdk/game_session_hud_actions.dart';
@@ -28,16 +29,16 @@ class SudokuGame implements HubGame {
 
   @override
   GamePrepDefinition get prep => GamePrepDefinition(
-        help: const GameHelpContent(
+        help: GameHelpContent(
           howToPlay:
               'Toque uma célula vazia e escolha um número de 1 a 9. Cada linha, '
               'coluna e bloco 3×3 deve conter todos os dígitos sem repetição. '
-              'Use DICA para revelar uma célula ou APAGAR para limpar. '
-              'A partida termina ao completar o grid ou após 5 erros.',
+              'DICA custa ${EconomyConfig.hintCoinCostSudoku} moedas e revela uma célula. '
+              'Use APAGAR para limpar. A partida termina ao completar o grid ou após 5 erros.',
           scoring:
-              'Cada acerto vale +12 pts. Erro −15 pts. Dica −30 pts. '
+              'Cada acerto vale +12 pts. Erro −15 pts. '
               'Complete o puzzle para +500 pts, bônus de tempo (até 300 pts) '
-              'e +100 pts se terminar sem erros nem dicas.',
+              'e +100 pts se terminar sem erros nem dicas pagas.',
         ),
         optionGroups: [
           GamePrepOptionGroup(
@@ -166,7 +167,10 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
     return true;
   }
 
-  List<GameSessionHudAction> _hudActions() => [
+  List<GameSessionHudAction> _hudActions() {
+    final coins = callbacks.currentCoins?.call() ?? 0;
+    final canAffordHint = coins >= EconomyConfig.hintCoinCostSudoku;
+    return [
         GameSessionHudAction(
           id: 'undo',
           icon: GameSessionHudActionIcons.undo,
@@ -175,8 +179,9 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
         GameSessionHudAction(
           id: 'hint',
           icon: GameSessionHudActionIcons.hint,
-          enabled: _hasHintTarget(),
+          enabled: _hasHintTarget() && canAffordHint,
           accent: SudokuConfig.successGlow,
+          coinCost: EconomyConfig.hintCoinCostSudoku,
         ),
         GameSessionHudAction(
           id: 'erase',
@@ -185,6 +190,7 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
           accent: SudokuConfig.accentSoft,
         ),
       ];
+  }
 
   bool _handleNumPadTap(Offset pos) {
     final layout = _layout();
@@ -243,7 +249,18 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
   }
 
   void _useHint() {
-    final result = sudokuHint(_state);
+    final spend = callbacks.trySpendCoins;
+    if (spend == null || !spend(EconomyConfig.hintCoinCostSudoku)) {
+      final layout = _layout();
+      add(SudokuFloatingLabel(
+        position: Vector2(size.x / 2, layout.boardTop - 8),
+        text: '${EconomyConfig.hintCoinCostSudoku} moedas',
+        color: SudokuConfig.missRed,
+      ));
+      return;
+    }
+
+    final result = sudokuHintPaid(_state);
     if (result == null) return;
     _pushUndo();
     _state = result.state;
@@ -258,8 +275,8 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
         (result.row + 0.5) * layout.cellSize;
     add(SudokuFloatingLabel(
       position: Vector2(cx, cy),
-      text: '-${SudokuConfig.hintPenalty}',
-      color: SudokuConfig.hudMuted,
+      text: 'Dica!',
+      color: SudokuConfig.successGlow,
     ));
     _updateScore();
     if (sudokuIsSolved(_state)) {
@@ -345,8 +362,6 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
       GameResult(
         score: score,
         duration: duration,
-        coinsEarned: score ~/ 15,
-        xpEarned: score ~/ 4,
         metadata: {
           'moves': _state.moves,
           'mistakes': _state.mistakes,
@@ -354,6 +369,11 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
           'cellsFilled': _state.filledCount(),
           'timeBonus': won ? sudokuTimeBonusRemaining(duration) : 0,
           'won': won,
+          'performanceTier': sudokuPerformanceTier(
+            won: won,
+            mistakes: _state.mistakes,
+            hintsUsed: _state.hintsUsed,
+          ).name,
         },
       ),
     );

@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import '../../core/economy/performance_tier.dart';
+
 /// Constantes, paleta e regras puras da Corrida Infinita.
 abstract final class InfiniteRunnerConfig {
   static const countdownSec = 3;
@@ -179,4 +181,17 @@ double infiniteRunnerSpeedModeMultiplier(int modeIndex) {
                   InfiniteRunnerConfig.highObstacleWidthMin));
   final height = playerH * InfiniteRunnerConfig.highObstacleHeightFactor;
   return (width, height);
+}
+
+PerformanceTier infiniteRunnerPerformanceTier({
+  required int distanceM,
+  required int obstaclesCleared,
+}) {
+  if (distanceM >= 200 || obstaclesCleared >= 15) {
+    return PerformanceTier.gold;
+  }
+  if (distanceM >= 100 || obstaclesCleared >= 8) {
+    return PerformanceTier.silver;
+  }
+  return PerformanceTier.bronze;
 }

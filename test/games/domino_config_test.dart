@@ -67,6 +67,33 @@ void main() {
       expect(result.state.progressScore, 27);
     });
 
+    test('jogada da CPU altera o estado sem pontuar o humano', () {
+      var state = DominoState(
+        humanHand: const [DominoTile(id: 98, left: 0, right: 0)],
+        cpuHand: const [
+          DominoTile(id: 10, left: 2, right: 5),
+          DominoTile(id: 11, left: 3, right: 4),
+        ],
+        boneyard: const [],
+        chain: const [
+          PlacedDomino(tile: DominoTile(id: 1, left: 5, right: 1)),
+        ],
+        turn: DominoPlayer.cpu,
+        openingRequired: false,
+        progressScore: 45,
+      );
+
+      final play = dominoValidPlays(state, DominoPlayer.cpu).first;
+      final result = dominoTryPlay(state, DominoPlayer.cpu, play);
+
+      expect(result.finished, isFalse);
+      expect(result.scoreDelta, 0);
+      expect(result.state.progressScore, 45);
+      expect(result.state.cpuHand.length, 1);
+      expect(result.state.turn, DominoPlayer.human);
+      expect(identical(result.state, state), isFalse);
+    });
+
     test('vitória ao esvaziar a mão', () {
       var state = DominoState(
         humanHand: const [DominoTile(id: 0, left: 3, right: 5)],
@@ -185,6 +212,19 @@ void main() {
       );
       expect(empty.emptyDropZone.width, greaterThan(0));
       expect(empty.leftDropZone, Rect.zero);
+    });
+
+    test('layout da fileira com uma peça expõe slot 0', () {
+      final table = const Rect.fromLTWH(12, 200, 366, 280);
+      final opening = dominoChainLayout(
+        screenW: 390,
+        tableBounds: table,
+        baseTileW: 48,
+        baseTileH: 92,
+        chainLength: 1,
+      );
+      expect(opening.slots.length, 1);
+      expect(opening.slotRect(0), isNotNull);
     });
 
     test('preview do HUD de bônus tempo', () {

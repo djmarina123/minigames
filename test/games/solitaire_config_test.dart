@@ -217,6 +217,21 @@ void main() {
       expect(short.cardW, lessThanOrEqualTo(tall.cardW));
     });
 
+    test('layout reserva espaço para leque de 3 cartas no descarte', () {
+      final layout = solitaireBoardLayout(screenW: 390, screenH: 844);
+      final spread = layout.cardW + layout.wasteFanStep * 2;
+      final maxSpread = layout.foundationX(0) - layout.wasteX;
+      expect(spread, lessThanOrEqualTo(maxSpread + 0.01));
+      expect(layout.wasteFanStep, greaterThan(layout.cardW * 0.2));
+    });
+
+    test('visível no descarte respeita drawCount', () {
+      expect(solitaireWasteVisibleCount(5, 1), 1);
+      expect(solitaireWasteVisibleCount(2, 3), 2);
+      expect(solitaireWasteVisibleCount(5, 3), 3);
+      expect(solitaireWasteVisibleCount(0, 3), 0);
+    });
+
     test('label de tempo formatado', () {
       expect(
         solitaireHudElapsedLabel(const Duration(minutes: 2, seconds: 5)),

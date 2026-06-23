@@ -213,13 +213,12 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
       GameResult(
         score: _score,
         duration: DateTime.now().difference(_startedAt),
-        coinsEarned: _score ~/ 10,
-        xpEarned: _score ~/ 2,
         metadata: {
           'durationSec': durationSec,
           'hits': _hits,
           'misses': _misses,
           'maxCombo': _maxCombo,
+          'performanceTier': tapRushPerformanceTier(_score).name,
         },
       ),
     );

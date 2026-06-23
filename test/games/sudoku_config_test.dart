@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:minigames_hub/core/economy/performance_tier.dart';
 import 'package:minigames_hub/games/sudoku/sudoku_config.dart';
 
 void main() {
@@ -230,6 +231,30 @@ void main() {
       final state = sudokuNewGame(Random(0));
       expect(sudokuHudProgressLabel(state), '${state.filledCount()}/81');
       expect(sudokuHudTimeBonusLabel(120), '+120 tempo');
+    });
+
+    test('dica paga não penaliza score', () {
+      final state = sudokuNewGame(Random(5));
+      final before = state.score;
+      final hint = sudokuHintPaid(state);
+      expect(hint, isNotNull);
+      expect(hint!.state.score, before);
+      expect(hint.state.hintsUsed, 1);
+    });
+
+    test('sudokuPerformanceTier — ouro sem erros nem dicas', () {
+      expect(
+        sudokuPerformanceTier(won: true, mistakes: 0, hintsUsed: 0),
+        PerformanceTier.gold,
+      );
+      expect(
+        sudokuPerformanceTier(won: true, mistakes: 1, hintsUsed: 0),
+        PerformanceTier.silver,
+      );
+      expect(
+        sudokuPerformanceTier(won: false, mistakes: 0, hintsUsed: 0),
+        PerformanceTier.bronze,
+      );
     });
   });
 }

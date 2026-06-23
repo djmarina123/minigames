@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import '../../core/economy/performance_tier.dart';
+
 /// Constantes e paleta do Tap Rush — referência para novos jogos Flame.
 abstract final class TapRushConfig {
   static const gameDurationSec = 15;
@@ -49,3 +51,9 @@ double tapRushTargetLifetimeMs(double progress) =>
     TapRushConfig.maxTargetLifetimeMs -
     (TapRushConfig.maxTargetLifetimeMs - TapRushConfig.minTargetLifetimeMs) *
         progress;
+
+PerformanceTier tapRushPerformanceTier(int score) {
+  if (score >= 400) return PerformanceTier.gold;
+  if (score >= 250) return PerformanceTier.silver;
+  return PerformanceTier.bronze;
+}
