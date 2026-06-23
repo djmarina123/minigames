@@ -29,6 +29,30 @@ abstract final class HubTheme {
       cardColor: Color(0xFFE84393),
       accentColor: Color(0xFFFDCB6E),
     ),
+    'game_2048': HubGameTheme(
+      cardColor: Color(0xFF00B894),
+      accentColor: Color(0xFFFDCB6E),
+    ),
+    'infinite_runner': HubGameTheme(
+      cardColor: Color(0xFFFF9F43),
+      accentColor: Color(0xFF54A0FF),
+    ),
+    'solitaire': HubGameTheme(
+      cardColor: Color(0xFF2D6A4F),
+      accentColor: Color(0xFFE17055),
+    ),
+    'sudoku': HubGameTheme(
+      cardColor: Color(0xFF4834D4),
+      accentColor: Color(0xFFF9CA24),
+    ),
+    'domino': HubGameTheme(
+      cardColor: Color(0xFF6D4C41),
+      accentColor: Color(0xFFFFB74D),
+    ),
+    'snake': HubGameTheme(
+      cardColor: Color(0xFF16A085),
+      accentColor: Color(0xFFF39C12),
+    ),
     'demo_tap': HubGameTheme(
       cardColor: Color(0xFF0984E3),
       accentColor: Color(0xFF74B9FF),
