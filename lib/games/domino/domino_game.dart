@@ -560,11 +560,8 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       layout,
       chainLength: result.state.chain.length,
     );
-    final toRect = chainLayout.slotRect(chainIndex);
-    if (toRect == null) {
-      _shakeT = 1;
-      return false;
-    }
+    final toSlot = chainLayout.slots.firstWhere((s) => s.index == chainIndex);
+    final toRect = toSlot.rect;
 
     _state = result.state;
     _selectedHandIndex = null;
@@ -574,7 +571,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
         from: fromRect,
         to: toRect,
         tile: tile,
-        flipped: play.flipped,
+        flipped: play.flipped ^ toSlot.mirrored,
         faceUp: player == DominoPlayer.human,
         player: player,
         chainIndex: chainIndex,
@@ -918,7 +915,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
         canvas,
         rect,
         placed.tile,
-        flipped: placed.flipped,
+        flipped: placed.flipped ^ slot.mirrored,
         horizontal: slot.horizontal,
       );
     }

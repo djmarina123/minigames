@@ -602,11 +602,16 @@ class DominoChainSlot {
     required this.index,
     required this.rect,
     required this.horizontal,
+    this.mirrored = false,
   });
 
   final int index;
   final Rect rect;
   final bool horizontal;
+
+  /// Espelha os pips no desenho (linhas que correm da direita p/ a esquerda),
+  /// para que o número que encosta seja o mesmo da peça vizinha.
+  final bool mirrored;
 }
 
 /// Geometria da fileira na mesa — zonas de drop alinhadas ao desenho.
@@ -748,6 +753,9 @@ DominoChainLayout dominoChainLayout({
         index: i,
         rect: rectFor(cell),
         horizontal: !cell.vertical,
+        // Linhas ímpares correm para a esquerda: espelha os pips horizontais
+        // para o lado que encosta combinar com a peça vizinha.
+        mirrored: !cell.vertical && cell.row.isOdd,
       ),
     );
   }

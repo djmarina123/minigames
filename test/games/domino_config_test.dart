@@ -243,6 +243,34 @@ void main() {
       expect(corner.rect.top, greaterThan(lastOfFirstRow.top));
     });
 
+    test('peças de linhas invertidas são espelhadas no encaixe', () {
+      final table = const Rect.fromLTWH(12, 200, 366, 280);
+      final layout = dominoChainLayout(
+        screenW: 390,
+        tableBounds: table,
+        baseTileW: 48,
+        baseTileH: 92,
+        chainLength: 14,
+      );
+
+      // 1ª linha (esquerda→direita) não espelha.
+      final firstRowTop = layout.slots.first.rect.top;
+      final firstRow = layout.slots
+          .where((s) => (s.rect.top - firstRowTop).abs() < 0.5)
+          .toList();
+      expect(firstRow.every((s) => !s.mirrored), isTrue);
+
+      // Esquinas (verticais) nunca espelham.
+      final corners = layout.slots.where((s) => !s.horizontal);
+      expect(corners.every((s) => !s.mirrored), isTrue);
+
+      // Há ao menos uma peça horizontal espelhada (linha que corre p/ esquerda).
+      expect(
+        layout.slots.any((s) => s.horizontal && s.mirrored),
+        isTrue,
+      );
+    });
+
     test('setas das pontas seguem o sentido da fileira', () {
       final table = const Rect.fromLTWH(12, 200, 366, 280);
       final wrapped = dominoChainLayout(
