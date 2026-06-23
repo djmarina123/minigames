@@ -36,6 +36,18 @@ class GameResultDialog extends StatelessWidget {
     final moves = _metaInt(result.metadata['moves']);
     final timeBonus = _metaInt(result.metadata['timeBonus']);
     final perfectBonus = _metaInt(result.metadata['perfectBonus']);
+    final highestTile = _metaInt(result.metadata['highestTile']);
+    final tileBonus = _metaInt(result.metadata['tileBonus']);
+    final obstaclesCleared = _metaInt(result.metadata['obstaclesCleared']);
+    final distanceM = _metaInt(result.metadata['distanceM']);
+    final speedLevel = _metaInt(result.metadata['speedLevel']);
+    final foundationCards = _metaInt(result.metadata['foundationCards']);
+    final foodEaten = _metaInt(result.metadata['foodEaten']);
+    final snakeLength = _metaInt(result.metadata['snakeLength']);
+    final mistakes = _metaInt(result.metadata['mistakes']);
+    final hintsUsed = _metaInt(result.metadata['hintsUsed']);
+    final cellsFilled = _metaInt(result.metadata['cellsFilled']);
+    final won = result.metadata['won'] == true;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -91,7 +103,19 @@ class GameResultDialog extends StatelessWidget {
                             (misses != null && misses > 0) ||
                             moves != null ||
                             (timeBonus != null && timeBonus > 0) ||
-                            (perfectBonus != null && perfectBonus > 0)) ...[
+                            (perfectBonus != null && perfectBonus > 0) ||
+                            (highestTile != null && highestTile > 0) ||
+                            (tileBonus != null && tileBonus > 0) ||
+                            (obstaclesCleared != null && obstaclesCleared > 0) ||
+                            (distanceM != null && distanceM > 0) ||
+                            (speedLevel != null && speedLevel > 0) ||
+                            (foundationCards != null && foundationCards > 0) ||
+                            (foodEaten != null && foodEaten > 0) ||
+                            (snakeLength != null && snakeLength > 0) ||
+                            (mistakes != null && mistakes > 0) ||
+                            (hintsUsed != null && hintsUsed > 0) ||
+                            (cellsFilled != null && cellsFilled > 0) ||
+                            won) ...[
                           const SizedBox(height: 14),
                           _StatsChips(
                             cardColor: theme.cardColor,
@@ -102,6 +126,18 @@ class GameResultDialog extends StatelessWidget {
                             moves: moves,
                             timeBonus: timeBonus,
                             perfectBonus: perfectBonus,
+                            highestTile: highestTile,
+                            tileBonus: tileBonus,
+                            obstaclesCleared: obstaclesCleared,
+                            distanceM: distanceM,
+                            speedLevel: speedLevel,
+                            foundationCards: foundationCards,
+                            foodEaten: foodEaten,
+                            snakeLength: snakeLength,
+                            mistakes: mistakes,
+                            hintsUsed: hintsUsed,
+                            cellsFilled: cellsFilled,
+                            won: won,
                           ),
                         ],
                         const SizedBox(height: 20),
@@ -515,6 +551,18 @@ class _StatsChips extends StatelessWidget {
     this.moves,
     this.timeBonus,
     this.perfectBonus,
+    this.highestTile,
+    this.tileBonus,
+    this.obstaclesCleared,
+    this.distanceM,
+    this.speedLevel,
+    this.foundationCards,
+    this.foodEaten,
+    this.snakeLength,
+    this.mistakes,
+    this.hintsUsed,
+    this.cellsFilled,
+    this.won = false,
   });
 
   final Color cardColor;
@@ -525,6 +573,18 @@ class _StatsChips extends StatelessWidget {
   final int? moves;
   final int? timeBonus;
   final int? perfectBonus;
+  final int? highestTile;
+  final int? tileBonus;
+  final int? obstaclesCleared;
+  final int? distanceM;
+  final int? speedLevel;
+  final int? foundationCards;
+  final int? foodEaten;
+  final int? snakeLength;
+  final int? mistakes;
+  final int? hintsUsed;
+  final int? cellsFilled;
+  final bool won;
 
   @override
   Widget build(BuildContext context) {
@@ -545,6 +605,30 @@ class _StatsChips extends StatelessWidget {
           _Chip(label: 'Bônus tempo', value: '+$timeBonus', color: accentColor),
         if (perfectBonus != null && perfectBonus! > 0)
           _Chip(label: 'Perfeito', value: '+$perfectBonus', color: HubTheme.coinGold),
+        if (highestTile != null && highestTile! > 0)
+          _Chip(label: 'Maior peça', value: '$highestTile', color: accentColor),
+        if (tileBonus != null && tileBonus! > 0)
+          _Chip(label: 'Bônus peça', value: '+$tileBonus', color: HubTheme.coinGold),
+        if (obstaclesCleared != null && obstaclesCleared! > 0)
+          _Chip(label: 'Obstáculos', value: '$obstaclesCleared', color: accentColor),
+        if (distanceM != null && distanceM! > 0)
+          _Chip(label: 'Distância', value: '${distanceM}m', color: cardColor),
+        if (speedLevel != null && speedLevel! > 1)
+          _Chip(label: 'Velocidade', value: 'Nv. $speedLevel', color: HubTheme.coinGold),
+        if (foundationCards != null && foundationCards! > 0)
+          _Chip(label: 'Fundação', value: '$foundationCards/52', color: accentColor),
+        if (foodEaten != null && foodEaten! > 0)
+          _Chip(label: 'Frutas', value: '$foodEaten', color: accentColor),
+        if (snakeLength != null && snakeLength! > 3)
+          _Chip(label: 'Tamanho', value: '$snakeLength', color: cardColor),
+        if (mistakes != null && mistakes! > 0)
+          _Chip(label: 'Erros', value: '$mistakes', color: HubTheme.featuredBadge),
+        if (hintsUsed != null && hintsUsed! > 0)
+          _Chip(label: 'Dicas', value: '$hintsUsed', color: cardColor),
+        if (cellsFilled != null && cellsFilled! > 0)
+          _Chip(label: 'Células', value: '$cellsFilled/81', color: accentColor),
+        if (won)
+          _Chip(label: 'Vitória', value: '✓', color: HubTheme.coinGold),
       ],
     );
   }
