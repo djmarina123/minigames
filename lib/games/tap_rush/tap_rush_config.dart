@@ -52,8 +52,12 @@ double tapRushTargetLifetimeMs(double progress) =>
     (TapRushConfig.maxTargetLifetimeMs - TapRushConfig.minTargetLifetimeMs) *
         progress;
 
-PerformanceTier tapRushPerformanceTier(int score) {
-  if (score >= 400) return PerformanceTier.gold;
-  if (score >= 250) return PerformanceTier.silver;
-  return PerformanceTier.bronze;
-}
+/// Score considerado "partida excelente" (desempenho `1.0`).
+const tapRushGoldScore = 470;
+
+/// Desempenho normalizado (`0.0`–`1.0`) pela pontuação obtida.
+double tapRushPerformanceRatio(int score) =>
+    (score / tapRushGoldScore).clamp(0.0, 1.0);
+
+PerformanceTier tapRushPerformanceTier(int score) =>
+    tierFromRatio(tapRushPerformanceRatio(score));

@@ -571,11 +571,26 @@ String solitaireHudElapsedLabel(Duration elapsed) {
   return '$m:${s.toString().padLeft(2, '0')}';
 }
 
-PerformanceTier solitairePerformanceTier({
+/// Cartas na fundação numa derrota "quase lá" (referência do desempenho).
+const solitaireLossFoundationRef = 47;
+
+/// Desempenho normalizado (`0.0`–`1.0`).
+///
+/// Vencer = desempenho máximo (ouro). Numa derrota, gradua pelo progresso nas
+/// fundações — chega no máximo a uma prata baixa, nunca a ouro.
+double solitairePerformanceRatio({
   required bool won,
   required int foundationCards,
 }) {
-  if (won) return PerformanceTier.gold;
-  if (foundationCards >= 26) return PerformanceTier.silver;
-  return PerformanceTier.bronze;
+  if (won) return 1.0;
+  return (foundationCards / solitaireLossFoundationRef).clamp(0.0, 0.84);
 }
+
+PerformanceTier solitairePerformanceTier({
+  required bool won,
+  required int foundationCards,
+}) =>
+    tierFromRatio(solitairePerformanceRatio(
+      won: won,
+      foundationCards: foundationCards,
+    ));

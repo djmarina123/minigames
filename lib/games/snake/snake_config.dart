@@ -214,11 +214,20 @@ String snakeHudElapsedLabel(Duration elapsed) {
   return '$m:${r.toString().padLeft(2, '0')}';
 }
 
-PerformanceTier snakePerformanceTier({
+/// Comprimento da cobra considerado "partida excelente" (desempenho `1.0`).
+const snakeGoldLength = 21;
+
+/// Desempenho normalizado (`0.0`–`1.0`); vencer é sempre desempenho máximo.
+double snakePerformanceRatio({
   required bool won,
   required int snakeLength,
 }) {
-  if (won || snakeLength >= 20) return PerformanceTier.gold;
-  if (snakeLength >= 12) return PerformanceTier.silver;
-  return PerformanceTier.bronze;
+  if (won) return 1.0;
+  return (snakeLength / snakeGoldLength).clamp(0.0, 1.0);
 }
+
+PerformanceTier snakePerformanceTier({
+  required bool won,
+  required int snakeLength,
+}) =>
+    tierFromRatio(snakePerformanceRatio(won: won, snakeLength: snakeLength));

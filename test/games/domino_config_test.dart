@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:minigames_hub/core/economy/performance_tier.dart';
 import 'package:minigames_hub/games/domino/domino_config.dart';
 
 void main() {
@@ -214,7 +215,7 @@ void main() {
       expect(empty.leftDropZone, Rect.zero);
     });
 
-    test('fileira faz a curva conectada na borda ao quebrar de linha', () {
+    test('fileira vira a quina com peça vertical ao quebrar de linha', () {
       final table = const Rect.fromLTWH(12, 200, 366, 280);
       final layout = dominoChainLayout(
         screenW: 390,
@@ -224,22 +225,25 @@ void main() {
         chainLength: 14,
       );
 
-      // Descobre quantas peças cabem na primeira linha (mesma linha = mesmo Y).
+      // Peças da 1ª linha são horizontais (mesmo topo).
       final firstRowTop = layout.slots.first.rect.top;
       final firstRow = layout.slots
           .where((s) => (s.rect.top - firstRowTop).abs() < 0.5)
           .toList();
       expect(firstRow.length, greaterThan(1));
+      expect(firstRow.every((s) => s.horizontal), isTrue);
 
-      // A última peça da 1ª linha e a 1ª da 2ª linha ficam na mesma coluna
-      // (a fileira vira a esquina conectada, em vez de recentralizar).
+      // A 1ª peça da 2ª linha é a esquina: vertical, abaixo e alinhada pelo
+      // centro com a última peça da 1ª linha (a fileira dobra a quina).
       final lastOfFirstRow = layout.slots[firstRow.length - 1].rect;
-      final firstOfSecondRow = layout.slots[firstRow.length].rect;
-      expect(firstOfSecondRow.left, closeTo(lastOfFirstRow.left, 0.5));
-      expect(firstOfSecondRow.top, greaterThan(lastOfFirstRow.top));
+      final corner = layout.slots[firstRow.length];
+      expect(corner.horizontal, isFalse);
+      expect(corner.rect.height, greaterThan(corner.rect.width));
+      expect(corner.rect.center.dx, closeTo(lastOfFirstRow.center.dx, 0.5));
+      expect(corner.rect.top, greaterThan(lastOfFirstRow.top));
     });
 
-    test('ponta direita aponta para o sentido da última linha', () {
+    test('setas das pontas seguem o sentido da fileira', () {
       final table = const Rect.fromLTWH(12, 200, 366, 280);
       final wrapped = dominoChainLayout(
         screenW: 390,
@@ -248,7 +252,7 @@ void main() {
         baseTileH: 92,
         chainLength: 14,
       );
-      // 1ª linha corre p/ direita; ponta esquerda sempre abre p/ esquerda.
+      // Ponta esquerda (peça de abertura) sempre abre p/ a esquerda.
       expect(wrapped.leftEndArrow, const Offset(-1, 0));
       // Em linha única a ponta direita abre p/ direita.
       final single = dominoChainLayout(
@@ -277,6 +281,33 @@ void main() {
     test('preview do HUD de bônus tempo', () {
       expect(dominoHudTimeBonusPreview(0), '+150 tempo');
       expect(dominoTimeBonusRemaining(75), 0);
+    });
+  });
+
+  group('dominoPerformanceTier', () {
+    test('vitória é sempre ouro', () {
+      expect(
+        dominoPerformanceTier(humanWon: true),
+        PerformanceTier.gold,
+      );
+      expect(
+        dominoPerformanceTier(humanWon: true, opponentPips: 40),
+        PerformanceTier.gold,
+      );
+    });
+
+    test('derrota apertada (poucos pips na mão) é prata', () {
+      expect(
+        dominoPerformanceTier(humanWon: false, humanPips: 4),
+        PerformanceTier.silver,
+      );
+    });
+
+    test('derrota feia (mão cheia) é bronze', () {
+      expect(
+        dominoPerformanceTier(humanWon: false, humanPips: 40),
+        PerformanceTier.bronze,
+      );
     });
   });
 }

@@ -461,6 +461,33 @@ Registrar em `registerBundledGames()` (`lib/bootstrap/games.dart`).
 
 Cada jogo define `*PerformanceTier()` em `*_config.dart` e grava `performanceTier` no `GameResult.metadata`. O `GameRunnerScreen` combina tier + recorde + primeira partida do dia.
 
+### Régua de desempenho (tier) — regra única
+
+**Problema que ela resolve:** moeda/XP são pagos **por faixa** (bronze/prata/ouro), não pelo score bruto — então o score de cada jogo pode ter a escala que quiser. Mas se cada jogo decidir "o que é ouro" com números mágicos próprios, "ouro" custa esforços muito diferentes (ex.: vencer no Dominó vs. zerar o Sudoku sem erro) e o jogador farma o jogo de ouro mais barato.
+
+**Regra:** todo jogo converte a partida num **desempenho normalizado `[0,1]`** (`*PerformanceRatio(...)`, `1.0` = partida excelente/ótima) e delega a faixa a `tierFromRatio()` em `core/economy/performance_tier.dart`. Cortes **iguais para todos**:
+
+| Faixa | Desempenho | Calibração-alvo |
+|---|---|---|
+| Ouro | `>= 0.85` (`TierRubric.goldRatio`) | ~top 10–15% das partidas |
+| Prata | `>= 0.55` (`TierRubric.silverRatio`) | ~os 30% seguintes |
+| Bronze | resto | baseline (jogou/terminou) |
+
+Assim "ouro" significa o **mesmo nível de excelência** em todos os jogos; calibrar é só mexer no alvo de cada jogo (ratio `1.0`), nunca nos cortes.
+
+| Jogo | Como o ratio é computado (alvo `1.0`) |
+|---|---|
+| Memória | eficiência de jogadas (perfeito = `1.0`; cai até `pares × 2.5` jogadas) |
+| Tap Rush | `score / tapRushGoldScore` (470) |
+| 2048 | escala **log2** da maior peça (`64` → `0`, `1024` → `1.0`) |
+| Cobra | vencer = `1.0`; senão `comprimento / 21` |
+| Corrida | melhor entre `dist/235` e `obstáculos/17` |
+| Sudoku | derrota = `0`; vitória parte de `0.65`, impecável (0 erro/dica) = `0.85`; erro `−0.05`, dica `−0.07` |
+| Paciência | vencer = `1.0`; derrota gradua por fundações (`/47`, teto `0.84`) |
+| Dominó | vitória `>= 0.85` (margem reforça); derrota gradua por pips na mão (teto `0.84`) |
+
+**Ao adicionar jogo novo:** exponha `*PerformanceRatio(...)` (testável, sem Flame), faça `*PerformanceTier(...) => tierFromRatio(ratio)`, e calibre o alvo `1.0` para uma partida realmente excelente daquele jogo. Jogos de vitória/derrota: vencer não é automaticamente ouro nem derrota é automaticamente bronze — gradue por margem/qualidade/progresso. Cubra os limiares em `test/games/<jogo>_config_test.dart`.
+
 ### `PlayerRepository`
 
 | Método / getter | Uso |

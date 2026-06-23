@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:minigames_hub/core/economy/performance_tier.dart';
 import 'package:minigames_hub/games/solitaire/solitaire_config.dart';
 
 void main() {
@@ -236,6 +237,29 @@ void main() {
       expect(
         solitaireHudElapsedLabel(const Duration(minutes: 2, seconds: 5)),
         '2:05',
+      );
+    });
+  });
+
+  group('solitairePerformanceTier', () {
+    test('vencer é ouro', () {
+      expect(
+        solitairePerformanceTier(won: true, foundationCards: 52),
+        PerformanceTier.gold,
+      );
+    });
+
+    test('derrota com metade das fundações é prata', () {
+      expect(
+        solitairePerformanceTier(won: false, foundationCards: 26),
+        PerformanceTier.silver,
+      );
+    });
+
+    test('derrota com poucas fundações é bronze', () {
+      expect(
+        solitairePerformanceTier(won: false, foundationCards: 10),
+        PerformanceTier.bronze,
       );
     });
   });

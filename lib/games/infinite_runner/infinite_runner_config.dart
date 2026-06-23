@@ -183,15 +183,28 @@ double infiniteRunnerSpeedModeMultiplier(int modeIndex) {
   return (width, height);
 }
 
-PerformanceTier infiniteRunnerPerformanceTier({
+/// Distância (m) considerada "partida excelente" (desempenho `1.0`).
+const infiniteRunnerGoldDistanceM = 235;
+
+/// Obstáculos desviados considerados "partida excelente" (desempenho `1.0`).
+const infiniteRunnerGoldObstacles = 17;
+
+/// Desempenho normalizado (`0.0`–`1.0`) — o melhor entre distância e obstáculos.
+double infiniteRunnerPerformanceRatio({
   required int distanceM,
   required int obstaclesCleared,
 }) {
-  if (distanceM >= 200 || obstaclesCleared >= 15) {
-    return PerformanceTier.gold;
-  }
-  if (distanceM >= 100 || obstaclesCleared >= 8) {
-    return PerformanceTier.silver;
-  }
-  return PerformanceTier.bronze;
+  final byDistance = distanceM / infiniteRunnerGoldDistanceM;
+  final byObstacles = obstaclesCleared / infiniteRunnerGoldObstacles;
+  final best = byDistance > byObstacles ? byDistance : byObstacles;
+  return best.clamp(0.0, 1.0);
 }
+
+PerformanceTier infiniteRunnerPerformanceTier({
+  required int distanceM,
+  required int obstaclesCleared,
+}) =>
+    tierFromRatio(infiniteRunnerPerformanceRatio(
+      distanceM: distanceM,
+      obstaclesCleared: obstaclesCleared,
+    ));

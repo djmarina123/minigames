@@ -647,12 +647,12 @@ class DominoChainLayout {
   }
 }
 
-/// Fileira como uma cobra contínua: fica reta enquanto cabe e faz a curva
-/// (vira a esquina, conectada na borda) quando o espaço aperta.
+/// Fileira como um dominó de verdade: fica reta enquanto cabe e, quando o
+/// espaço aperta, **vira a quina** — a peça do canto é desenhada na vertical e
+/// a fileira continua na linha de baixo no sentido inverso.
 ///
-/// As linhas compartilham a mesma grade de colunas, então a peça que vira a
-/// esquina fica diretamente acima/abaixo da próxima — o olho segue a fileira
-/// até a ponta atual, em vez de duas fileiras soltas e centralizadas.
+/// Isso deixa claro que a fileira é contínua (você segue a curva com o olho) e
+/// onde estão as pontas jogáveis.
 DominoChainLayout dominoChainLayout({
   required double screenW,
   required Rect tableBounds,
@@ -661,12 +661,14 @@ DominoChainLayout dominoChainLayout({
   required int chainLength,
 }) {
   final emptyZone = tableBounds.inflate(-6);
+  final baseLong = baseTileH * DominoConfig.chainTileScale;
+  final baseShort = baseTileW * DominoConfig.chainTileScale;
 
   if (chainLength == 0) {
     return DominoChainLayout(
       slots: const [],
-      tileW: baseTileH * DominoConfig.chainTileScale,
-      tileH: baseTileW * DominoConfig.chainTileScale,
+      tileW: baseLong,
+      tileH: baseShort,
       leftDropZone: Rect.zero,
       rightDropZone: Rect.zero,
       emptyDropZone: emptyZone,
@@ -678,88 +680,133 @@ DominoChainLayout dominoChainLayout({
     );
   }
 
-  var tileW = baseTileH * DominoConfig.chainTileScale;
-  var tileH = baseTileW * DominoConfig.chainTileScale;
-  const gap = 1.5;
+  const hGap = 2.0;
+  var long = baseLong;
+  var short = baseShort;
+  var vGap = DominoConfig.chainRowGap;
 
   final availW = tableBounds.width - 20;
   final availH = tableBounds.height - 16;
 
-  var maxPerRow = max(1, (availW / (tileW + gap)).floor());
-  var rowCount = ((chainLength + maxPerRow - 1) / maxPerRow).ceil();
-  var rowGap = DominoConfig.chainRowGap;
-  var rowH = tileH + rowGap;
+  int perRow(double l) => max(1, (availW / (l + hGap)).floor());
+  // Cada banda tem altura `long` para caber a peça-esquina (vertical).
+  double bandsHeight(double l, double g, int r) => r * l + (r - 1) * g;
 
-  if (rowCount * rowH > availH) {
-    final scale = max(DominoConfig.chainMinScale, availH / (rowCount * rowH));
-    tileW *= scale;
-    tileH *= scale;
-    rowGap = DominoConfig.chainRowGap * scale;
-    maxPerRow = max(1, (availW / (tileW + gap)).floor());
-    rowCount = ((chainLength + maxPerRow - 1) / maxPerRow).ceil();
-    rowH = tileH + rowGap;
+  var cols = perRow(long);
+  var rows = (chainLength / cols).ceil();
+
+  if (bandsHeight(long, vGap, rows) > availH) {
+    final scale = max(
+      DominoConfig.chainMinScale,
+      availH / bandsHeight(long, vGap, rows),
+    );
+    long *= scale;
+    short *= scale;
+    vGap *= scale;
+    cols = perRow(long);
+    rows = (chainLength / cols).ceil();
   }
 
-  final step = tileW + gap;
-  // Centraliza a grade pela largura de uma linha cheia, para que linhas
-  // parciais ainda se alinhem na mesma coluna da linha anterior (conexão).
-  final fullRowTiles = min(chainLength, maxPerRow);
-  final gridW = fullRowTiles * step - gap;
-  final gridLeft = tableBounds.left + max(10.0, (tableBounds.width - gridW) / 2);
+  final stepX = long + hGap;
+  final stepY = long + vGap;
+  final fullRowTiles = min(chainLength, cols);
+  final gridW = fullRowTiles * stepX - hGap;
+  final gridLeft = tableBounds.left + max(8.0, (tableBounds.width - gridW) / 2);
+  final usedH = bandsHeight(long, vGap, rows);
+  final startY = tableBounds.top + 8 + max(0.0, (availH - usedH) / 2);
 
-  final totalH = rowCount * tileH + (rowCount - 1) * rowGap;
-  final startY = tableBounds.top + 10 + max(0.0, (availH - totalH) / 2);
+  double cellX(int col) => gridLeft + col * stepX;
+  double cellY(int row) => startY + row * stepY;
+
+  // Coluna/linha e orientação da peça no índice [i].
+  ({int col, int row, bool vertical}) cellFor(int i) {
+    final row = i ~/ cols;
+    final pos = i % cols;
+    if (row == 0) return (col: pos, row: 0, vertical: false);
+    if (pos == 0) {
+      // Peça-esquina: mesma coluna da última peça da linha de cima, na vertical.
+      return (col: row.isOdd ? cols - 1 : 0, row: row, vertical: true);
+    }
+    final col = row.isOdd ? cols - 1 - pos : pos;
+    return (col: col, row: row, vertical: false);
+  }
+
+  Rect rectFor(({int col, int row, bool vertical}) cell) {
+    final x = cellX(cell.col);
+    final y = cellY(cell.row);
+    if (cell.vertical) {
+      return Rect.fromLTWH(x + (long - short) / 2, y, short, long);
+    }
+    return Rect.fromLTWH(x, y + (long - short) / 2, long, short);
+  }
 
   final slots = <DominoChainSlot>[];
   for (var i = 0; i < chainLength; i++) {
-    final row = i ~/ maxPerRow;
-    final colInRow = i % maxPerRow;
-    // Linhas pares correm da esquerda p/ direita; ímpares no sentido inverso,
-    // mas sempre na mesma grade — a esquina conecta nas bordas.
-    final gridCol = row.isEven ? colInRow : (maxPerRow - 1 - colInRow);
-    final x = gridLeft + gridCol * step;
-    final y = startY + row * (tileH + rowGap);
+    final cell = cellFor(i);
     slots.add(
       DominoChainSlot(
         index: i,
-        rect: Rect.fromLTWH(x, y, tileW, tileH),
-        horizontal: true,
+        rect: rectFor(cell),
+        horizontal: !cell.vertical,
       ),
     );
   }
 
+  const leftArrow = Offset(-1, 0);
   final firstRect = slots.first.rect;
+  final lastCell = cellFor(chainLength - 1);
   final lastRect = slots.last.rect;
-  final lastRow = (chainLength - 1) ~/ maxPerRow;
-  // A ponta direita abre no sentido em que a última linha está correndo.
-  final rightOpensLeft = lastRow.isOdd;
+
+  // Sentido em que a ponta direita está aberta.
+  final Offset rightArrow;
+  if (lastCell.vertical) {
+    rightArrow = const Offset(0, 1); // acabou de virar a quina → abre p/ baixo
+  } else if (lastCell.row.isOdd) {
+    rightArrow = const Offset(-1, 0);
+  } else {
+    rightArrow = const Offset(1, 0);
+  }
+
   const hitPad = 14.0;
   const badgePad = 16.0;
 
-  Rect endZone(Rect tile, {required bool opensLeft}) {
+  Rect endZone(Rect tile, Offset dir) {
+    if (dir.dy > 0) {
+      final half = tile.height * 0.5;
+      return Rect.fromLTWH(
+        tile.left - hitPad * 0.4,
+        tile.top + half,
+        tile.width + hitPad * 0.8,
+        half + hitPad,
+      );
+    }
     final half = tile.width * 0.5;
     return Rect.fromLTWH(
-      opensLeft ? tile.left - hitPad : tile.left + half,
+      dir.dx < 0 ? tile.left - hitPad : tile.left + half,
       tile.top - hitPad * 0.4,
       half + hitPad,
       tile.height + hitPad * 0.8,
     );
   }
 
+  Offset badgeCenter(Rect tile, Offset dir) {
+    if (dir.dy > 0) return Offset(tile.center.dx, tile.bottom + badgePad);
+    if (dir.dx < 0) return Offset(tile.left - badgePad, tile.center.dy);
+    return Offset(tile.right + badgePad, tile.center.dy);
+  }
+
   return DominoChainLayout(
     slots: slots,
-    tileW: tileW,
-    tileH: tileH,
-    leftDropZone: endZone(firstRect, opensLeft: true),
-    rightDropZone: endZone(lastRect, opensLeft: rightOpensLeft),
+    tileW: long,
+    tileH: short,
+    leftDropZone: endZone(firstRect, leftArrow),
+    rightDropZone: endZone(lastRect, rightArrow),
     emptyDropZone: emptyZone,
     tableBounds: tableBounds,
-    leftEndBadge: Offset(firstRect.left - badgePad, firstRect.center.dy),
-    rightEndBadge: rightOpensLeft
-        ? Offset(lastRect.left - badgePad, lastRect.center.dy)
-        : Offset(lastRect.right + badgePad, lastRect.center.dy),
-    leftEndArrow: const Offset(-1, 0),
-    rightEndArrow: rightOpensLeft ? const Offset(-1, 0) : const Offset(1, 0),
+    leftEndBadge: badgeCenter(firstRect, leftArrow),
+    rightEndBadge: badgeCenter(lastRect, rightArrow),
+    leftEndArrow: leftArrow,
+    rightEndArrow: rightArrow,
   );
 }
 
@@ -871,7 +918,37 @@ DominoBoardLayout dominoBoardLayout({
   );
 }
 
-PerformanceTier dominoPerformanceTier({required bool humanWon}) {
-  if (humanWon) return PerformanceTier.gold;
-  return PerformanceTier.bronze;
+/// Pips do oponente que caracterizam uma vitória "no grito" (margem cheia).
+const dominoWinMarginPips = 40;
+
+/// Pips na própria mão que caracterizam uma derrota "feia" (sem mérito).
+const dominoLossPips = 40;
+
+/// Desempenho normalizado (`0.0`–`1.0`).
+///
+/// Vitória = ouro garantido (a margem sobre o oponente só reforça). Derrota
+/// gradua pela quantidade de pips que sobraram na mão: quase bater pode render
+/// prata; perder com a mão cheia é bronze. Derrota nunca alcança ouro.
+double dominoPerformanceRatio({
+  required bool humanWon,
+  int humanPips = 0,
+  int opponentPips = 0,
+}) {
+  if (humanWon) {
+    final margin = (opponentPips / dominoWinMarginPips).clamp(0.0, 1.0);
+    return 0.85 + 0.15 * margin;
+  }
+  final closeness = (1 - humanPips / dominoLossPips).clamp(0.0, 1.0);
+  return (closeness * 0.75).clamp(0.0, 0.84);
 }
+
+PerformanceTier dominoPerformanceTier({
+  required bool humanWon,
+  int humanPips = 0,
+  int opponentPips = 0,
+}) =>
+    tierFromRatio(dominoPerformanceRatio(
+      humanWon: humanWon,
+      humanPips: humanPips,
+      opponentPips: opponentPips,
+    ));

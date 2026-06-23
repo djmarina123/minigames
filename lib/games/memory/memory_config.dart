@@ -118,17 +118,32 @@ MemoryScoreBreakdown memoryFinalScore({
   );
 }
 
+/// Desempenho normalizado (`0.0`–`1.0`) pela eficiência de jogadas.
+///
+/// `1.0` = partida perfeita (uma jogada por par); cai conforme jogadas extras
+/// até `pairCount * 2.5` jogadas (ineficiente) chegar a `0.0`.
+double memoryPerformanceRatio({
+  required int pairCount,
+  required int moves,
+  required int perfectBonus,
+}) {
+  if (perfectBonus > 0) return 1.0;
+  final perfectMoves = pairCount;
+  final worstMoves = (pairCount * 2.5).round();
+  if (moves <= perfectMoves) return 1.0;
+  final span = worstMoves - perfectMoves;
+  if (span <= 0) return 1.0;
+  return ((worstMoves - moves) / span).clamp(0.0, 1.0);
+}
+
 /// Faixa de desempenho para recompensa da sessão.
 PerformanceTier memoryPerformanceTier({
   required int pairCount,
   required int moves,
   required int perfectBonus,
-}) {
-  if (perfectBonus > 0 || moves <= pairCount + 2) {
-    return PerformanceTier.gold;
-  }
-  if (moves <= (pairCount * 1.5).ceil()) {
-    return PerformanceTier.silver;
-  }
-  return PerformanceTier.bronze;
-}
+}) =>
+    tierFromRatio(memoryPerformanceRatio(
+      pairCount: pairCount,
+      moves: moves,
+      perfectBonus: perfectBonus,
+    ));

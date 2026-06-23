@@ -603,12 +603,31 @@ String sudokuHudProgressLabel(SudokuState state) =>
 
 double sudokuCellFontSize(double cellSize) => cellSize * 0.46;
 
-PerformanceTier sudokuPerformanceTier({
+/// Desempenho normalizado (`0.0`–`1.0`).
+///
+/// Derrota = desempenho mínimo (bronze). Vencer parte de `0.65` (prata) e chega
+/// a `0.85` (ouro) só com partida impecável (sem erros nem dicas); cada erro/dica
+/// derruba o desempenho.
+double sudokuPerformanceRatio({
   required bool won,
   required int mistakes,
   required int hintsUsed,
 }) {
-  if (won && mistakes == 0 && hintsUsed == 0) return PerformanceTier.gold;
-  if (won && mistakes <= 2) return PerformanceTier.silver;
-  return PerformanceTier.bronze;
+  if (!won) return 0;
+  var ratio = 0.65;
+  if (mistakes == 0 && hintsUsed == 0) ratio += 0.20;
+  ratio -= mistakes * 0.05;
+  ratio -= hintsUsed * 0.07;
+  return ratio.clamp(0.0, 1.0);
 }
+
+PerformanceTier sudokuPerformanceTier({
+  required bool won,
+  required int mistakes,
+  required int hintsUsed,
+}) =>
+    tierFromRatio(sudokuPerformanceRatio(
+      won: won,
+      mistakes: mistakes,
+      hintsUsed: hintsUsed,
+    ));

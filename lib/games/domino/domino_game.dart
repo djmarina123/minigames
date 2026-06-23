@@ -420,7 +420,11 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
                     blocked: _state.blocked,
                   )
                 : 0,
-            'performanceTier': dominoPerformanceTier(humanWon: humanWon).name,
+            'performanceTier': dominoPerformanceTier(
+              humanWon: humanWon,
+              humanPips: dominoHandPipSum(_state.humanHand),
+              opponentPips: dominoHandPipSum(_state.cpuHand),
+            ).name,
           },
         ),
       );

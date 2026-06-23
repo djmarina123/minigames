@@ -514,8 +514,23 @@ Game2048Direction? game2048DirectionFromDelta(double dx, double dy) {
   return dy > 0 ? Game2048Direction.down : Game2048Direction.up;
 }
 
-PerformanceTier game2048PerformanceTier(int highestTile) {
-  if (highestTile >= 1024) return PerformanceTier.gold;
-  if (highestTile >= 512) return PerformanceTier.silver;
-  return PerformanceTier.bronze;
+/// Maior peça da referência de "partida excelente" (desempenho `1.0`).
+const game2048GoldTile = 1024;
+
+/// Peça-base a partir da qual o desempenho começa a contar.
+const game2048BaseTile = 64;
+
+/// Desempenho normalizado (`0.0`–`1.0`) em escala logarítmica de peça.
+///
+/// Escala log porque cada peça vale o dobro da anterior: `512` (`2^9`) fica a
+/// meio caminho entre `64` (`2^6`) e `1024` (`2^10`).
+double game2048PerformanceRatio(int highestTile) {
+  if (highestTile <= game2048BaseTile) return 0;
+  final value = log(highestTile) / ln2;
+  final base = log(game2048BaseTile) / ln2;
+  final gold = log(game2048GoldTile) / ln2;
+  return ((value - base) / (gold - base)).clamp(0.0, 1.0);
 }
+
+PerformanceTier game2048PerformanceTier(int highestTile) =>
+    tierFromRatio(game2048PerformanceRatio(highestTile));
