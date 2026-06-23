@@ -56,15 +56,23 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
 
     final playerRepo = context.read<PlayerRepository>();
     final leaderboardRepo = context.read<LeaderboardRepository>();
+    final gameId = widget.game.metadata.id;
+    final previousBest = _bestScoreFor(leaderboardRepo, gameId);
+
     await playerRepo.recordGameSession(
       coinsEarned: result.coinsEarned,
       xpEarned: result.xpEarned,
     );
     await leaderboardRepo.submitScore(
-      gameId: widget.game.metadata.id,
+      gameId: gameId,
       gameTitle: widget.game.metadata.title,
       score: result.score,
     );
+
+    final bestScore =
+        _bestScoreFor(leaderboardRepo, gameId) ?? result.score;
+    final isNewRecord =
+        previousBest == null || result.score > previousBest;
 
     if (!mounted) return;
 
@@ -72,6 +80,17 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
       context: context,
       metadata: widget.game.metadata,
       result: result,
+      bestScore: bestScore,
+      isNewRecord: isNewRecord,
+      onPlayAgain: () {
+        Navigator.of(context).pop();
+        if (!mounted) return;
+        setState(() {
+          _finished = false;
+          _score.value = 0;
+          _gameWidget = null;
+        });
+      },
       onExit: () {
         Navigator.of(context).pop();
         if (mounted) Navigator.of(context).pop(result);
@@ -84,6 +103,13 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
         if (mounted) Navigator.of(context).pop(result);
       },
     );
+  }
+
+  int? _bestScoreFor(LeaderboardRepository repo, String gameId) {
+    for (final entry in repo.allBest) {
+      if (entry.gameId == gameId) return entry.score;
+    }
+    return null;
   }
 
   @override
