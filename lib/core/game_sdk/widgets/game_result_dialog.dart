@@ -85,6 +85,7 @@ class GameResultDialog extends StatelessWidget {
                     isNewRecord: isNewRecord,
                     outcomeWon: outcomeWon,
                     bestScore: bestScore,
+                    onExit: onExit,
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -158,7 +159,6 @@ class GameResultDialog extends StatelessWidget {
                         const SizedBox(height: 20),
                         _ActionButtons(
                           cardColor: theme.cardColor,
-                          onExit: onExit,
                           onPlayAgain: onPlayAgain,
                           onDoubleCoins: onDoubleCoins,
                         ),
@@ -250,6 +250,7 @@ class _ResultHeader extends StatelessWidget {
     required this.metadata,
     required this.theme,
     required this.isNewRecord,
+    required this.onExit,
     this.outcomeWon,
     this.bestScore,
   });
@@ -257,6 +258,7 @@ class _ResultHeader extends StatelessWidget {
   final GameMetadata metadata;
   final HubGameTheme theme;
   final bool isNewRecord;
+  final VoidCallback onExit;
   final bool? outcomeWon;
   final int? bestScore;
 
@@ -320,6 +322,18 @@ class _ResultHeader extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
             child: Row(
               children: [
+                IconButton(
+                  onPressed: onExit,
+                  tooltip: 'Voltar ao hub',
+                  icon: const Icon(Icons.arrow_back_rounded, size: 22),
+                  color: Colors.white,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.16),
+                    minimumSize: const Size(40, 40),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                const SizedBox(width: 6),
                 GameCatalogThumbnail(
                   gameId: metadata.id,
                   theme: theme,
@@ -833,13 +847,11 @@ class _Chip extends StatelessWidget {
 class _ActionButtons extends StatefulWidget {
   const _ActionButtons({
     required this.cardColor,
-    required this.onExit,
     this.onPlayAgain,
     this.onDoubleCoins,
   });
 
   final Color cardColor;
-  final VoidCallback onExit;
   final VoidCallback? onPlayAgain;
   final Future<void> Function()? onDoubleCoins;
 
@@ -922,26 +934,6 @@ class _ActionButtonsState extends State<_ActionButtons> {
           ),
           const SizedBox(height: 8),
         ],
-        TextButton.icon(
-          onPressed: busy ? null : widget.onExit,
-          icon: Icon(
-            Icons.home_rounded,
-            size: 20,
-            color: busy
-                ? HubTheme.textSecondary.withValues(alpha: 0.4)
-                : HubTheme.textSecondary,
-          ),
-          label: Text(
-            'Voltar ao hub',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-              color: busy
-                  ? HubTheme.textSecondary.withValues(alpha: 0.4)
-                  : HubTheme.textSecondary,
-            ),
-          ),
-        ),
       ],
     );
   }

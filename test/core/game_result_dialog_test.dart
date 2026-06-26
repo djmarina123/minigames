@@ -106,5 +106,21 @@ void main() {
       expect(find.text('Novo recorde!'), findsOneWidget);
       expect(find.text('DERROTA'), findsOneWidget);
     });
+
+    testWidgets('voltar ao hub fica no header, não no rodapé', (tester) async {
+      await tester.pumpWidget(
+        pumpDialog(
+          const GameResult(
+            score: 100,
+            duration: Duration(seconds: 45),
+            metadata: {'won': true},
+          ),
+        ),
+      );
+
+      expect(find.byTooltip('Voltar ao hub'), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_back_rounded), findsOneWidget);
+      expect(find.text('Voltar ao hub'), findsNothing);
+    });
   });
 }

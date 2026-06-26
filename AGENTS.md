@@ -22,11 +22,16 @@ Não encerrar uma fase sem atualizar este `AGENTS.md`.
 
 ## Encerramento de sessão
 
-Quando o usuário digitar **"pronto"** no prompt, significa que vai encerrar a sessão. Nesse caso o agente **deve**:
+Quando o usuário digitar **"pronto"** (ou typo equivalente, ex.: "pornto") no prompt, significa que vai encerrar a sessão. Nesse caso o agente **deve**:
 
-1. Conferir que a tarefa está concluída (testes/análise se aplicável).
+1. Conferir que a tarefa está concluída (testes/análise local se aplicável).
 2. Fazer **`git commit`** das alterações pendentes relevantes — mensagem em português, foco no *porquê*.
 3. Fazer **`git push`** em seguida (o "pronto" autoriza commit e push).
+4. **Acompanhar o workflow de CI** disparado pelo push (`.github/workflows/ci.yml` — `flutter analyze` + `flutter test`):
+   - `gh run watch --exit-status` no run mais recente do branch, **ou**
+   - `gh run list --branch <branch> --limit 1` + `gh run view <id> --log-failed` se já terminou.
+5. Se o CI **falhar**: ler os logs, corrigir localmente, rodar `flutter analyze && flutter test`, repetir commit + push e voltar ao passo 4 até o workflow ficar **verde**.
+6. Só encerrar a sessão quando commit, push **e** CI estiverem OK (ou reportar bloqueio se não for possível corrigir).
 
 Fora desse sinal, **não** commitar nem dar push sem pedido explícito.
 
@@ -593,7 +598,7 @@ Persistência defensiva: JSON inválido em `load()` cai para perfil default (nã
 4. **Persistência local no MVP** — ranking e perfil em `shared_preferences`; migrar para Firestore na Fase 2+.
 5. **Testes** — unit/widget/golden; rodar `flutter test` antes de encerrar tarefa. Jogo Flame novo: incluir `test/games/*_config_test.dart`. Após mudar UI do hub: `--update-goldens`.
 6. **Idioma UI** — PT-BR para strings visíveis ao usuário.
-7. **Commits** — só quando o usuário pedir explicitamente ou ao receber **"pronto"** (ver **Encerramento de sessão**); mensagens em português, foco no *porquê*. Pedido de commit ou **"pronto"** autoriza também **`git push`**.
+7. **Commits** — só quando o usuário pedir explicitamente ou ao receber **"pronto"** (ver **Encerramento de sessão**); mensagens em português, foco no *porquê*. Pedido de commit ou **"pronto"** autoriza também **`git push`** e acompanhamento do CI até passar.
 
 ---
 
