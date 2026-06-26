@@ -1,0 +1,159 @@
+Política de Privacidade — MiniPlay
+
+Última atualização: 26 de junho de 2026
+App: MiniPlay (com.miniplay.games)
+Contato: djmarina@gmail.com
+
+===
+1. Introdução
+===
+
+Esta Política de Privacidade descreve como o MiniPlay trata informações quando você usa nosso aplicativo de minijogos casuais para Android (e, futuramente, iOS).
+
+Ao usar o MiniPlay, você concorda com as práticas descritas neste documento. Se não concordar, por favor não utilize o app.
+
+===
+2. Quem somos
+===
+
+O MiniPlay é um hub de minijogos casuais operado pelo desenvolvedor responsável pelo aplicativo na Google Play Store.
+
+Canal de contato para privacidade: djmarina@gmail.com
+
+===
+3. Público-alvo
+===
+
+O MiniPlay é destinado a usuários com 13 anos ou mais. Não coletamos intencionalmente dados pessoais de crianças menores de 13 anos. Se você acredita que uma criança nos forneceu dados pessoais, entre em contato para que possamos tomar as medidas adequadas.
+
+===
+4. Dados que coletamos
+===
+
+4.1 Dados armazenados localmente no seu dispositivo
+
+O app guarda informações no seu aparelho para funcionar offline, incluindo:
+
+• Progresso do jogador (moedas, XP, nível)
+• Recordes e ranking local por jogo
+• Sequência de recompensa diária
+• Conquistas e missões diárias
+• Lista de jogos favoritos
+• Preferência de remoção de anúncios (quando comprada)
+
+Esses dados não são enviados a um servidor nosso na versão atual, salvo quando descrito abaixo (Firebase, anúncios, compras).
+
+4.2 Firebase (Google)
+
+Quando o Firebase está ativo, usamos:
+
+• Firebase Authentication — ID anônimo de instalação (sem nome, e-mail ou telefone)
+• Firebase Analytics — eventos de uso, modelo do dispositivo, versão do SO, idioma
+• Firebase Crashlytics — relatórios de falhas e crashes
+• Firebase Remote Config (opcional) — configurações remotas
+• Firebase Cloud Messaging (opcional) — notificações push
+
+Não exigimos cadastro com e-mail, nome ou senha. O login é anônimo e automático.
+
+Política do Google: https://policies.google.com/privacy
+
+4.3 Google AdMob (anúncios)
+
+Quando os anúncios estão ativos, usamos o Google AdMob para anúncios recompensados (ex.: dobrar moedas) e intersticiais (entre partidas).
+
+O AdMob e parceiros podem coletar: identificador de publicidade, endereço IP, interação com anúncios e informações do dispositivo.
+
+Você pode limitar anúncios personalizados em: Configurações → Google → Anúncios → Desativar personalização de anúncios (Android).
+
+Política de anúncios Google: https://policies.google.com/technologies/ads
+
+4.4 Compras no app (Google Play Billing)
+
+Compras (remover anúncios, pacote de moedas) são processadas pela Google Play. Não recebemos dados de cartão — apenas confirmação da compra.
+
+4.5 Dados que NÃO coletamos
+
+• Nome, e-mail ou telefone (salvo contato voluntário seu)
+• Localização GPS precisa
+• Contatos, fotos ou arquivos do dispositivo
+• Microfone ou câmera
+
+===
+5. Como usamos os dados
+===
+
+• Operar e melhorar o app e os jogos
+• Manter progresso local (moedas, ranking, conquistas)
+• Medir uso e desempenho (Analytics)
+• Corrigir bugs e crashes (Crashlytics)
+• Exibir anúncios, quando ativos
+• Processar compras no app
+• Enviar notificações, quando ativadas
+
+Não vendemos seus dados pessoais a terceiros.
+
+===
+6. Base legal (LGPD — Brasil)
+===
+
+• Execução do contrato — fazer o app funcionar
+• Legítimo interesse — melhorar estabilidade e experiência
+• Consentimento — quando exigido (notificações push, anúncios personalizados conforme configuração do dispositivo)
+
+===
+7. Compartilhamento com terceiros
+===
+
+• Google (Firebase, AdMob, Play Billing) — infraestrutura, analytics, anúncios, pagamentos
+• Autoridades legais — quando exigido por lei
+
+Não compartilhamos dados com outros terceiros para marketing próprio deles.
+
+===
+8. Retenção
+===
+
+• Dados locais: até desinstalar o app ou limpar dados em Configurações → Apps → MiniPlay → Armazenamento
+• Firebase / AdMob: conforme políticas do Google
+• E-mails de suporte: tempo necessário para responder
+
+===
+9. Seus direitos (LGPD)
+===
+
+Você pode:
+
+• Confirmar se tratamos seus dados
+• Acessar ou solicitar correção
+• Solicitar exclusão de dados sob nosso controle
+• Revogar consentimento, quando aplicável
+• Reclamar à ANPD (Autoridade Nacional de Proteção de Dados)
+
+Contato: djmarina@gmail.com
+
+===
+10. Segurança
+===
+
+Adotamos medidas técnicas razoáveis. Nenhum sistema é 100% seguro; use dispositivos com sistema atualizado.
+
+===
+11. Transferência internacional
+===
+
+Serviços Google podem processar dados fora do Brasil, inclusive nos EUA, com salvaguardas contratuais aplicáveis.
+
+===
+12. Alterações
+===
+
+Podemos atualizar esta política. A data no topo indica a última revisão. Alterações relevantes serão comunicadas pela Play Store ou no app, quando apropriado.
+
+===
+13. Contato
+===
+
+MiniPlay — Privacidade
+E-mail: djmarina@gmail.com
+
+Esta política aplica-se ao aplicativo MiniPlay (com.miniplay.games).

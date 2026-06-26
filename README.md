@@ -50,6 +50,11 @@ Resumo:
 4. `./scripts/configure-firebase.sh`
 5. Em `lib/core/firebase/firebase_config.dart`, altere `kFirebaseConfigured` para `true`
 
+## Publicar na Play Store
+
+- Listagem ASO (textos, screenshots, palavras-chave): [`docs/play-store-listing.md`](docs/play-store-listing.md)
+- Beta fechado passo a passo: [`docs/play-store-closed-beta.md`](docs/play-store-closed-beta.md)
+
 ## Estrutura
 
 Ver [`docs/agents/project.md`](docs/agents/project.md).
