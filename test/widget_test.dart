@@ -4,6 +4,7 @@ import 'package:minigames_hub/core/iap/purchase_service.dart';
 import 'package:minigames_hub/core/leaderboard/leaderboard_repository.dart';
 import 'package:minigames_hub/core/progression/achievements_repository.dart';
 import 'package:minigames_hub/core/progression/missions_repository.dart';
+import 'package:minigames_hub/core/locale/locale_repository.dart';
 import 'package:minigames_hub/core/storage/player_repository.dart';
 
 import 'helpers/test_app.dart';
@@ -11,6 +12,7 @@ import 'helpers/test_app.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  late LocaleRepository localeRepo;
   late PlayerRepository playerRepo;
   late LeaderboardRepository leaderboardRepo;
   late AchievementsRepository achievementsRepo;
@@ -19,6 +21,7 @@ void main() {
 
   setUp(() async {
     final repos = await setupTestRepositories();
+    localeRepo = repos.localeRepo;
     playerRepo = repos.playerRepo;
     leaderboardRepo = repos.leaderboardRepo;
     achievementsRepo = repos.achievementsRepo;
@@ -27,6 +30,7 @@ void main() {
   });
 
   Widget testApp() => buildTestApp(
+        localeRepo: localeRepo,
         playerRepo: playerRepo,
         leaderboardRepo: leaderboardRepo,
         achievementsRepo: achievementsRepo,

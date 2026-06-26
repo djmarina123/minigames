@@ -1,30 +1,30 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:minigames_hub/core/economy/economy_copy.dart';
-import 'package:minigames_hub/core/economy/level_curve.dart';
+import 'package:minigames_hub/core/l10n/l10n_extensions.dart';
+import 'package:minigames_hub/l10n/app_localizations.dart';
 
 void main() {
-  group('EconomyCopy', () {
+  group('HubL10n economy strings', () {
+    late AppLocalizations l10n;
+
+    setUp(() async {
+      l10n = await AppLocalizations.delegate.load(const Locale('pt'));
+    });
+
     test('rótulos de nível e sessão', () {
-      expect(EconomyCopy.levelHeaderLabel(3), 'Nv. 3');
+      expect(l10n.economyLevelShort(3), 'Nv. 3');
       expect(
-        EconomyCopy.levelProgressLabel(level: 2, xpInLevel: 40, xpNeeded: 100),
+        l10n.economyLevelProgress(2, 40, 100),
         'Nível 2 · 40 / 100 XP',
       );
-      expect(EconomyCopy.sessionXpLabel(25), '+25');
+      expect(l10n.economySessionXp(25), '+25');
     });
 
     test('mensagem de level up', () {
       expect(
-        EconomyCopy.levelUpMessage(1, 12),
+        l10n.levelUpMessage(1, 12),
         'Nível up! +12 moedas de bônus',
       );
-    });
-  });
-
-  group('level_curve integration', () {
-    test('nível 2 em 100 XP', () {
-      expect(levelFromXp(100), 2);
     });
   });
 }

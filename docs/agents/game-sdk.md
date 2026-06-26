@@ -36,10 +36,10 @@ Home → GamePrepScreen (se prep != null) → GameRunnerScreen
 |---|---|
 | `game_prep.dart` | `GamePrepDefinition`, `GameHelpContent` |
 | `game_session_config.dart` | Valores escolhidos (`.value(key, fallback)`) |
-| `game_prep_screen.dart` | UI + botão JOGAR |
-| `game_help_dialog.dart` | Modal **?** |
+| `game_prep_screen.dart` | UI + botão JOGAR (texto via `l10n.gamePrepPlay`) |
+| `game_help_dialog.dart` | Modal **?** (títulos via `l10n`; corpo via `HubL10n.gameHelp`) |
 
-Opções atuais: Memória (pares 4/6/8), Tap Rush (15/30/60 s). Regras de pontuação no help — não no ranking.
+Opções atuais: Memória (pares 4/6/8), Tap Rush (15/30/60 s). Regras de pontuação no help — não no ranking. Labels de prep localizados em `HubL10n.prepGroupLabel` / `prepChoiceLabel` — ver [`i18n.md`](i18n.md).
 
 Jogos com `implements HubGame` devem sobrescrever `prep` explicitamente.
 
@@ -50,7 +50,7 @@ Melhor score **por jogo** (`LeaderboardRepository.allBest`), `shared_preferences
 - `submitScore` ao fim da partida; repo é `ChangeNotifier`.
 - Aba Ranking: `watch` + reload em `isActive`.
 - Ordenação por **título do jogo**; sem medalhas cross-game.
-- Linhas com `GameCatalogThumbnail` + `HubTheme.themeFor()`.
+- Linhas com `GameCatalogThumbnail` + `HubTheme.themeFor()` + título via `localizedMetadata()`.
 
 ## Economia
 
@@ -85,4 +85,4 @@ Saldo inicial: `EconomyConfig.startingCoins` (50).
 | Dica Sudoku / Paciência | 25 / 20 moedas |
 | Level up | +(10 + nível) moedas |
 
-Textos: `economy_copy.dart`. Curva: `level_curve.dart`.
+Textos de economia: ARB (`economyHowCoins`, etc.) + modal `economy_help_dialog.dart` — ver [`i18n.md`](i18n.md). Curva: `level_curve.dart`.

@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minigames_hub/core/game_sdk/game_metadata.dart';
 import 'package:minigames_hub/core/game_sdk/game_result.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:minigames_hub/l10n/app_localizations.dart';
+import 'package:minigames_hub/core/locale/locale_repository.dart';
 import 'package:minigames_hub/core/game_sdk/widgets/game_result_dialog.dart';
+import 'package:minigames_hub/core/l10n/l10n_scope.dart';
 
 void main() {
   const metadata = GameMetadata(
@@ -14,6 +18,16 @@ void main() {
 
   Widget pumpDialog(GameResult result, {bool isNewRecord = false}) {
     return MaterialApp(
+      locale: const Locale('pt'),
+      supportedLocales: AppLocales.supported,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) =>
+          L10nScope.wrap(context, child ?? const SizedBox.shrink()),
       home: Scaffold(
         body: GameResultDialog(
           metadata: metadata,

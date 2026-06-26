@@ -26,7 +26,7 @@ Fora do "pronto", **não** commitar nem dar push sem pedido explícito.
 3. **Stub first** — Firebase/AdMob offline até configurar (`kFirebaseConfigured` em `firebase_config.dart`, `kAdsConfigured`). Ver [`docs/firebase-setup.md`](../../docs/firebase-setup.md).
 4. **Persistência MVP** — `shared_preferences` (Firestore quando configurado).
 5. **Testes** — rodar `flutter test` antes de encerrar; jogo Flame novo → `test/games/*_config_test.dart`; UI do hub → `--update-goldens`.
-6. **UI em PT-BR.**
+6. **i18n** — strings user-facing nos ARB (`lib/l10n/`); ver [`i18n.md`](i18n.md). Não adicionar texto fixo na UI.
 
 ## Como rodar
 

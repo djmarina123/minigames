@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n_scope.dart';
 import 'hub_theme.dart';
 
 /// Ilustração vetorial desenhada no card — escala com o tamanho, sem PNG.
@@ -937,9 +938,9 @@ class GameCatalogHero extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Text(
-                  'NOVO!',
-                  style: TextStyle(
+                child: Text(
+                  L10nScope.of.featuredBadgeNew,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 9,
                     fontWeight: FontWeight.w900,

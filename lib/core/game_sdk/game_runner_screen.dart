@@ -9,6 +9,8 @@ import '../progression/missions_repository.dart';
 import '../progression/progression_models.dart';
 import '../storage/player_repository.dart';
 import '../theme/game_ui.dart';
+import '../l10n/l10n_extensions.dart';
+import '../../l10n/app_localizations.dart';
 import 'game_result.dart';
 import 'game_session_callbacks.dart';
 import 'game_session_config.dart';
@@ -80,13 +82,16 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
     );
     final enriched = applySessionReward(result, reward);
 
+    final l10n = AppLocalizations.of(context);
+    final meta = l10n.localizedMetadata(widget.game.metadata);
+
     final sessionRecord = await playerRepo.recordGameSession(
       coinsEarned: enriched.coinsEarned,
       xpEarned: enriched.xpEarned,
     );
     await leaderboardRepo.submitScore(
       gameId: gameId,
-      gameTitle: widget.game.metadata.title,
+      gameTitle: meta.title,
       score: result.score,
     );
 
@@ -119,7 +124,7 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
 
     await showGameResultDialog(
       context: context,
-      metadata: widget.game.metadata,
+      metadata: meta,
       result: enriched,
       bestScore: bestScore,
       isNewRecord: isNewRecord,
@@ -159,13 +164,15 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final meta =
+        AppLocalizations.of(context).localizedMetadata(widget.game.metadata);
     _gameWidget ??=
         widget.game.buildGame(context, _callbacks, config: widget.config);
 
     return Scaffold(
       backgroundColor: GameUi.surfaceDark,
       appBar: GameSessionAppBar(
-        metadata: widget.game.metadata,
+        metadata: meta,
         scoreListenable: _score,
       ),
       body: _gameWidget!,

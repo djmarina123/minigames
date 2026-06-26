@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/l10n_scope.dart';
+
 import '../../core/economy/performance_tier.dart';
 
 /// Constantes, paleta e regras puras do 2048.
@@ -473,8 +475,8 @@ String? game2048HudRightFootnote({
   required int moves,
   required int bonusPreview,
 }) {
-  if (bonusPreview > 0) return '+$bonusPreview bônus';
-  if (moves == 0) return 'Deslize p/ jogar';
+  if (bonusPreview > 0) return L10nScope.of.hudBonusPreview(bonusPreview);
+  if (moves == 0) return L10nScope.of.gameSwipeToPlay;
   return null;
 }
 

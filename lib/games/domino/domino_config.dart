@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/l10n_scope.dart';
 import '../../core/economy/performance_tier.dart';
 
 /// Constantes, paleta e regras puras do Dominó (block vs CPU).
@@ -22,20 +23,31 @@ abstract final class DominoConfig {
   static const timeBonusPerSecond = 2;
 
   /// Paleta alinhada ao card do hub (`HubTheme` id `domino`).
-  static const cardColor = Color(0xFF6D4C41);
-  static const accentColor = Color(0xFFFFB74D);
-  static const blendColor = Color(0xFF9E7B6A);
-  static const accentSoft = Color(0xFFFFE0B2);
-  static const bgTop = Color(0xFF4E342E);
-  static const bgBottom = Color(0xFF2C1810);
-  static const feltPattern = Color(0xFF5D4037);
-  static const tileFace = Color(0xFFF5F0E8);
-  static const tileBack = Color(0xFF3E2723);
-  static const pipColor = Color(0xFF2C1810);
-  static const hudText = Color(0xFFF5F0E8);
-  static const hudMuted = Color(0xFFD7CCC8);
-  static const missRed = Color(0xFFFF7675);
-  static const successGlow = Color(0xFFFFCA28);
+  static const cardColor = Color(0xFF5D4037);
+  static const accentColor = Color(0xFFE07A7A);
+  static const blendColor = Color(0xFF9A8B82);
+  static const accentSoft = Color(0xFFFFF3E0);
+
+  /// Três faixas horizontais — referência visual de dominó casual.
+  static const bgTop = Color(0xFF5DADE2);
+  static const bgMiddle = Color(0xFFFFD5BC);
+  static const bgBottom = Color(0xFFE07A7A);
+
+  static const tileFace = Color(0xFFFFF9F2);
+  static const tileFaceDim = Color(0xFF9A8B82);
+  static const tileBack = Color(0xFF9A8B82);
+  static const tileOutline = Color(0xFF2A2118);
+  static const pipColor = Color(0xFF1A1512);
+  static const pipColorDim = Color(0xFF4A4038);
+
+  static const hudPanel = Color(0xFF3A3A44);
+  static const hudPanelInner = Color(0xFF2E2E36);
+  static const hudText = Color(0xFFFFFFFF);
+  static const hudMuted = Color(0xFFB0B0BC);
+  static const scoreHumanColor = Color(0xFFE74C3C);
+  static const scoreCpuColor = Color(0xFF3498DB);
+  static const missRed = Color(0xFFD64545);
+  static const successGlow = Color(0xFF66BB6A);
 
   static const placeAnimSec = 0.38;
   static const lastMoveHighlightSec = 1.6;
@@ -821,7 +833,9 @@ DominoChainLayout dominoChainLayout({
 String dominoTileLabel(DominoTile tile) => '${tile.left}|${tile.right}';
 
 String dominoTurnLabel(DominoPlayer turn) =>
-    turn == DominoPlayer.human ? 'Sua vez' : 'CPU';
+    turn == DominoPlayer.human
+        ? L10nScope.of.gameDominoYourTurn
+        : L10nScope.of.gameDominoCpuTurn;
 
 String dominoDifficultyLabel(String difficulty) => switch (difficulty) {
       DominoConfig.difficultyEasy => 'Fácil',
@@ -863,7 +877,7 @@ DominoBoardLayout dominoBoardLayout({
   required int cpuHandCount,
 }) {
   const marginH = DominoConfig.layoutMarginH;
-  const hudHeight = 56.0;
+  const hudHeight = 78.0;
   const bottomMargin = 10.0;
   const actionH = 40.0;
   const actionGap = 8.0;

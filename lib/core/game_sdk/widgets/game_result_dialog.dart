@@ -4,8 +4,9 @@ import '../game_metadata.dart';
 import '../game_registry.dart';
 import '../game_result.dart';
 import '../../theme/game_card_art.dart';
-import '../../economy/economy_copy.dart';
+import '../../l10n/l10n_extensions.dart';
 import '../../theme/hub_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Placar final estilizado — exibido ao terminar qualquer jogo.
 class GameResultDialog extends StatelessWidget {
@@ -186,12 +187,12 @@ class _OutcomeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final color = won ? _victoryColor : _defeatColor;
     final icon = won ? Icons.emoji_events_rounded : Icons.close_rounded;
-    final title = won ? 'VITÓRIA' : 'DERROTA';
-    final subtitle = won
-        ? 'Você venceu a partida!'
-        : 'Não foi desta vez — tente de novo.';
+    final title = won ? l10n.resultVictoryTitle : l10n.resultDefeatTitle;
+    final subtitle =
+        won ? l10n.resultVictorySubtitle : l10n.resultDefeatSubtitle;
 
     return Container(
       width: double.infinity,
@@ -263,11 +264,11 @@ class _ResultHeader extends StatelessWidget {
   final bool? outcomeWon;
   final int? bestScore;
 
-  String _subtitle() {
-    if (isNewRecord) return 'Novo recorde!';
-    if (outcomeWon == true) return 'Vitória!';
-    if (outcomeWon == false) return 'Derrota';
-    return 'Partida encerrada';
+  String _subtitle(AppLocalizations l10n) {
+    if (isNewRecord) return l10n.resultHeaderNewRecord;
+    if (outcomeWon == true) return l10n.resultHeaderVictory;
+    if (outcomeWon == false) return l10n.resultHeaderDefeat;
+    return l10n.resultHeaderEnded;
   }
 
   Color _subtitleColor() {
@@ -279,6 +280,7 @@ class _ResultHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final titleLead = hubTitleLead(metadata.title);
 
     return DecoratedBox(
@@ -325,7 +327,7 @@ class _ResultHeader extends StatelessWidget {
               children: [
                 IconButton(
                   onPressed: onExit,
-                  tooltip: 'Voltar ao hub',
+                  tooltip: l10n.resultBackToHub,
                   icon: const Icon(Icons.arrow_back_rounded, size: 22),
                   color: Colors.white,
                   style: IconButton.styleFrom(
@@ -373,7 +375,7 @@ class _ResultHeader extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        _subtitle(),
+                        _subtitle(l10n),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -413,6 +415,8 @@ class _BestScoreBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
@@ -436,7 +440,7 @@ class _BestScoreBadge extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'MELHOR',
+            l10n.resultBestBadge,
             style: TextStyle(
               fontSize: 8,
               fontWeight: FontWeight.w800,
@@ -476,6 +480,7 @@ class _ScoreHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final gapToBest = bestScore != null && !isNewRecord && bestScore! > score
         ? bestScore! - score
         : null;
@@ -504,7 +509,7 @@ class _ScoreHero extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            isNewRecord ? 'NOVO RECORDE' : 'PONTUAÇÃO',
+            isNewRecord ? l10n.resultScoreNewRecord : l10n.resultScoreLabel,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w800,
@@ -537,7 +542,7 @@ class _ScoreHero extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                'Faltaram $gapToBest pts para o recorde',
+                l10n.resultGapToRecord(gapToBest),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -567,13 +572,15 @@ class _RewardRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Row(
       children: [
         Expanded(
           child: _StatCard(
             icon: HubTheme.coinIcon,
             iconColor: HubTheme.coinGold,
-            label: 'Moedas',
+            label: l10n.statCoins,
             value: '+$coins',
           ),
         ),
@@ -582,8 +589,8 @@ class _RewardRow extends StatelessWidget {
           child: _StatCard(
             icon: HubTheme.levelIcon,
             iconColor: HubTheme.removeAdsPurple,
-            label: 'XP nível',
-            value: EconomyCopy.sessionXpLabel(xp),
+            label: l10n.resultXpLevel,
+            value: l10n.economySessionXp(xp),
           ),
         ),
         const SizedBox(width: 8),
@@ -591,7 +598,7 @@ class _RewardRow extends StatelessWidget {
           child: _StatCard(
             icon: Icons.timer_outlined,
             iconColor: HubTheme.removeAdsPurple,
-            label: 'Tempo',
+            label: l10n.resultTime,
             value: _formatDuration(duration),
           ),
         ),
@@ -618,8 +625,11 @@ class _LevelUpBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = levels == 1 ? 'Nível up!' : '+$levels níveis!';
-    final subtitle = bonusCoins > 0 ? '+$bonusCoins moedas de bônus' : null;
+    final l10n = AppLocalizations.of(context);
+    final label = l10n.levelUpMessage(levels, bonusCoins);
+    final subtitle = bonusCoins > 0
+        ? l10n.resultBonusCoins(bonusCoins)
+        : null;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
@@ -756,45 +766,51 @@ class _StatsChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       alignment: WrapAlignment.center,
       children: [
         if (maxCombo != null && maxCombo! > 1)
-          _Chip(label: 'Combo máx.', value: 'x$maxCombo', color: HubTheme.coinGold),
+          _Chip(label: l10n.resultStatMaxCombo, value: 'x$maxCombo', color: HubTheme.coinGold),
         if (hits != null)
-          _Chip(label: 'Acertos', value: '$hits', color: accentColor),
+          _Chip(label: l10n.resultStatHits, value: '$hits', color: accentColor),
         if (misses != null && misses! > 0)
-          _Chip(label: 'Erros', value: '$misses', color: cardColor),
+          _Chip(label: l10n.resultStatMistakes, value: '$misses', color: cardColor),
         if (moves != null)
-          _Chip(label: 'Jogadas', value: '$moves', color: cardColor),
+          _Chip(label: l10n.resultStatMoves, value: '$moves', color: cardColor),
         if (timeBonus != null && timeBonus! > 0)
-          _Chip(label: 'Bônus tempo', value: '+$timeBonus', color: accentColor),
+          _Chip(label: l10n.resultStatTimeBonus, value: '+$timeBonus', color: accentColor),
         if (perfectBonus != null && perfectBonus! > 0)
-          _Chip(label: 'Perfeito', value: '+$perfectBonus', color: HubTheme.coinGold),
+          _Chip(label: l10n.resultStatPerfect, value: '+$perfectBonus', color: HubTheme.coinGold),
         if (highestTile != null && highestTile! > 0)
-          _Chip(label: 'Maior peça', value: '$highestTile', color: accentColor),
+          _Chip(label: l10n.resultStatHighestTile, value: '$highestTile', color: accentColor),
         if (tileBonus != null && tileBonus! > 0)
-          _Chip(label: 'Bônus peça', value: '+$tileBonus', color: HubTheme.coinGold),
+          _Chip(label: l10n.resultStatTileBonus, value: '+$tileBonus', color: HubTheme.coinGold),
         if (obstaclesCleared != null && obstaclesCleared! > 0)
-          _Chip(label: 'Obstáculos', value: '$obstaclesCleared', color: accentColor),
+          _Chip(label: l10n.resultStatObstacles, value: '$obstaclesCleared', color: accentColor),
         if (distanceM != null && distanceM! > 0)
-          _Chip(label: 'Distância', value: '${distanceM}m', color: cardColor),
+          _Chip(label: l10n.resultStatDistance, value: '${distanceM}m', color: cardColor),
         if (speedLevel != null && speedLevel! > 1)
-          _Chip(label: 'Velocidade', value: 'Nv. $speedLevel', color: HubTheme.coinGold),
+          _Chip(
+            label: l10n.resultStatSpeed,
+            value: l10n.resultStatSpeedLevel(speedLevel!),
+            color: HubTheme.coinGold,
+          ),
         if (foundationCards != null && foundationCards! > 0)
-          _Chip(label: 'Fundação', value: '$foundationCards/52', color: accentColor),
+          _Chip(label: l10n.resultStatFoundation, value: '$foundationCards/52', color: accentColor),
         if (foodEaten != null && foodEaten! > 0)
-          _Chip(label: 'Frutas', value: '$foodEaten', color: accentColor),
+          _Chip(label: l10n.resultStatFruits, value: '$foodEaten', color: accentColor),
         if (snakeLength != null && snakeLength! > 3)
-          _Chip(label: 'Tamanho', value: '$snakeLength', color: cardColor),
+          _Chip(label: l10n.resultStatSize, value: '$snakeLength', color: cardColor),
         if (mistakes != null && mistakes! > 0)
-          _Chip(label: 'Erros', value: '$mistakes', color: HubTheme.featuredBadge),
+          _Chip(label: l10n.resultStatMistakes, value: '$mistakes', color: HubTheme.featuredBadge),
         if (hintsUsed != null && hintsUsed! > 0)
-          _Chip(label: 'Dicas', value: '$hintsUsed', color: cardColor),
+          _Chip(label: l10n.resultStatHints, value: '$hintsUsed', color: cardColor),
         if (cellsFilled != null && cellsFilled! > 0)
-          _Chip(label: 'Células', value: '$cellsFilled/81', color: accentColor),
+          _Chip(label: l10n.resultStatCells, value: '$cellsFilled/81', color: accentColor),
       ],
     );
   }
@@ -876,6 +892,7 @@ class _ActionButtonsState extends State<_ActionButtons> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final busy = _doubling;
 
     return Column(
@@ -885,7 +902,7 @@ class _ActionButtonsState extends State<_ActionButtons> {
           FilledButton.icon(
             onPressed: busy ? null : widget.onPlayAgain,
             icon: const Icon(Icons.replay_rounded, size: 22),
-            label: const Text('JOGAR NOVAMENTE'),
+            label: Text(l10n.resultPlayAgain),
             style: FilledButton.styleFrom(
               backgroundColor: widget.cardColor,
               foregroundColor: Colors.white,
@@ -919,7 +936,7 @@ class _ActionButtonsState extends State<_ActionButtons> {
                   )
                 : const Icon(Icons.play_circle_outline_rounded, size: 20),
             label: Text(
-              busy ? 'Carregando anúncio…' : 'Dobrar moedas (anúncio)',
+              busy ? l10n.resultAdLoading : l10n.resultDoubleCoins,
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: HubTheme.textPrimary,

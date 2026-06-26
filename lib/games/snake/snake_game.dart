@@ -13,6 +13,7 @@ import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/snake_fx.dart';
+import '../../core/l10n/l10n_scope.dart';
 import 'snake_config.dart';
 
 class SnakeGame implements HubGame {
@@ -231,7 +232,7 @@ class SnakeFlameGame extends FlameGame with DragCallbacks, KeyboardEvents {
     add(
       SnakeFloatingLabel(
         position: Vector2(at.dx, at.dy),
-        text: 'Bateu!',
+        text: L10nScope.of.gameSnakeCrashed,
         color: SnakeConfig.crashRed,
       ),
     );
@@ -487,7 +488,7 @@ class SnakeFlameGame extends FlameGame with DragCallbacks, KeyboardEvents {
       );
       GameSessionHud.paintText(
         canvas,
-        'Deslize p/ jogar',
+        L10nScope.of.gameSwipeToPlay,
         Offset(size.x / 2, size.y / 2 + 50),
         16,
         SnakeConfig.hudMuted.withValues(alpha: 0.9),
@@ -511,21 +512,21 @@ class SnakeFlameGame extends FlameGame with DragCallbacks, KeyboardEvents {
       palette,
       columns: [
         GameSessionHudStat(
-          caption: 'Tamanho',
+          caption: L10nScope.of.hudSize,
           value: '$_snakeLength',
         ),
         GameSessionHudStat(
-          caption: 'Frutas',
+          caption: L10nScope.of.hudFruits,
           value: '$_foodEaten',
-          footnote: '+${snakeNextFoodPoints(_foodEaten)} próx.',
+          footnote: L10nScope.of.hudNextPoints(snakeNextFoodPoints(_foodEaten)),
           footnoteColor: SnakeConfig.eatGold,
         ),
         GameSessionHudStat(
-          caption: 'Velocidade',
+          caption: L10nScope.of.hudSpeed,
           value: 'Nv. ${snakeSpeedLevel(_elapsed)}',
         ),
         GameSessionHudStat(
-          caption: 'Tempo',
+          caption: L10nScope.of.hudTime,
           value: snakeHudElapsedLabel(Duration(seconds: _elapsed.floor())),
         ),
       ],

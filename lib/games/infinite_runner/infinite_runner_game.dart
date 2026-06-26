@@ -16,6 +16,7 @@ import 'components/infinite_runner_fx.dart';
 import 'components/runner_input.dart';
 import 'components/runner_entities.dart';
 import 'components/runner_scenery.dart';
+import '../../core/l10n/l10n_scope.dart';
 import 'infinite_runner_config.dart';
 
 class InfiniteRunnerGame implements HubGame {
@@ -370,7 +371,7 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
     add(
       RunnerFloatingLabel(
         position: Vector2(_playerX + _playerW / 2, _groundY - _playerH * 1.3),
-        text: 'Ops!',
+        text: L10nScope.of.gameRunnerCrash,
         color: InfiniteRunnerConfig.crashRed,
       ),
     );
@@ -551,18 +552,18 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
     final hintY = size.y * 0.52;
 
     if (_phase == _Phase.countdown) {
-      _paintHintChip(canvas, Offset(size.x * 0.5, hintY - 28), '↑ Deslize p/ pular', fade);
+      _paintHintChip(canvas, Offset(size.x * 0.5, hintY - 28), L10nScope.of.gameRunnerHintJump, fade);
       _paintHintChip(
         canvas,
         Offset(size.x * 0.5, hintY + 28),
-        '↓ Segure p/ agachar',
+        L10nScope.of.gameRunnerHintDuck,
         fade,
       );
     } else if (_player?.ducking == true) {
       _paintHintChip(
         canvas,
         Offset(size.x * 0.5, hintY),
-        'Agachado',
+        L10nScope.of.gameRunnerDucking,
         0.65,
         color: InfiniteRunnerConfig.passGreen,
       );
@@ -645,18 +646,18 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
       ),
       columns: [
         GameSessionHudStat(
-          caption: 'Distância',
+          caption: L10nScope.of.hudDistance,
           value: '$distance m',
         ),
         GameSessionHudStat(
-          caption: 'Velocidade',
+          caption: L10nScope.of.hudSpeed,
           value: 'Nv. $speedLevel',
         ),
         GameSessionHudStat(
-          caption: 'Obstáculos',
+          caption: L10nScope.of.hudObstacles,
           value: '$_obstaclesCleared',
           valueColor: InfiniteRunnerConfig.passGreen,
-          footnote: '+${InfiniteRunnerConfig.pointsPerObstacle}/obs',
+          footnote: L10nScope.of.hudPointsPerObstacle(InfiniteRunnerConfig.pointsPerObstacle),
           footnoteColor: InfiniteRunnerConfig.hudMuted.withValues(alpha: 0.9),
         ),
       ],

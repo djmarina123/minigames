@@ -1,7 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:minigames_hub/core/l10n/l10n_scope.dart';
 import 'package:minigames_hub/games/game_2048/game_2048_config.dart';
 
 void main() {
+  setUpAll(() async {
+    await L10nScope.installForTest();
+  });
+
   group('Game2048Config', () {
     test('fusão à esquerda soma pontos e move peças', () {
       final grid = [

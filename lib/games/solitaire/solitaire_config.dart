@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/economy/performance_tier.dart';
 import '../../core/game_sdk/game_session_hud_actions.dart';
+import '../../core/l10n/l10n_scope.dart';
 
 /// Constantes, paleta e regras puras da Paciência (Klondike).
 abstract final class SolitaireConfig {
@@ -563,7 +564,9 @@ Color solitaireSuitColor(SolitaireSuit suit) =>
         : SolitaireConfig.suitBlack;
 
 String solitaireHudTimeBonusLabel(int bonus) =>
-    bonus > 0 ? '+$bonus tempo' : 'Sem bônus tempo';
+    bonus > 0
+        ? L10nScope.of.hudTimeBonus(bonus)
+        : L10nScope.of.hudNoTimeBonus;
 
 String solitaireHudElapsedLabel(Duration elapsed) {
   final m = elapsed.inMinutes;

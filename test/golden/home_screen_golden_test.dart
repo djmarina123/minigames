@@ -4,6 +4,7 @@ import 'package:minigames_hub/core/iap/purchase_service.dart';
 import 'package:minigames_hub/core/leaderboard/leaderboard_repository.dart';
 import 'package:minigames_hub/core/progression/achievements_repository.dart';
 import 'package:minigames_hub/core/progression/missions_repository.dart';
+import 'package:minigames_hub/core/locale/locale_repository.dart';
 import 'package:minigames_hub/core/storage/player_repository.dart';
 import 'package:minigames_hub/features/shell/main_shell.dart';
 
@@ -23,6 +24,7 @@ void main() {
 
   group('Home golden', () {
     late ({
+      LocaleRepository localeRepo,
       PlayerRepository playerRepo,
       LeaderboardRepository leaderboardRepo,
       AchievementsRepository achievementsRepo,
@@ -42,6 +44,7 @@ void main() {
       await pumpGoldenApp(
         tester,
         app: buildTestApp(
+          localeRepo: repos.localeRepo,
           playerRepo: repos.playerRepo,
           leaderboardRepo: repos.leaderboardRepo,
           achievementsRepo: repos.achievementsRepo,

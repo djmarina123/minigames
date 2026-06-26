@@ -3,11 +3,13 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/app_info.dart';
-import '../../core/economy/economy_copy.dart';
-import '../../core/economy/economy_help_dialog.dart';
+import '../../core/l10n/l10n_extensions.dart';
 import '../../core/storage/player_repository.dart';
 import '../../core/theme/hub_theme.dart';
+import '../../core/economy/economy_help_dialog.dart';
+import '../../l10n/app_localizations.dart';
 import 'widgets/achievements_panel.dart';
+import 'widgets/settings_panel.dart';
 import 'widgets/shop_panel.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -15,6 +17,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final player = context.watch<PlayerRepository>().profile;
 
     return ColoredBox(
@@ -29,7 +32,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'PERFIL',
+                      l10n.profileTitle,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
@@ -38,7 +41,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Como funcionam moedas e XP',
+                    tooltip: l10n.profileEconomyHelpTooltip,
                     onPressed: () => showEconomyHelpDialog(context),
                     icon: const Icon(Icons.help_outline_rounded),
                     color: HubTheme.textSecondary,
@@ -61,32 +64,34 @@ class ProfileScreen extends StatelessWidget {
                     onLearnMore: () => showEconomyHelpDialog(context),
                   ),
                   const SizedBox(height: 16),
+                  const SettingsPanel(),
+                  const SizedBox(height: 16),
                   const ShopPanel(),
                   const SizedBox(height: 16),
                   const AchievementsPanel(),
                   const SizedBox(height: 16),
                   _StatTile(
                     icon: HubTheme.coinIcon,
-                    label: 'Moedas',
+                    label: l10n.statCoins,
                     value: '${player.coins}',
                     accent: HubTheme.coinGold,
                   ),
                   _StatTile(
                     icon: HubTheme.levelIcon,
-                    label: 'XP total',
+                    label: l10n.statTotalXp,
                     value: '${player.xp}',
                     accent: HubTheme.removeAdsPurple,
                   ),
                   _StatTile(
                     icon: Icons.videogame_asset,
-                    label: 'Partidas jogadas',
+                    label: l10n.statGamesPlayed,
                     value: '${player.gamesPlayed}',
                     accent: const Color(0xFFE17055),
                   ),
                   _StatTile(
                     icon: Icons.local_fire_department,
-                    label: 'Sequência diária',
-                    value: '${player.dailyStreak} dias',
+                    label: l10n.statDailyStreak,
+                    value: l10n.statDailyStreakDays(player.dailyStreak),
                     accent: const Color(0xFFFDCB6E),
                   ),
                   const _AppVersionFooter(),
@@ -115,6 +120,8 @@ class _ProfileHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
       decoration: BoxDecoration(
@@ -137,9 +144,9 @@ class _ProfileHero extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Jogador',
-            style: TextStyle(
+          Text(
+            l10n.profilePlayerLabel,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -157,11 +164,7 @@ class _ProfileHero extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            EconomyCopy.levelProgressLabel(
-              level: level,
-              xpInLevel: xpInLevel,
-              xpNeeded: xpNeeded,
-            ),
+            l10n.levelProgressLabel(level, xpInLevel, xpNeeded),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
               fontSize: 13,
@@ -181,6 +184,8 @@ class _EconomySummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
@@ -212,9 +217,9 @@ class _EconomySummaryCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Moedas e XP',
-                      style: TextStyle(
+                    Text(
+                      l10n.profileEconomyCardTitle,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                         color: HubTheme.textPrimary,
@@ -222,7 +227,7 @@ class _EconomySummaryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      EconomyCopy.profileSummary,
+                      l10n.economyProfileSummary,
                       style: const TextStyle(
                         fontSize: 13,
                         height: 1.35,
@@ -268,6 +273,7 @@ class _AppVersionFooterState extends State<_AppVersionFooter> {
     final info = _info;
     if (info == null) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
     final buildLabel = appInfoBuildDateTimeLabel();
     final muted = TextStyle(
       fontSize: 12,
@@ -279,10 +285,13 @@ class _AppVersionFooterState extends State<_AppVersionFooter> {
       padding: const EdgeInsets.only(top: 20),
       child: Column(
         children: [
-          Text('MiniPlay · versão ${appInfoVersionLabel(info)}', style: muted),
+          Text(
+            l10n.profileVersion(appInfoVersionLabel(info)),
+            style: muted,
+          ),
           if (buildLabel != null) ...[
             const SizedBox(height: 4),
-            Text('Build: $buildLabel', style: muted),
+            Text(l10n.profileBuild(buildLabel), style: muted),
           ],
         ],
       ),

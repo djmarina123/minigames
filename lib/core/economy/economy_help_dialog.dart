@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../theme/hub_theme.dart';
-import 'economy_copy.dart';
 
 /// Modal com explicação de moedas, XP e nível.
 Future<void> showEconomyHelpDialog(BuildContext context) {
@@ -12,6 +12,8 @@ Future<void> showEconomyHelpDialog(BuildContext context) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (context) {
+      final l10n = AppLocalizations.of(context);
+
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -44,10 +46,10 @@ Future<void> showEconomyHelpDialog(BuildContext context) {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      EconomyCopy.helpTitle,
-                      style: TextStyle(
+                      l10n.economyHelpTitle,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: HubTheme.textPrimary,
@@ -57,10 +59,13 @@ Future<void> showEconomyHelpDialog(BuildContext context) {
                 ],
               ),
               const SizedBox(height: 16),
-              for (final paragraph in EconomyCopy.howItWorks) ...[
-                _HelpBullet(text: paragraph),
-                const SizedBox(height: 10),
-              ],
+              _HelpBullet(text: l10n.economyHowCoins),
+              const SizedBox(height: 10),
+              _HelpBullet(text: l10n.economyHowXp),
+              const SizedBox(height: 10),
+              _HelpBullet(text: l10n.economyHowLevel),
+              const SizedBox(height: 10),
+              _HelpBullet(text: l10n.economyHowRanking),
               const SizedBox(height: 8),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -72,9 +77,9 @@ Future<void> showEconomyHelpDialog(BuildContext context) {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
-                  'Entendi',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                child: Text(
+                  l10n.dialogGotIt,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
             ],

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/economy/economy_config.dart';
 import '../../core/economy/performance_tier.dart';
 import '../../core/game_sdk/game_session_hud_actions.dart';
+import '../../core/l10n/l10n_scope.dart';
 
 /// Constantes, paleta e regras puras do Sudoku.
 abstract final class SudokuConfig {
@@ -586,7 +587,9 @@ int sudokuFinalScore({
 }
 
 String sudokuHudTimeBonusLabel(int bonus) =>
-    bonus > 0 ? '+$bonus tempo' : 'Sem bônus tempo';
+    bonus > 0
+        ? L10nScope.of.hudTimeBonus(bonus)
+        : L10nScope.of.hudNoTimeBonus;
 
 String sudokuHudElapsedLabel(Duration elapsed) {
   final m = elapsed.inMinutes;

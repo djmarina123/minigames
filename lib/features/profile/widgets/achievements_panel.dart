@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/l10n/l10n_extensions.dart';
 import '../../../core/progression/achievements_repository.dart';
 import '../../../core/progression/progression_models.dart';
 import '../../../core/theme/hub_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Resumo de conquistas no perfil.
 class AchievementsPanel extends StatelessWidget {
@@ -11,6 +13,7 @@ class AchievementsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final repo = context.watch<AchievementsRepository>();
     final unlocked = repo.allUnlocked();
     final locked = repo.lockedDefinitions();
@@ -29,10 +32,10 @@ class AchievementsPanel extends StatelessWidget {
             children: [
               const Icon(Icons.emoji_events_rounded, color: HubTheme.coinGold),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Conquistas',
-                  style: TextStyle(
+                  l10n.achievementsTitle,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
                     color: HubTheme.textPrimary,
@@ -50,14 +53,22 @@ class AchievementsPanel extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           if (unlocked.isEmpty && locked.isEmpty)
-            const Text(
-              'Jogue partidas para desbloquear conquistas.',
-              style: TextStyle(color: HubTheme.textSecondary),
+            Text(
+              l10n.achievementsEmpty,
+              style: const TextStyle(color: HubTheme.textSecondary),
             ),
           for (final item in unlocked.take(4))
-            _AchievementTile(unlocked: item, locked: false),
+            _AchievementTile(
+              unlocked: item,
+              locked: false,
+              localized: l10n.localizedAchievement(item.definition),
+            ),
           for (final def in locked.take(4 - unlocked.length.clamp(0, 4)))
-            _AchievementTile(definition: def, locked: true),
+            _AchievementTile(
+              definition: def,
+              locked: true,
+              localized: l10n.localizedAchievement(def),
+            ),
         ],
       ),
     );
@@ -69,15 +80,17 @@ class _AchievementTile extends StatelessWidget {
     this.unlocked,
     this.definition,
     required this.locked,
+    required this.localized,
   }) : assert((unlocked != null) ^ (definition != null));
 
   final UnlockedAchievement? unlocked;
   final AchievementDefinition? definition;
   final bool locked;
+  final AchievementDefinition localized;
 
   @override
   Widget build(BuildContext context) {
-    final def = unlocked?.definition ?? definition!;
+    final def = localized;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(

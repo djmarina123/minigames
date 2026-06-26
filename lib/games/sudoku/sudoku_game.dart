@@ -14,6 +14,7 @@ import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/sudoku_fx.dart';
+import '../../core/l10n/l10n_scope.dart';
 import 'sudoku_config.dart';
 
 class SudokuGame implements HubGame {
@@ -249,7 +250,7 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
       final layout = _layout();
       add(SudokuFloatingLabel(
         position: Vector2(size.x / 2, layout.boardTop - 8),
-        text: '${EconomyConfig.hintCoinCostSudoku} moedas',
+        text: L10nScope.of.gameHintCostCoins(EconomyConfig.hintCoinCostSudoku),
         color: SudokuConfig.missRed,
       ));
       return;
@@ -270,7 +271,7 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
         (result.row + 0.5) * layout.cellSize;
     add(SudokuFloatingLabel(
       position: Vector2(cx, cy),
-      text: 'Dica!',
+      text: L10nScope.of.gameHintUsed,
       color: SudokuConfig.successGlow,
     ));
     _updateScore();
@@ -653,21 +654,21 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
       palette,
       columns: [
         GameSessionHudStat(
-          caption: 'Pontos',
+          caption: L10nScope.of.hudPoints,
           value: '$progress',
           footnote: sudokuHudTimeBonusLabel(timeBonus),
           footnoteColor: SudokuConfig.accentSoft,
         ),
         GameSessionHudStat(
-          caption: 'Tempo',
+          caption: L10nScope.of.hudTime,
           value: sudokuHudElapsedLabel(elapsed),
-          footnote: '${_state.moves} jogadas',
+          footnote: L10nScope.of.hudMovesCount(_state.moves),
           captionColor: SudokuConfig.hudMuted,
         ),
         GameSessionHudStat(
-          caption: 'Progresso',
+          caption: L10nScope.of.hudProgress,
           value: sudokuHudProgressLabel(_state),
-          footnote: '${_state.mistakes}/${SudokuConfig.maxMistakes} erros',
+          footnote: L10nScope.of.hudMistakesCount(_state.mistakes, SudokuConfig.maxMistakes),
           footnoteColor: _state.mistakes >= 3
               ? SudokuConfig.missRed
               : SudokuConfig.hudMuted,

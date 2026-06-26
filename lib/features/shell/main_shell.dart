@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../core/theme/hub_theme.dart';
 import '../home/home_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
@@ -18,6 +19,8 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: HubTheme.background,
@@ -44,21 +47,21 @@ class _MainShellState extends State<MainShell> {
         indicatorColor: HubTheme.removeAdsPurple.withValues(alpha: 0.15),
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.sports_esports_outlined),
-            selectedIcon: Icon(Icons.sports_esports),
-            label: 'Jogos',
+            icon: const Icon(Icons.sports_esports_outlined),
+            selectedIcon: const Icon(Icons.sports_esports),
+            label: l10n.navGames,
           ),
           NavigationDestination(
-            icon: Icon(Icons.leaderboard_outlined),
-            selectedIcon: Icon(Icons.leaderboard),
-            label: 'Ranking',
+            icon: const Icon(Icons.leaderboard_outlined),
+            selectedIcon: const Icon(Icons.leaderboard),
+            label: l10n.navRanking,
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Perfil',
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
+            label: l10n.navProfile,
           ),
         ],
       ),
@@ -77,6 +80,8 @@ class _HubDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Drawer(
       child: SafeArea(
         child: Column(
@@ -91,11 +96,11 @@ class _HubDrawer extends StatelessWidget {
                   ],
                 ),
               ),
-              child: const Align(
+              child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Text(
-                  'MiniPlay',
-                  style: TextStyle(
+                  l10n.appName,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
@@ -105,19 +110,19 @@ class _HubDrawer extends StatelessWidget {
             ),
             _DrawerTile(
               icon: Icons.sports_esports,
-              label: 'Jogos',
+              label: l10n.navGames,
               selected: selectedIndex == 0,
               onTap: () => onSelect(0),
             ),
             _DrawerTile(
               icon: Icons.leaderboard,
-              label: 'Ranking',
+              label: l10n.navRanking,
               selected: selectedIndex == 1,
               onTap: () => onSelect(1),
             ),
             _DrawerTile(
               icon: Icons.person,
-              label: 'Perfil',
+              label: l10n.navProfile,
               selected: selectedIndex == 2,
               onTap: () => onSelect(2),
             ),

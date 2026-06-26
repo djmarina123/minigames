@@ -6,6 +6,7 @@ import 'package:minigames_hub/bootstrap/games.dart';
 import 'package:minigames_hub/core/game_sdk/game_registry.dart';
 import 'package:minigames_hub/core/iap/purchase_service.dart';
 import 'package:minigames_hub/core/leaderboard/leaderboard_repository.dart';
+import 'package:minigames_hub/core/locale/locale_repository.dart';
 import 'package:minigames_hub/core/progression/achievements_repository.dart';
 import 'package:minigames_hub/core/progression/missions_repository.dart';
 import 'package:minigames_hub/core/storage/player_repository.dart';
@@ -35,6 +36,7 @@ void mockPackageInfoPlatform() {
 
 /// Repositórios e registry prontos para widget/golden tests.
 Future<({
+  LocaleRepository localeRepo,
   PlayerRepository playerRepo,
   LeaderboardRepository leaderboardRepo,
   AchievementsRepository achievementsRepo,
@@ -42,8 +44,12 @@ Future<({
   PurchaseService purchaseService,
 })> setupTestRepositories() async {
   mockPackageInfoPlatform();
-  SharedPreferences.setMockInitialValues({});
+  SharedPreferences.setMockInitialValues({'app_locale': 'pt'});
   final prefs = await SharedPreferences.getInstance();
+  final localeRepo = LocaleRepository(
+    prefs,
+    initial: AppLocales.resolveInitial(prefs),
+  );
   final playerRepo = PlayerRepository(prefs);
   await playerRepo.load();
   final leaderboardRepo = LeaderboardRepository(prefs);
@@ -61,6 +67,7 @@ Future<({
   registerBundledGames();
 
   return (
+    localeRepo: localeRepo,
     playerRepo: playerRepo,
     leaderboardRepo: leaderboardRepo,
     achievementsRepo: achievementsRepo,
@@ -70,6 +77,7 @@ Future<({
 }
 
 Widget buildTestApp({
+  required LocaleRepository localeRepo,
   required PlayerRepository playerRepo,
   required LeaderboardRepository leaderboardRepo,
   required AchievementsRepository achievementsRepo,
@@ -78,6 +86,7 @@ Widget buildTestApp({
 }) {
   return MultiProvider(
     providers: [
+      ChangeNotifierProvider<LocaleRepository>.value(value: localeRepo),
       ChangeNotifierProvider<PlayerRepository>.value(value: playerRepo),
       ChangeNotifierProvider<LeaderboardRepository>.value(
         value: leaderboardRepo,

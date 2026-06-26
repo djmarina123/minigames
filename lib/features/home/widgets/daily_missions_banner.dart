@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/l10n/l10n_extensions.dart';
 import '../../../core/progression/mission_models.dart';
 import '../../../core/progression/missions_repository.dart';
 import '../../../core/theme/hub_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Missões diárias compactas — abaixo da recompensa diária.
 class DailyMissionsBanner extends StatelessWidget {
@@ -11,6 +13,7 @@ class DailyMissionsBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final missionsRepo = context.watch<MissionsRepository>();
     final missions = missionsRepo.todayMissions;
     if (missions.isEmpty) return const SizedBox.shrink();
@@ -27,13 +30,13 @@ class DailyMissionsBanner extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.flag_rounded, color: HubTheme.removeAdsPurple, size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.flag_rounded, color: HubTheme.removeAdsPurple, size: 20),
+                const SizedBox(width: 8),
                 Text(
-                  'Missões de hoje',
-                  style: TextStyle(
+                  l10n.missionsTodayTitle,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 15,
                     color: HubTheme.textPrimary,
@@ -53,7 +56,7 @@ class DailyMissionsBanner extends StatelessWidget {
                   if (context.mounted && reward != null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Missão concluída! +$reward moedas'),
+                        content: Text(l10n.missionCompletedReward(reward)),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -79,7 +82,8 @@ class _MissionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final def = progress.definition;
+    final l10n = AppLocalizations.of(context);
+    final def = l10n.localizedMission(progress.definition);
     final done = progress.isComplete;
     final claimed = progress.claimed;
 
@@ -132,9 +136,9 @@ class _MissionRow extends StatelessWidget {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const Text(
-              'Resgatar',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+            child: Text(
+              l10n.missionClaim,
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
             ),
           )
         else if (claimed)

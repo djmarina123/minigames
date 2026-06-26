@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/iap/iap_config.dart';
 import '../../../core/iap/purchase_service.dart';
 import '../../../core/theme/hub_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Compras no app — remover anúncios e pacote de moedas.
 class ShopPanel extends StatelessWidget {
@@ -11,6 +12,7 @@ class ShopPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final shop = context.watch<PurchaseService>();
 
     return Container(
@@ -23,13 +25,13 @@ class ShopPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.storefront_rounded, color: HubTheme.removeAdsPurple),
-              SizedBox(width: 8),
+              const Icon(Icons.storefront_rounded, color: HubTheme.removeAdsPurple),
+              const SizedBox(width: 8),
               Text(
-                'Loja',
-                style: TextStyle(
+                l10n.shopTitle,
+                style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
                   color: HubTheme.textPrimary,
@@ -40,7 +42,7 @@ class ShopPanel extends StatelessWidget {
           if (shop.lastError != null) ...[
             const SizedBox(height: 8),
             Text(
-              shop.lastError!,
+              _localizedError(l10n, shop.lastError!),
               style: const TextStyle(
                 fontSize: 12,
                 color: HubTheme.featuredBadge,
@@ -50,20 +52,20 @@ class ShopPanel extends StatelessWidget {
           const SizedBox(height: 12),
           _ShopTile(
             icon: Icons.block_rounded,
-            title: 'Remover anúncios',
+            title: l10n.shopRemoveAdsTitle,
             subtitle: shop.adsRemoved
-                ? 'Comprado — sem interstitials'
-                : 'Sem anúncios entre partidas',
-            price: shop.removeAdsProduct?.price ?? (kIapConfigured ? '—' : 'Teste'),
+                ? l10n.shopRemoveAdsPurchased
+                : l10n.shopRemoveAdsSubtitle,
+            price: shop.removeAdsProduct?.price ?? (kIapConfigured ? '—' : l10n.shopPriceTest),
             enabled: !shop.adsRemoved && !shop.loading,
             onTap: shop.adsRemoved ? null : () => shop.buyRemoveAds(),
           ),
           const SizedBox(height: 8),
           _ShopTile(
             icon: HubTheme.coinIcon,
-            title: '${IapConfig.coinPackAmount} moedas',
-            subtitle: 'Pacote de moedas',
-            price: shop.coinPackProduct?.price ?? (kIapConfigured ? '—' : 'Teste'),
+            title: l10n.shopCoinPackTitle(IapConfig.coinPackAmount),
+            subtitle: l10n.shopCoinPackSubtitle,
+            price: shop.coinPackProduct?.price ?? (kIapConfigured ? '—' : l10n.shopPriceTest),
             enabled: !shop.loading,
             onTap: () => shop.buyCoinPack(),
           ),
@@ -71,12 +73,20 @@ class ShopPanel extends StatelessWidget {
             const SizedBox(height: 8),
             TextButton(
               onPressed: shop.loading ? null : () => shop.restorePurchases(),
-              child: const Text('Restaurar compras'),
+              child: Text(l10n.shopRestorePurchases),
             ),
           ],
         ],
       ),
     );
+  }
+
+  static String _localizedError(AppLocalizations l10n, String error) {
+    return switch (error) {
+      PurchaseService.errorProductUnavailable => l10n.iapProductUnavailable,
+      PurchaseService.errorPurchase => l10n.iapPurchaseError,
+      _ => error,
+    };
   }
 }
 

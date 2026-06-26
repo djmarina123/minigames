@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/models/player_profile.dart';
 import '../../../core/storage/player_repository.dart';
 import '../../../core/theme/hub_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Barra superior do hub: menu, nível, moedas, remover ads.
 class HubHeader extends StatelessWidget {
@@ -18,6 +19,7 @@ class HubHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final profile = context.watch<PlayerRepository>().profile;
 
     return Padding(
@@ -40,8 +42,8 @@ class HubHeader extends StatelessWidget {
           _RemoveAdsButton(
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Compra "Remover ads" — em breve na Fase 2'),
+                SnackBar(
+                  content: Text(l10n.homeRemoveAdsComingSoon),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -173,7 +175,7 @@ class _RemoveAdsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Remover anúncios',
+      message: AppLocalizations.of(context).homeRemoveAdsTooltip,
       child: Material(
         color: HubTheme.removeAdsPurple,
         borderRadius: BorderRadius.circular(14),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/storage/player_repository.dart';
 import '../../../core/theme/hub_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Banner compacto de recompensa diária — abaixo do header.
 class DailyRewardBanner extends StatelessWidget {
@@ -10,14 +11,15 @@ class DailyRewardBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final player = context.watch<PlayerRepository>();
     if (!player.canClaimDaily) return const SizedBox.shrink();
 
     final amount = player.dailyRewardAmount;
     final streakDay = player.nextDailyStreak;
     final streakLabel = streakDay > 1
-        ? 'Dia $streakDay da sequência'
-        : 'Comece sua sequência diária';
+        ? l10n.dailyRewardStreakDay(streakDay)
+        : l10n.dailyRewardStartStreak;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -30,7 +32,7 @@ class DailyRewardBanner extends StatelessWidget {
             if (context.mounted && reward != null) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('+$reward moedas resgatadas!'),
+                  content: Text(l10n.dailyRewardClaimed(reward)),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -64,7 +66,7 @@ class DailyRewardBanner extends StatelessWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              'Ganhe +$amount moedas',
+                              l10n.dailyRewardEarnCoins(amount),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -94,9 +96,9 @@ class DailyRewardBanner extends StatelessWidget {
                     color: HubTheme.removeAdsPurple,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'Resgatar',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.dailyRewardClaim,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 13,
                       color: Colors.white,

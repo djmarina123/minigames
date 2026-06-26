@@ -9,9 +9,9 @@ import '../../core/game_sdk/game_prep.dart';
 import '../../core/game_sdk/game_result.dart';
 import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
-import '../../core/game_sdk/game_session_hud.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/domino_fx.dart';
+import '../../core/l10n/l10n_scope.dart';
 import 'domino_config.dart';
 
 class DominoGame implements HubGame {
@@ -215,7 +215,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       add(
         DominoFloatingLabel(
           position: Vector2(size.x / 2, layoutCpuLabelY()),
-          text: 'CPU comprou',
+          text: L10nScope.of.gameDominoCpuDrew,
           color: DominoConfig.hudMuted,
           fontSize: 13,
         ),
@@ -235,7 +235,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     add(
       DominoFloatingLabel(
         position: Vector2(size.x / 2, layoutCpuLabelY()),
-        text: 'CPU passou',
+        text: L10nScope.of.gameDominoCpuPassed,
         color: DominoConfig.hudMuted,
         fontSize: 13,
       ),
@@ -315,7 +315,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       add(
         DominoFloatingLabel(
           position: Vector2(size.x / 2, size.y * 0.55),
-          text: 'Solte na ponta certa',
+          text: L10nScope.of.gameDominoDropOnEnd,
           color: DominoConfig.missRed,
         ),
       );
@@ -488,7 +488,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       add(
         DominoFloatingLabel(
           position: Vector2(size.x / 2, size.y * 0.72),
-          text: 'Não encaixa',
+          text: L10nScope.of.gameDominoNoFit,
           color: DominoConfig.missRed,
         ),
       );
@@ -594,7 +594,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       add(
         DominoFloatingLabel(
           position: Vector2(dest.dx, dest.dy - 32),
-          text: 'CPU: ${dominoTileLabel(tile)}',
+          text: L10nScope.of.gameDominoCpuPlayed(dominoTileLabel(tile)),
           color: DominoConfig.accentSoft,
           fontSize: 14,
         ),
@@ -640,7 +640,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       add(
         DominoFloatingLabel(
           position: Vector2(size.x / 2, size.y * 0.5),
-          text: 'Sem jogada — passe',
+          text: L10nScope.of.gameDominoNoPlayPass,
           color: DominoConfig.hudMuted,
         ),
       );
@@ -675,7 +675,8 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
 
   @override
   void render(Canvas canvas) {
-    _paintBackground(canvas);
+    final layout = _layout();
+    _paintBackground(canvas, layout);
     if (_missFlash > 0) {
       canvas.drawRect(
         Rect.fromLTWH(0, 0, size.x, size.y),
@@ -684,7 +685,6 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       );
     }
     _paintHud(canvas);
-    final layout = _layout();
     _syncChainDropZones(layout);
     _paintCpuHand(canvas, layout);
     _paintBoneyard(canvas, layout);
@@ -696,60 +696,166 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     super.render(canvas);
   }
 
-  void _paintBackground(Canvas canvas) {
-    final rect = Rect.fromLTWH(0, 0, size.x, size.y);
+  void _paintBackground(Canvas canvas, DominoBoardLayout layout) {
+    final w = size.x;
+    final h = size.y;
+    final topEnd = layout.cpuY + layout.tileH + 18;
+    final bottomStart = layout.playerY - 6;
+
     canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: const [DominoConfig.bgTop, DominoConfig.bgBottom],
-        ).createShader(rect),
+      Rect.fromLTWH(0, 0, w, topEnd),
+      Paint()..color = DominoConfig.bgTop,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(0, topEnd, w, bottomStart - topEnd),
+      Paint()..color = DominoConfig.bgMiddle,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(0, bottomStart, w, h - bottomStart),
+      Paint()..color = DominoConfig.bgBottom,
     );
 
-    final bubblePaint = Paint()..color = DominoConfig.feltPattern.withValues(alpha: 0.35);
-    canvas.drawCircle(Offset(size.x * 0.12, size.y * 0.22), 28, bubblePaint);
-    canvas.drawCircle(Offset(size.x * 0.88, size.y * 0.35), 18, bubblePaint);
-    canvas.drawCircle(Offset(size.x * 0.75, size.y * 0.78), 22, bubblePaint);
+    // Linha divisória entre mesa e mão do jogador.
+    canvas.drawLine(
+      Offset(16, bottomStart),
+      Offset(w - 16, bottomStart),
+      Paint()
+        ..color = DominoConfig.tileOutline.withValues(alpha: 0.55)
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round,
+    );
   }
 
   void _paintHud(Canvas canvas) {
     final elapsed = DateTime.now().difference(_startedAt).inMilliseconds / 1000.0;
-    final timeRatio = dominoTimeBonusRemaining(elapsed) / DominoConfig.timeBonusMax;
+    final timeBonus = dominoTimeBonusRemaining(elapsed);
+    final panelW = min(size.x - 32, 320.0);
+    final panelLeft = (size.x - panelW) / 2;
+    const panelTop = 6.0;
+    const panelH = 72.0;
 
-    GameSessionHud.paintStatsBar(
+    final panelRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(panelLeft, panelTop, panelW, panelH),
+      const Radius.circular(14),
+    );
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        panelRect.outerRect.shift(const Offset(0, 2)),
+        const Radius.circular(14),
+      ),
+      Paint()..color = Colors.black.withValues(alpha: 0.22),
+    );
+    canvas.drawRRect(panelRect, Paint()..color = DominoConfig.hudPanel);
+    canvas.drawRRect(
+      panelRect,
+      Paint()
+        ..color = DominoConfig.tileOutline.withValues(alpha: 0.35)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+
+    // Dificuldade — pill central no topo.
+    final diffLabel = dominoDifficultyLabel(difficulty).toUpperCase();
+    _paintCenteredText(
       canvas,
-      Size(size.x, size.y),
-      const GameSessionHudPalette(
-        text: DominoConfig.hudText,
-        muted: DominoConfig.hudMuted,
-        accent: DominoConfig.accentColor,
-      ),
-      columns: [
-        GameSessionHudStat(
-          caption: 'Suas peças',
-          value: '${_state.humanHand.length}',
-          footnote: 'CPU: ${_state.cpuHand.length}',
-        ),
-        GameSessionHudStat(
-          caption: 'Turno',
-          value: dominoTurnLabel(_state.turn),
-          valueColor: _state.turn == DominoPlayer.human
-              ? DominoConfig.accentColor
-              : DominoConfig.hudMuted,
-        ),
-        GameSessionHudStat(
-          caption: 'Pontos',
-          value: '${_state.progressScore}',
-          footnote: dominoHudTimeBonusPreview(elapsed),
-        ),
-      ],
-      progress: GameSessionHudProgress(
-        ratio: timeRatio,
-        color: DominoConfig.accentColor,
-        lowColor: DominoConfig.missRed,
-      ),
+      diffLabel,
+      panelTop + 14,
+      DominoConfig.hudText,
+      11,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.8,
+    );
+
+    // Barra de pontuação interna.
+    const barH = 32.0;
+    final barTop = panelTop + 28;
+    final barRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(panelLeft + 10, barTop, panelW - 20, barH),
+      const Radius.circular(10),
+    );
+    canvas.drawRRect(barRect, Paint()..color = DominoConfig.hudPanelInner);
+    canvas.drawRRect(
+      barRect,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.08)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
+
+    final barCenterY = barTop + barH / 2;
+    const circleR = 13.0;
+
+    // Pontuação do jogador (esquerda).
+    _paintScoreCircle(
+      canvas,
+      Offset(panelLeft + 28, barCenterY),
+      circleR,
+      '${_state.progressScore}',
+      DominoConfig.scoreHumanColor,
+    );
+
+    // Bônus de tempo restante (direita).
+    _paintScoreCircle(
+      canvas,
+      Offset(panelLeft + panelW - 28, barCenterY),
+      circleR,
+      '$timeBonus',
+      DominoConfig.scoreCpuColor,
+    );
+
+    // Objetivo central.
+    _paintCenteredText(
+      canvas,
+      'OBJETIVO ${DominoConfig.timeBonusMax}',
+      barCenterY - 5,
+      DominoConfig.hudMuted,
+      9,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.4,
+    );
+    _paintCenteredText(
+      canvas,
+      dominoTurnLabel(_state.turn).toUpperCase(),
+      barCenterY + 9,
+      _state.turn == DominoPlayer.human
+          ? DominoConfig.successGlow
+          : DominoConfig.hudMuted,
+      9,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.3,
+    );
+  }
+
+  void _paintScoreCircle(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    String value,
+    Color color,
+  ) {
+    canvas.drawCircle(
+      center.translate(0, 1.5),
+      radius,
+      Paint()..color = Colors.black.withValues(alpha: 0.25),
+    );
+    canvas.drawCircle(center, radius, Paint()..color = color);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.35)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+    _paintCenteredText(
+      canvas,
+      value,
+      center.dy,
+      Colors.white,
+      value.length >= 3 ? 11 : 13,
+      centerX: center.dx,
+      fontWeight: FontWeight.w900,
     );
   }
 
@@ -773,9 +879,10 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
         canvas,
         'CPU$dots',
         layout.cpuY - 8,
-        DominoConfig.accentSoft,
+        DominoConfig.tileOutline.withValues(alpha: 0.7),
         11,
         centerX: size.x / 2,
+        fontWeight: FontWeight.w700,
       );
     }
   }
@@ -789,96 +896,52 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       final selected = _selectedHandIndex == i;
       final canPlay = dominoValidPlays(_state, DominoPlayer.human)
           .any((p) => p.handIndex == i);
-
-      if (selected) {
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(
-            rect.inflate(4),
-            Radius.circular(layout.tileW * 0.12),
-          ),
-          Paint()
-            ..color = DominoConfig.accentColor.withValues(alpha: 0.45)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 3,
-        );
-      } else if (canPlay && _state.turn == DominoPlayer.human) {
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(
-            rect.inflate(2),
-            Radius.circular(layout.tileW * 0.1),
-          ),
-          Paint()
-            ..color = DominoConfig.successGlow.withValues(alpha: 0.35)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2,
-        );
-      }
+      final dimmed = !canPlay || _state.turn != DominoPlayer.human;
 
       final shakeOffset = _shakeT > 0 && selected
           ? sin(_shakeT * pi * 8) * 4 * _shakeT
           : 0.0;
+      final lift = selected ? -8.0 : 0.0;
+      final tileRect = rect.shift(Offset(shakeOffset, lift));
+
+      if (selected) {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            tileRect.inflate(5),
+            Radius.circular(layout.tileW * 0.12),
+          ),
+          Paint()
+            ..color = DominoConfig.tileOutline.withValues(alpha: 0.35)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3,
+        );
+      }
 
       _paintTileFace(
         canvas,
-        rect.shift(Offset(shakeOffset, selected ? -6 : 0)),
+        tileRect,
         _state.humanHand[i],
+        dimmed: dimmed && !selected,
       );
-    }
-  }
-
-  void _paintChainTable(Canvas canvas, Rect bounds) {
-    final r = RRect.fromRectAndRadius(bounds, const Radius.circular(16));
-    canvas.drawRRect(
-      r.shift(const Offset(0, 3)),
-      Paint()..color = Colors.black.withValues(alpha: 0.25),
-    );
-    canvas.drawRRect(
-      r,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            DominoConfig.feltPattern.withValues(alpha: 0.95),
-            DominoConfig.bgTop.withValues(alpha: 0.88),
-          ],
-        ).createShader(bounds),
-    );
-    canvas.drawRRect(
-      r,
-      Paint()
-        ..color = DominoConfig.accentColor.withValues(alpha: 0.18)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-
-    final dotPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.04);
-    for (var row = 0; row < 4; row++) {
-      for (var col = 0; col < 8; col++) {
-        final ox = bounds.left + 18 + col * ((bounds.width - 36) / 7);
-        final oy = bounds.top + 14 + row * ((bounds.height - 28) / 3);
-        canvas.drawCircle(Offset(ox, oy), 1.2, dotPaint);
-      }
     }
   }
 
   void _paintChain(Canvas canvas, DominoBoardLayout layout) {
     final chainLayout = _chainLayout(layout);
-    _paintChainTable(canvas, chainLayout.tableBounds);
 
     if (_state.chain.isEmpty) {
       final hint = switch (_state.turn) {
-        DominoPlayer.cpu => 'CPU abrindo…',
-        _ when _state.openingRequired => 'Arraste a peça de abertura',
-        _ => 'Arraste uma peça para a mesa',
+        DominoPlayer.cpu => L10nScope.of.gameDominoCpuOpening,
+        _ when _state.openingRequired => L10nScope.of.gameDominoDragOpening,
+        _ => L10nScope.of.gameDominoDragToTable,
       };
       _paintCenteredText(
         canvas,
         hint,
         chainLayout.emptyDropZone.center.dy,
-        DominoConfig.hudMuted,
+        DominoConfig.tileOutline.withValues(alpha: 0.55),
         13,
+        fontWeight: FontWeight.w600,
       );
       if (_drag != null) {
         _paintEndGlow(canvas, chainLayout.emptyDropZone, pulse: true);
@@ -899,7 +962,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       if (isLastMove && _lastMove != null) {
         final pulse = (sin(_lastMove!.remaining * 5) + 1) * 0.5;
         final glowColor = _lastMove!.player == DominoPlayer.cpu
-            ? DominoConfig.accentColor
+            ? DominoConfig.scoreCpuColor
             : DominoConfig.successGlow;
         canvas.drawRRect(
           RRect.fromRectAndRadius(rect.inflate(5), const Radius.circular(10)),
@@ -936,11 +999,9 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     );
   }
 
-  /// Traça a "espinha" da fileira ligando os centros das peças. Nos vãos entre
-  /// linhas e nas esquinas ela aparece como uma curva, deixando claro que a
-  /// fileira é contínua e para onde ela segue.
+  /// Traço sutil entre peças da fileira — só quando há curva longa.
   void _paintChainSpine(Canvas canvas, DominoChainLayout chainLayout) {
-    if (chainLayout.slots.length < 2) return;
+    if (chainLayout.slots.length < 4) return;
     final path = Path();
     for (var i = 0; i < chainLayout.slots.length; i++) {
       final c = chainLayout.slots[i].rect.center;
@@ -953,9 +1014,9 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     canvas.drawPath(
       path,
       Paint()
-        ..color = DominoConfig.accentColor.withValues(alpha: 0.16)
+        ..color = DominoConfig.tileOutline.withValues(alpha: 0.06)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = chainLayout.tileH * 0.55
+        ..strokeWidth = chainLayout.tileH * 0.45
         ..strokeJoin = StrokeJoin.round
         ..strokeCap = StrokeCap.round,
     );
@@ -998,7 +1059,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       center,
       radius + 4 + pulse * 2,
       Paint()
-        ..color = DominoConfig.accentColor.withValues(alpha: 0.18 + pulse * 0.12)
+        ..color = DominoConfig.scoreCpuColor.withValues(alpha: 0.18 + pulse * 0.12)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3,
     );
@@ -1011,14 +1072,14 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       ..lineTo(base.dx + perp.dx * 5, base.dy + perp.dy * 5)
       ..lineTo(base.dx - perp.dx * 5, base.dy - perp.dy * 5)
       ..close();
-    canvas.drawPath(arrowPath, Paint()..color = DominoConfig.accentColor);
+    canvas.drawPath(arrowPath, Paint()..color = DominoConfig.scoreCpuColor);
 
     canvas.drawCircle(
       center.translate(0, 1.5),
       radius + 2,
       Paint()..color = Colors.black.withValues(alpha: 0.2),
     );
-    canvas.drawCircle(center, radius, Paint()..color = DominoConfig.accentColor);
+    canvas.drawCircle(center, radius, Paint()..color = DominoConfig.scoreCpuColor);
     canvas.drawCircle(
       center,
       radius,
@@ -1097,20 +1158,20 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect.inflate(6), Radius.circular(layout.tileW * 0.12)),
       Paint()
-        ..color = DominoConfig.accentColor.withValues(alpha: 0.25)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+        ..color = Colors.black.withValues(alpha: 0.2)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
     );
     _paintTileFace(canvas, rect, _state.humanHand[drag.handIndex]);
   }
 
   void _paintEndGlow(Canvas canvas, Rect rect, {bool pulse = false}) {
-    final alpha = pulse ? 0.35 + sin(DateTime.now().millisecondsSinceEpoch / 280) * 0.12 : 0.28;
+    final alpha = pulse ? 0.45 + sin(DateTime.now().millisecondsSinceEpoch / 280) * 0.15 : 0.35;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect.inflate(pulse ? 3 : 0), const Radius.circular(10)),
+      RRect.fromRectAndRadius(rect.inflate(pulse ? 4 : 2), const Radius.circular(10)),
       Paint()
-        ..color = DominoConfig.accentColor.withValues(alpha: alpha)
+        ..color = DominoConfig.successGlow.withValues(alpha: alpha)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = pulse ? 3 : 2.5,
+        ..strokeWidth = pulse ? 3.5 : 2.5,
     );
   }
 
@@ -1121,17 +1182,19 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       canvas,
       '${_state.boneyard.length}',
       rect.center.dy,
-      DominoConfig.hudText,
+      DominoConfig.hudPanel,
       12,
       centerX: rect.center.dx,
+      fontWeight: FontWeight.w800,
     );
     _paintCenteredText(
       canvas,
-      'Monte',
+      L10nScope.of.gameDominoBoneyard,
       rect.top - 10,
-      DominoConfig.hudMuted,
+      DominoConfig.tileOutline.withValues(alpha: 0.65),
       9,
       centerX: rect.center.dx,
+      fontWeight: FontWeight.w700,
     );
   }
 
@@ -1143,8 +1206,8 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
         _state.boneyard.isEmpty &&
         _state.turn == DominoPlayer.human;
 
-    _paintActionButton(canvas, layout.drawRect, 'Comprar', canDraw);
-    _paintActionButton(canvas, layout.passRect, 'Passar', canPass);
+    _paintActionButton(canvas, layout.drawRect, L10nScope.of.gameDominoDraw, canDraw);
+    _paintActionButton(canvas, layout.passRect, L10nScope.of.gameDominoPass, canPass);
   }
 
   void _paintActionButton(
@@ -1153,49 +1216,46 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     String label,
     bool enabled,
   ) {
-    final color = enabled ? DominoConfig.accentColor : DominoConfig.hudMuted;
+    final r = RRect.fromRectAndRadius(rect, const Radius.circular(12));
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(12)),
-      Paint()..color = color.withValues(alpha: enabled ? 0.22 : 0.1),
+      r.shift(const Offset(0, 2)),
+      Paint()..color = Colors.black.withValues(alpha: enabled ? 0.18 : 0.08),
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(12)),
+      r,
+      Paint()..color = enabled ? Colors.white : Colors.white.withValues(alpha: 0.45),
+    );
+    canvas.drawRRect(
+      r,
       Paint()
-        ..color = color.withValues(alpha: enabled ? 0.65 : 0.25)
+        ..color = DominoConfig.tileOutline.withValues(alpha: enabled ? 0.75 : 0.3)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+        ..strokeWidth = 2.5,
     );
     _paintCenteredText(
       canvas,
       label,
       rect.center.dy,
-      enabled ? DominoConfig.hudText : DominoConfig.hudMuted,
+      enabled ? DominoConfig.tileOutline : DominoConfig.hudMuted,
       13,
       centerX: rect.center.dx,
+      fontWeight: FontWeight.w800,
     );
   }
 
   void _paintTileBack(Canvas canvas, Rect rect) {
     final r = RRect.fromRectAndRadius(rect, Radius.circular(rect.width * 0.1));
     canvas.drawRRect(
-      r.shift(const Offset(0, 2)),
-      Paint()..color = Colors.black.withValues(alpha: 0.2),
+      r.shift(const Offset(0, 3)),
+      Paint()..color = Colors.black.withValues(alpha: 0.22),
     );
     canvas.drawRRect(r, Paint()..color = DominoConfig.tileBack);
     canvas.drawRRect(
       r,
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.15)
+        ..color = DominoConfig.tileOutline
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
-    final inset = rect.deflate(rect.width * 0.18);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(inset, Radius.circular(inset.width * 0.12)),
-      Paint()
-        ..color = DominoConfig.accentColor.withValues(alpha: 0.35)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+        ..strokeWidth = 2.5,
     );
   }
 
@@ -1205,6 +1265,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     DominoTile tile, {
     bool flipped = false,
     bool horizontal = false,
+    bool dimmed = false,
   }) {
     final left = flipped ? tile.right : tile.left;
     final right = flipped ? tile.left : tile.right;
@@ -1212,19 +1273,28 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     final corner = min(rect.width, rect.height) * 0.1;
     final r = RRect.fromRectAndRadius(rect, Radius.circular(corner));
     canvas.drawRRect(
-      r.shift(const Offset(0, 2)),
-      Paint()..color = Colors.black.withValues(alpha: 0.18),
+      r.shift(const Offset(0, 3)),
+      Paint()..color = Colors.black.withValues(alpha: 0.22),
     );
-    canvas.drawRRect(r, Paint()..color = DominoConfig.tileFace);
+    canvas.drawRRect(
+      r,
+      Paint()..color = dimmed ? DominoConfig.tileFaceDim : DominoConfig.tileFace,
+    );
     canvas.drawRRect(
       r,
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.85)
+        ..color = DominoConfig.tileOutline
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
+        ..strokeWidth = 2.5,
     );
 
     final inset = min(rect.width, rect.height) * 0.14;
+    final dividerPaint = Paint()
+      ..color = dimmed
+          ? DominoConfig.pipColorDim.withValues(alpha: 0.5)
+          : DominoConfig.pipColor.withValues(alpha: 0.85)
+      ..strokeWidth = 2;
+
     if (horizontal) {
       final halfW = rect.width / 2;
       final leftHalf = Rect.fromLTWH(rect.left, rect.top, halfW - 1, rect.height);
@@ -1234,13 +1304,11 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       canvas.drawLine(
         Offset(rect.center.dx, rect.top + 4),
         Offset(rect.center.dx, rect.bottom - 4),
-        Paint()
-          ..color = DominoConfig.pipColor.withValues(alpha: 0.25)
-          ..strokeWidth = 1.5,
+        dividerPaint,
       );
 
-      _paintPips(canvas, leftHalf.deflate(inset), left);
-      _paintPips(canvas, rightHalf.deflate(inset), right);
+      _paintPips(canvas, leftHalf.deflate(inset), left, dimmed: dimmed);
+      _paintPips(canvas, rightHalf.deflate(inset), right, dimmed: dimmed);
       return;
     }
 
@@ -1251,16 +1319,14 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     canvas.drawLine(
       Offset(rect.left + 4, rect.center.dy),
       Offset(rect.right - 4, rect.center.dy),
-      Paint()
-        ..color = DominoConfig.pipColor.withValues(alpha: 0.25)
-        ..strokeWidth = 1.5,
+      dividerPaint,
     );
 
-    _paintPips(canvas, topHalf.deflate(inset), left);
-    _paintPips(canvas, bottomHalf.deflate(inset), right);
+    _paintPips(canvas, topHalf.deflate(inset), left, dimmed: dimmed);
+    _paintPips(canvas, bottomHalf.deflate(inset), right, dimmed: dimmed);
   }
 
-  void _paintPips(Canvas canvas, Rect area, int value) {
+  void _paintPips(Canvas canvas, Rect area, int value, {bool dimmed = false}) {
     if (value == 0) return;
 
     const patterns = <int, List<Offset>>{
@@ -1292,7 +1358,8 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
 
     final dots = patterns[value] ?? const [];
     final radius = area.width * 0.09;
-    final paint = Paint()..color = DominoConfig.pipColor;
+    final paint = Paint()
+      ..color = dimmed ? DominoConfig.pipColorDim : DominoConfig.pipColor;
 
     for (final rel in dots) {
       final center = Offset(
@@ -1311,6 +1378,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     double fontSize, {
     double? centerX,
     FontWeight fontWeight = FontWeight.w600,
+    double letterSpacing = 0,
   }) {
     final painter = TextPainter(
       text: TextSpan(
@@ -1319,6 +1387,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
           color: color,
           fontSize: fontSize,
           fontWeight: fontWeight,
+          letterSpacing: letterSpacing,
         ),
       ),
       textDirection: TextDirection.ltr,

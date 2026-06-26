@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../game_prep.dart';
 import '../../theme/game_card_art.dart';
 import '../../theme/hub_theme.dart';
@@ -39,6 +40,8 @@ class _GameHelpSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return DraggableScrollableSheet(
       initialChildSize: 0.55,
       minChildSize: 0.35,
@@ -76,13 +79,13 @@ class _GameHelpSheet extends StatelessWidget {
               const SizedBox(height: 16),
               _Section(
                 icon: Icons.sports_esports_outlined,
-                title: 'Como jogar',
+                title: l10n.gameHelpHowToPlay,
                 body: help.howToPlay,
               ),
               const SizedBox(height: 16),
               _Section(
                 icon: Icons.emoji_events_outlined,
-                title: 'Pontuação',
+                title: l10n.gameHelpScoring,
                 body: help.scoring,
               ),
               const SizedBox(height: 24),
@@ -95,7 +98,7 @@ class _GameHelpSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text('Entendi'),
+                child: Text(l10n.dialogGotIt),
               ),
             ],
           ),

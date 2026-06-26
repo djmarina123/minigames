@@ -9,7 +9,9 @@ Grid **2 colunas**, fundo creme, header minimalista.
 | Fundo | `#F5F0E8` (`HubTheme.background`) |
 | Header | Drawer · pill nível · pill moedas · ícone remover ads |
 | Grid | 2 cols, `childAspectRatio: 0.92`, spacing 14, padding 16; favoritos no topo |
-| Nav | Bottom nav (Jogos / Ranking / Perfil) + drawer |
+| Nav | Bottom nav + drawer — labels via `AppLocalizations` |
+
+Textos user-facing: [`i18n.md`](i18n.md). Títulos no card com `localizedMetadata()`.
 
 ## Favoritos
 
@@ -26,7 +28,7 @@ Estrela no card → jogo sobe ao **topo** na ordem marcada. Demais: `GameRegistr
 2. Título CAIXA ALTA, bold, branco; vinheta ~64 px.
 3. Linha decorativa (`accentColor`, largura `hubUnderlineWidth`).
 4. Ilustração **vetorial** full-bleed (`GameCardArt` / `GameCatalogHero`) — não PNG pequeno em `contain`.
-5. Badge "NOVO!" — últimos `HubCatalogConfig.featuredNewGameCount` (3) jogos habilitados.
+5. Badge "NOVO!" — últimos `HubCatalogConfig.featuredNewGameCount` (3) jogos habilitados (`L10nScope.of.featuredBadgeNew`).
 6. Estrela favorito (`HubTheme.coinGold` quando ativo).
 7. `AnimatedScale(0.96)` no toque.
 
@@ -54,4 +56,4 @@ Estrela no card → jogo sobe ao **topo** na ordem marcada. Demais: `GameRegistr
 
 ## Arquivos principais
 
-`hub_theme.dart`, `game_card_art.dart`, `hub_header.dart`, `game_card.dart`, `daily_reward_banner.dart`, `home_screen.dart`, `leaderboard_screen.dart`, `profile_screen.dart`.
+`hub_theme.dart`, `game_card_art.dart`, `hub_header.dart`, `game_card.dart`, `daily_reward_banner.dart`, `home_screen.dart`, `leaderboard_screen.dart`, `profile_screen.dart`, `settings_panel.dart`.

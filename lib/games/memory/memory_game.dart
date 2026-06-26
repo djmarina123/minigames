@@ -11,6 +11,7 @@ import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/game_session_hud.dart';
 import '../../core/game_sdk/hub_game.dart';
+import '../../core/l10n/l10n_scope.dart';
 import 'components/memory_card.dart';
 import 'components/memory_fx.dart';
 import 'memory_config.dart';
@@ -280,7 +281,7 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
     add(
       MemoryFloatingLabel(
         position: Vector2(size.x / 2, size.y * 0.22),
-        text: 'Tente de novo',
+        text: L10nScope.of.gameMemoryTryAgain,
         color: MemoryConfig.missRed,
       ),
     );
@@ -412,11 +413,11 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
       ),
       columns: [
         GameSessionHudStat(
-          caption: 'Pares',
+          caption: L10nScope.of.hudPairs,
           value: '$_pairsFound/$pairCount',
         ),
         GameSessionHudStat(
-          caption: 'Tempo',
+          caption: L10nScope.of.hudTime,
           value: memoryFormatDuration(elapsed),
           footnote: timeBonusFootnote,
           footnoteColor: timeBonusFootnote != null
@@ -424,9 +425,9 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
               : MemoryConfig.hudMuted.withValues(alpha: 0.85),
         ),
         GameSessionHudStat(
-          caption: 'Jogadas',
+          caption: L10nScope.of.hudMoves,
           value: '$_moves',
-          footnote: '−${MemoryConfig.penaltyPerMove}/jogada',
+          footnote: L10nScope.of.hudPenaltyPerMove(MemoryConfig.penaltyPerMove),
           footnoteColor: MemoryConfig.hudMuted.withValues(alpha: 0.85),
         ),
       ],

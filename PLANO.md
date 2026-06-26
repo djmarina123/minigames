@@ -120,7 +120,7 @@ A lista de jogos vem do **Remote Config/Firestore** (não fixa no código): perm
 
 ### Acessibilidade & Qualidade
 - Modo daltônico, textos escaláveis, suporte a 1 mão.
-- **Internacionalização** — PT-BR no lançamento, EN/ES em seguida.
+- **Internacionalização** — PT / EN / ES implementados (`docs/agents/i18n.md`); novos idiomas via ARB + `AppLocales`.
 - Modo offline para jogos que não exigem rede.
 
 ---

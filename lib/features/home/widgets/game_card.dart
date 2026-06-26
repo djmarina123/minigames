@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/game_sdk/game_metadata.dart';
 import '../../../core/game_sdk/game_registry.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/game_card_art.dart';
 import '../../../core/theme/hub_theme.dart';
 
@@ -88,7 +89,9 @@ class _FavoriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
+    final label = isFavorite
+        ? AppLocalizations.of(context).favoriteRemove
+        : AppLocalizations.of(context).favoriteAdd;
 
     return Semantics(
       button: true,

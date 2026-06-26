@@ -2,9 +2,14 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minigames_hub/core/economy/performance_tier.dart';
+import 'package:minigames_hub/core/l10n/l10n_scope.dart';
 import 'package:minigames_hub/games/sudoku/sudoku_config.dart';
 
 void main() {
+  setUpAll(() async {
+    await L10nScope.installForTest();
+  });
+
   group('SudokuConfig', () {
     test('gera solução válida 9x9', () {
       final solution = sudokuGenerateSolution(Random(42));

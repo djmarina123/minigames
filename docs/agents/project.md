@@ -25,6 +25,7 @@ Roadmap e backlog: [`PLANO.md`](../../PLANO.md).
 | Jogos 2D | Flame |
 | Estado | Provider + ChangeNotifier |
 | Persistência | shared_preferences |
+| i18n | `flutter_localizations` + `intl` · ARB em `lib/l10n/` · `LocaleRepository` |
 | Backend / Ads | Firebase (Auth, Analytics, Crashlytics) · AdMob stub (`kAdsConfigured` = false). Setup Firebase: [`docs/firebase-setup.md`](../../docs/firebase-setup.md) |
 | CI | GitHub Actions — `flutter analyze` + `flutter test` |
 
@@ -37,14 +38,19 @@ lib/
 ├── core/
 │   ├── economy/                  # moedas, XP, tier, session_rewards
 │   ├── game_sdk/                 # HubGame, prep, runner, widgets
+│   ├── locale/                   # LocaleRepository, AppLocales
+│   ├── l10n/                     # HubL10n, L10nScope
 │   ├── storage/                  # PlayerRepository, favorite_games
 │   ├── leaderboard/
 │   └── theme/                    # hub_theme, game_card_art
 ├── features/                     # shell, home, leaderboard, profile
+├── l10n/                         # app_pt/en/es.arb → app_localizations.dart
 └── games/                        # memory ⭐, tap_rush ⭐, 2048, runner, solitaire, snake, domino, sudoku
 
 test/golden/, test/goldens/, test/games/, test/core/, test/helpers/
 ```
+
+Detalhes de i18n: [`i18n.md`](i18n.md).
 
 ## Dívidas técnicas
 

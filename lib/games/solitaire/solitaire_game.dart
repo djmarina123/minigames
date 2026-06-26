@@ -14,6 +14,7 @@ import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/solitaire_fx.dart';
+import '../../core/l10n/l10n_scope.dart';
 import 'solitaire_config.dart';
 
 class SolitaireGame implements HubGame {
@@ -215,7 +216,7 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     final from = drag.selection;
     final hit = _hitTestDropTarget(dropPos, layout, from);
     if (hit == null) {
-      _reject(layout, dropPos, message: 'Solte na coluna');
+      _reject(layout, dropPos, message: L10nScope.of.gameSolitaireDropOnColumn);
       _selection = null;
       return;
     }
@@ -376,8 +377,8 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
           layout.topY + layout.cardH / 2,
         ),
         text: _state.stock.isEmpty && _state.waste.isNotEmpty
-            ? 'Reciclar'
-            : 'Virar',
+            ? L10nScope.of.gameSolitaireRecycle
+            : L10nScope.of.gameSolitaireFlip,
         color: SolitaireConfig.hudMuted,
       ),
     );
@@ -413,12 +414,13 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     }
   }
 
-  void _reject(_Layout layout, Vector2 pos, {String message = 'Inválido'}) {
+  void _reject(_Layout layout, Vector2 pos, {String? message}) {
+    final msg = message ?? L10nScope.of.gameInvalidMove;
     _shakeT = 1;
     add(
       SolitaireFloatingLabel(
         position: pos.clone(),
-        text: message,
+        text: msg,
         color: SolitaireConfig.missRed,
       ),
     );
@@ -435,7 +437,7 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     add(
       SolitaireFloatingLabel(
         position: Vector2(size.x / 2, _hudHeight + 18),
-        text: 'Desfeito',
+        text: L10nScope.of.gameUndone,
         color: SolitaireConfig.hudMuted,
       ),
     );
@@ -447,7 +449,7 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       add(
         SolitaireFloatingLabel(
           position: Vector2(size.x / 2, _hudHeight + 18),
-          text: 'Sem jogadas',
+          text: L10nScope.of.gameNoMoves,
           color: SolitaireConfig.hudMuted,
         ),
       );
@@ -459,7 +461,7 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       add(
         SolitaireFloatingLabel(
           position: Vector2(size.x / 2, _hudHeight + 18),
-          text: '${EconomyConfig.hintCoinCostSolitaire} moedas',
+          text: L10nScope.of.gameHintCostCoins(EconomyConfig.hintCoinCostSolitaire),
           color: SolitaireConfig.missRed,
         ),
       );
@@ -497,7 +499,7 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       add(
         SolitaireFloatingLabel(
           position: Vector2(size.x / 2, _hudHeight + 18),
-          text: 'Nada p/ mover',
+          text: L10nScope.of.gameNothingToMove,
           color: SolitaireConfig.hudMuted,
         ),
       );
@@ -1185,19 +1187,19 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       palette,
       columns: [
         GameSessionHudStat(
-          caption: 'Pontos',
+          caption: L10nScope.of.hudPoints,
           value: '$progress',
           footnote: solitaireHudTimeBonusLabel(timeBonus),
           footnoteColor: SolitaireConfig.accentSoft,
         ),
         GameSessionHudStat(
-          caption: 'Tempo',
+          caption: L10nScope.of.hudTime,
           value: solitaireHudElapsedLabel(elapsed),
-          footnote: '${_state.moves} jogadas',
+          footnote: L10nScope.of.hudMovesCount(_state.moves),
           captionColor: SolitaireConfig.hudMuted,
         ),
         GameSessionHudStat(
-          caption: 'Fundação',
+          caption: L10nScope.of.hudFoundation,
           value: '$foundation/52',
         ),
       ],

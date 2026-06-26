@@ -11,6 +11,9 @@ import 'iap_config.dart';
 class PurchaseService extends ChangeNotifier {
   PurchaseService(this._playerRepo);
 
+  static const errorProductUnavailable = 'iap_product_unavailable';
+  static const errorPurchase = 'iap_purchase_error';
+
   final PlayerRepository _playerRepo;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   bool _available = false;
@@ -77,7 +80,7 @@ class PurchaseService extends ChangeNotifier {
     }
     final product = _removeAdsProduct;
     if (product == null) {
-      _lastError = 'Produto indisponível.';
+      _lastError = errorProductUnavailable;
       notifyListeners();
       return;
     }
@@ -93,7 +96,7 @@ class PurchaseService extends ChangeNotifier {
     }
     final product = _coinPackProduct;
     if (product == null) {
-      _lastError = 'Produto indisponível.';
+      _lastError = errorProductUnavailable;
       notifyListeners();
       return;
     }
@@ -107,7 +110,7 @@ class PurchaseService extends ChangeNotifier {
       if (purchase.status == PurchaseStatus.pending) continue;
 
       if (purchase.status == PurchaseStatus.error) {
-        _lastError = purchase.error?.message ?? 'Erro na compra.';
+        _lastError = purchase.error?.message ?? errorPurchase;
         notifyListeners();
         continue;
       }

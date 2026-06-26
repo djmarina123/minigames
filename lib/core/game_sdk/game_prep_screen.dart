@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n_extensions.dart';
 import '../theme/game_card_art.dart';
 import '../theme/hub_theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'game_prep.dart';
 import 'game_registry.dart';
 import 'game_runner_screen.dart';
@@ -44,18 +46,20 @@ class _GamePrepScreenState extends State<GamePrepScreen> {
   }
 
   void _showHelp() {
+    final l10n = AppLocalizations.of(context);
     showGameHelpDialog(
       context,
       gameId: widget.game.metadata.id,
-      gameTitle: widget.game.metadata.title,
+      gameTitle: l10n.gameTitle(widget.game.metadata.id),
       theme: HubTheme.themeFor(widget.game.metadata),
-      help: _prep.help,
+      help: l10n.gameHelp(widget.game.metadata.id),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final meta = widget.game.metadata;
+    final l10n = AppLocalizations.of(context);
+    final meta = l10n.localizedMetadata(widget.game.metadata);
     final theme = HubTheme.themeFor(meta);
 
     return Scaffold(
@@ -106,6 +110,7 @@ class _GamePrepScreenState extends State<GamePrepScreen> {
                     for (var i = 0; i < _prep.optionGroups.length; i++) ...[
                       if (i > 0) const SizedBox(height: 16),
                       _OptionGroupPanel(
+                        gameId: meta.id,
                         group: _prep.optionGroups[i],
                         cardColor: theme.cardColor,
                         accentColor: theme.accentColor,
@@ -142,7 +147,7 @@ class _GamePrepScreenState extends State<GamePrepScreen> {
                     letterSpacing: 0.8,
                   ),
                 ),
-                child: const Text('JOGAR'),
+                child: Text(l10n.gamePrepPlay),
               ),
             ),
           ],
@@ -186,6 +191,7 @@ class _HelpButton extends StatelessWidget {
 
 class _OptionGroupPanel extends StatelessWidget {
   const _OptionGroupPanel({
+    required this.gameId,
     required this.group,
     required this.cardColor,
     required this.accentColor,
@@ -193,6 +199,7 @@ class _OptionGroupPanel extends StatelessWidget {
     required this.onSelected,
   });
 
+  final String gameId;
   final GamePrepOptionGroup group;
   final Color cardColor;
   final Color accentColor;
@@ -201,6 +208,9 @@ class _OptionGroupPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final groupLabel = l10n.prepGroupLabel(gameId, group.optionKey);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -230,7 +240,7 @@ class _OptionGroupPanel extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                group.label.toUpperCase(),
+                groupLabel.toUpperCase(),
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 13,
@@ -247,6 +257,8 @@ class _OptionGroupPanel extends StatelessWidget {
                 if (i > 0) const SizedBox(width: 10),
                 Expanded(
                   child: _OptionTile(
+                    gameId: gameId,
+                    optionKey: group.optionKey,
                     choice: group.choices[i],
                     selected: group.choices[i].value == selectedValue,
                     cardColor: cardColor,
@@ -264,12 +276,16 @@ class _OptionGroupPanel extends StatelessWidget {
 
 class _OptionTile extends StatelessWidget {
   const _OptionTile({
+    required this.gameId,
+    required this.optionKey,
     required this.choice,
     required this.selected,
     required this.cardColor,
     required this.onTap,
   });
 
+  final String gameId;
+  final String optionKey;
   final GamePrepChoice choice;
   final bool selected;
   final Color cardColor;
@@ -277,6 +293,11 @@ class _OptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final label = l10n.prepChoiceLabel(gameId, optionKey, choice.value);
+    final subtitle = l10n.prepChoiceSubtitle(gameId, optionKey, choice.value) ??
+        choice.subtitle;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
@@ -318,7 +339,7 @@ class _OptionTile extends StatelessWidget {
                     ),
                   ),
                 Text(
-                  choice.label,
+                  label,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
@@ -327,10 +348,10 @@ class _OptionTile extends StatelessWidget {
                     color: selected ? Colors.white : HubTheme.textPrimary,
                   ),
                 ),
-                if (choice.subtitle != null) ...[
+                if (subtitle != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    choice.subtitle!,
+                    subtitle,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 11,

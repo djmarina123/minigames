@@ -9,7 +9,9 @@ import '../../core/game_sdk/hub_game.dart';
 import '../../core/progression/achievements_repository.dart';
 import '../../core/storage/favorite_games.dart';
 import '../../core/storage/player_repository.dart';
+import '../../core/l10n/l10n_extensions.dart';
 import '../../core/theme/hub_theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'widgets/daily_missions_banner.dart';
 import 'widgets/daily_reward_banner.dart';
 import 'widgets/game_card.dart';
@@ -27,6 +29,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final playerRepo = context.watch<PlayerRepository>();
     final games = sortGamesByFavorites(
       GameRegistry.instance.enabledInCatalogOrder,
@@ -47,7 +50,7 @@ class HomeScreen extends StatelessWidget {
             const DailyMissionsBanner(),
             Expanded(
               child: games.isEmpty
-                  ? const Center(child: Text('Nenhum jogo disponível.'))
+                  ? Center(child: Text(l10n.homeNoGames))
                   : GridView.builder(
                       padding: const EdgeInsets.all(HubTheme.gridPadding),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -60,7 +63,7 @@ class HomeScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final game = games[index];
                         return GameCard(
-                          metadata: game.metadata,
+                          metadata: l10n.localizedMetadata(game.metadata),
                           isFavorite: playerRepo.isFavorite(game.metadata.id),
                           onFavoriteToggle: () =>
                               playerRepo.toggleFavorite(game.metadata.id),
@@ -93,9 +96,12 @@ class HomeScreen extends StatelessWidget {
     final pending = repo.pendingNotifications;
     if (pending.isEmpty) return;
 
+    final l10n = AppLocalizations.of(context);
     final label = pending.length == 1
-        ? 'Conquista: ${pending.first.definition.title}'
-        : '${pending.length} conquistas desbloqueadas!';
+        ? l10n.homeAchievementUnlocked(
+            l10n.localizedAchievement(pending.first.definition).title,
+          )
+        : l10n.homeAchievementsUnlockedPlural(pending.length);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(label),

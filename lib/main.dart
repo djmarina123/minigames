@@ -8,6 +8,7 @@ import 'core/ads/ads_service.dart';
 import 'core/firebase/firebase_bootstrap.dart';
 import 'core/iap/purchase_service.dart';
 import 'core/leaderboard/leaderboard_repository.dart';
+import 'core/locale/locale_repository.dart';
 import 'core/progression/achievements_repository.dart';
 import 'core/progression/missions_repository.dart';
 import 'core/storage/player_repository.dart';
@@ -19,6 +20,8 @@ Future<void> main() async {
   registerBundledGames();
 
   final prefs = await SharedPreferences.getInstance();
+  final initialLocale = AppLocales.resolveInitial(prefs);
+  final localeRepo = LocaleRepository(prefs, initial: initialLocale);
   final playerRepo = PlayerRepository(prefs);
   await playerRepo.load();
 
@@ -39,6 +42,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider<LocaleRepository>.value(value: localeRepo),
         ChangeNotifierProvider<PlayerRepository>.value(value: playerRepo),
         ChangeNotifierProvider<LeaderboardRepository>.value(
           value: leaderboardRepo,

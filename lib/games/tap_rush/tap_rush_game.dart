@@ -13,6 +13,7 @@ import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/tap_rush_components.dart';
+import '../../core/l10n/l10n_scope.dart';
 import 'tap_rush_config.dart';
 
 /// Ponto de entrada HubGame — copie esta estrutura para novos jogos Flame.
@@ -198,13 +199,13 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
   void _onTargetMissed() {
     if (_phase != _Phase.playing) return;
 
-    _registerMiss('Errou!');
+    _registerMiss(L10nScope.of.gameTapRushMissWrong);
     _activeTarget = null;
   }
 
   void _onBackgroundMiss() {
     if (_phase != _Phase.playing) return;
-    _registerMiss('Fora!');
+    _registerMiss(L10nScope.of.gameTapRushMissOff);
   }
 
   void _registerMiss(String label) {
@@ -282,7 +283,7 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
       );
       GameSessionHud.paintText(
         canvas,
-        'Prepare-se...',
+        L10nScope.of.gameCountdownPrepare,
         Offset(size.x / 2, size.y / 2 + 50),
         18,
         TapRushConfig.hudText.withValues(alpha: 0.7),
@@ -312,7 +313,7 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
     if (_combo > 1) {
       GameSessionHud.paintText(
         canvas,
-        'COMBO x$_combo',
+        L10nScope.of.gameTapRushCombo(_combo),
         Offset(size.x / 2, 36),
         20,
         TapRushConfig.comboGold,

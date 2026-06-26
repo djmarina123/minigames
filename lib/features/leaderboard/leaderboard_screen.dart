@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../../core/game_sdk/game_metadata.dart';
 import '../../core/game_sdk/game_registry.dart';
+import '../../core/l10n/l10n_extensions.dart';
 import '../../core/leaderboard/leaderboard_repository.dart';
 import '../../core/models/leaderboard_entry.dart';
 import '../../core/theme/game_card_art.dart';
 import '../../core/theme/hub_theme.dart';
+import '../../l10n/app_localizations.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key, this.isActive = false});
@@ -90,13 +92,15 @@ class _LeaderboardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'RANKING',
+            l10n.leaderboardTitle,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.5,
@@ -105,7 +109,7 @@ class _LeaderboardHeader extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Seu melhor score em cada jogo',
+            l10n.leaderboardSubtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: HubTheme.textSecondary,
                   fontWeight: FontWeight.w500,
@@ -127,20 +131,22 @@ class _EmptyRanking extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
       child: Column(
         children: [
-          const GameCatalogThumbnail(
+          GameCatalogThumbnail(
             gameId: 'tap_rush',
             theme: _emptyTheme,
-            title: 'Tap Rush',
+            title: l10n.gameTapRushTitle,
             size: 80,
             showTitle: true,
           ),
           const SizedBox(height: 20),
           Text(
-            'Nenhum score ainda',
+            l10n.leaderboardEmptyTitle,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
@@ -149,7 +155,7 @@ class _EmptyRanking extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Complete uma partida para aparecer aqui com seu melhor resultado.',
+            l10n.leaderboardEmptyBody,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: HubTheme.textSecondary,
@@ -169,18 +175,19 @@ class _RankingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final meta = GameRegistry.instance.findById(entry.gameId)?.metadata;
-    final theme = HubTheme.themeFor(
-      meta ??
-          GameMetadata(
+    final l10n = AppLocalizations.of(context);
+    final rawMeta = GameRegistry.instance.findById(entry.gameId)?.metadata;
+    final meta = rawMeta != null
+        ? l10n.localizedMetadata(rawMeta)
+        : GameMetadata(
             id: entry.gameId,
-            title: entry.gameTitle,
+            title: l10n.gameTitle(entry.gameId),
             description: '',
             category: '',
-          ),
-    );
-    final gameId = meta?.id ?? entry.gameId;
-    final titleLead = hubTitleLead(entry.gameTitle);
+          );
+    final theme = HubTheme.themeFor(meta);
+    final gameId = meta.id;
+    final titleLead = hubTitleLead(meta.title);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -203,7 +210,7 @@ class _RankingCard extends StatelessWidget {
             GameCatalogThumbnail(
               gameId: gameId,
               theme: theme,
-              title: entry.gameTitle,
+              title: meta.title,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -211,7 +218,7 @@ class _RankingCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    hubDisplayTitle(entry.gameTitle),
+                    hubDisplayTitle(meta.title),
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
@@ -243,7 +250,7 @@ class _RankingCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'PONTOS',
+                  l10n.leaderboardPoints,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.75),
                     fontWeight: FontWeight.w700,

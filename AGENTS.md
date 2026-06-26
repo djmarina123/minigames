@@ -15,6 +15,7 @@
 | **Novo jogo Flame** ou polish in-game | [`docs/agents/games-flame.md`](docs/agents/games-flame.md) |
 | Catálogo, cards, tema, favoritos | [`docs/agents/hub-ui.md`](docs/agents/hub-ui.md) |
 | HubGame, prep, callbacks, economia, ranking | [`docs/agents/game-sdk.md`](docs/agents/game-sdk.md) |
+| **Textos / idiomas (i18n)** | [`docs/agents/i18n.md`](docs/agents/i18n.md) |
 | Testes e goldens | [`docs/agents/testing.md`](docs/agents/testing.md) |
 
 ---
@@ -31,6 +32,7 @@ Copiar estrutura de **Tap Rush** + **Memória**. Checklist completo em [`games-f
 
 ### Princípios críticos
 
+- **UI user-facing → i18n** — sem strings fixas; ver [`i18n.md`](docs/agents/i18n.md).
 - Score (ranking) ≠ moedas/XP (`core/economy/`).
 - Label flutuante = delta real do placar.
 - UI visível: `GameCatalogHero`/`Thumbnail` — não emoji.

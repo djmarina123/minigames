@@ -3,8 +3,10 @@
 ## Geral
 
 - `GameRegistry.instance.resetForTesting()` em `setUp`/`tearDown`.
-- `test/helpers/test_app.dart` — providers + `registerBundledGames()`.
+- `test/helpers/test_app.dart` — providers + `registerBundledGames()` + `LocaleRepository` (`app_locale: 'pt'`).
 - Rodar `flutter analyze && flutter test` antes de encerrar tarefa.
+
+i18n em testes: [`i18n.md`](i18n.md) (`L10nScope.installForTest`, delegates no `MaterialApp`).
 
 ## Por área
 

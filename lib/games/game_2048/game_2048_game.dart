@@ -13,6 +13,7 @@ import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/game_2048_fx.dart';
+import '../../core/l10n/l10n_scope.dart';
 import 'game_2048_config.dart';
 
 class Game2048Game implements HubGame {
@@ -261,7 +262,7 @@ class Game2048FlameGame extends FlameGame with DragCallbacks, KeyboardEvents {
       add(
         Game2048FloatingLabel(
           position: Vector2(size.x / 2, size.y * 0.28),
-          text: 'Peça $targetTile!',
+          text: L10nScope.of.game2048TileReached(targetTile),
           color: Game2048Config.accentColor,
         ),
       );
@@ -615,16 +616,16 @@ class Game2048FlameGame extends FlameGame with DragCallbacks, KeyboardEvents {
       ),
       columns: [
         GameSessionHudStat(
-          caption: 'Jogadas',
+          caption: L10nScope.of.hudMoves,
           value: '$_moves',
         ),
         GameSessionHudStat(
-          caption: 'Objetivo',
+          caption: L10nScope.of.hudObjective,
           value: '$targetTile',
           valueColor: Game2048Config.accentColor,
         ),
         GameSessionHudStat(
-          caption: 'Máx.',
+          caption: L10nScope.of.hudMax,
           value: '$_highestTile',
           footnote: footnote,
           footnoteColor: bonusPreview > 0

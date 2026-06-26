@@ -39,8 +39,8 @@ Todo jogo novo deve atingir o polish de **Tap Rush** (gameplay) + **Memória** (
 
 12. Tabuleiro **depois** da faixa HUD — nunca sobrepor stats ao grid.
 13. Mostrar ao vivo o que afeta score (tempo, jogadas, combo, progresso).
-14. Preview de bônus decrescente (valor ou barra).
-15. Pintar em `render()` com `TextPainter`; cores no config.
+14. Preview de bônus decrescente (valor ou barra) — strings via `L10nScope.of` (`hudTimeBonus`, etc.).
+15. Pintar em `render()` com `TextPainter`; cores no config; **legendas do HUD traduzidas** (não literal PT).
 16. Layout seguro em **390 px**: esquerda = `pos.dx`, direita = `pos.dx - width`, centro = `pos.dx - width/2`; margem 16 px; textos curtos.
 
 ### Feedback
@@ -66,10 +66,10 @@ Todo jogo novo deve atingir o polish de **Tap Rush** (gameplay) + **Memória** (
 
 ### Prep e testes
 
-25. `GamePrepDefinition` + `GameHelpContent` PT-BR quando aplicável.
+25. `GamePrepDefinition` + `GameHelpContent` — textos em ARB + `HubL10n` (ver [`i18n.md`](i18n.md)); prep localiza labels na tela.
 26. Scoring puro em config; `*PerformanceTier()` via `tierFromRatio()`.
-27. Testes em `test/games/`.
-28. `GameSessionAppBar` / `GameResultDialog` com `GameCatalogThumbnail`.
+27. Testes em `test/games/`; helpers de HUD com texto → `L10nScope.installForTest()` no `setUpAll`.
+28. `GameSessionAppBar` / `GameResultDialog` com `GameCatalogThumbnail` + `localizedMetadata()`.
 29. `metadata['won']` só em jogos com vitória/derrota (Dominó, Paciência, Sudoku, Cobra).
 30. Dicas pagas: `GameSessionHudAction(coinCost: …)` + `EconomyConfig`.
 
@@ -85,7 +85,8 @@ Todo jogo novo deve atingir o polish de **Tap Rush** (gameplay) + **Memória** (
 
 1. `registerBundledGames()` + `HubTheme._themes` + arte em `game_card_art.dart`.
 2. Espelhar cores em `*_config.dart`.
-3. Cumprir checklist acima + [`game-sdk.md`](game-sdk.md) (callbacks, tier).
-4. `test/games/<jogo>_config_test.dart`.
+3. Chaves ARB + mapeamento em `HubL10n` ([`i18n.md`](i18n.md)).
+4. Cumprir checklist acima + [`game-sdk.md`](game-sdk.md) (callbacks, tier).
+5. `test/games/<jogo>_config_test.dart`.
 
 Regras de pontuação detalhadas ficam em `*_config.dart` e no modal **?** da prep — não duplicar no ranking.
