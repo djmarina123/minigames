@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/game_card_art.dart';
 import '../theme/hub_theme.dart';
 import 'game_prep.dart';
+import 'game_registry.dart';
 import 'game_runner_screen.dart';
 import 'game_session_config.dart';
 import 'hub_game.dart';
@@ -88,7 +89,8 @@ class _GamePrepScreenState extends State<GamePrepScreen> {
                       title: meta.title,
                       theme: theme,
                       height: 210,
-                      showFeaturedBadge: meta.featured,
+                      showFeaturedBadge:
+                          GameRegistry.instance.isFeatured(meta.id),
                     ),
                     const SizedBox(height: 10),
                     Text(

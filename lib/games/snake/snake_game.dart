@@ -23,7 +23,6 @@ class SnakeGame implements HubGame {
         description: 'Deslize para guiar a cobra — não bata nas paredes!',
         category: 'Arcade',
         icon: '🐍',
-        featured: true,
       );
 
   @override

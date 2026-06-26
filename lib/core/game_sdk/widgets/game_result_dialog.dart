@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../game_metadata.dart';
+import '../game_registry.dart';
 import '../game_result.dart';
 import '../../theme/game_card_art.dart';
 import '../../economy/economy_copy.dart';
@@ -340,7 +341,8 @@ class _ResultHeader extends StatelessWidget {
                   title: metadata.title,
                   size: 52,
                   showTitle: false,
-                  showFeaturedBadge: metadata.featured,
+                  showFeaturedBadge:
+                      GameRegistry.instance.isFeatured(metadata.id),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

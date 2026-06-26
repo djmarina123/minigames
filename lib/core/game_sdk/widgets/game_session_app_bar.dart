@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../game_metadata.dart';
+import '../game_registry.dart';
 import '../../theme/game_card_art.dart';
 import '../../theme/game_ui.dart';
 import '../../theme/hub_theme.dart';
@@ -40,7 +41,7 @@ class GameSessionAppBar extends StatelessWidget implements PreferredSizeWidget {
             title: metadata.title,
             size: 44,
             showTitle: true,
-            showFeaturedBadge: metadata.featured,
+            showFeaturedBadge: GameRegistry.instance.isFeatured(metadata.id),
           ),
           const SizedBox(width: 10),
           Flexible(

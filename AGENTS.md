@@ -98,9 +98,11 @@ lib/
 │   │   ├── game_prep_screen.dart
 │   │   ├── game_session_config.dart
 │   │   ├── game_session_hud_actions.dart  # barra de botões (dica paga, undo…)
+│   │   ├── hub_catalog_config.dart        # badge "NOVO!" (featuredNewGameCount)
 │   │   └── widgets/          # GameSessionAppBar, GameResultDialog, game_help_dialog
 │   ├── models/               # PlayerProfile, LeaderboardEntry
 │   ├── storage/              # PlayerRepository (shared_preferences)
+│   │   └── favorite_games.dart           # sortGamesByFavorites (Home)
 │   ├── leaderboard/          # LeaderboardRepository (ChangeNotifier)
 │   └── theme/                # app_theme, game_ui, hub_theme, game_card_art
 ├── features/
@@ -323,8 +325,23 @@ Referência: apps de minijogos casuais com **grid colorido 2 colunas**, fundo cr
 |---|---|
 | **Fundo** | Creme `#F5F0E8` (`HubTheme.background`) |
 | **Header** | Menu (drawer) · pill de **nível** (anel de progresso, toque → Perfil) · pill de **moedas** · ícone remover ads |
-| **Grid** | 2 colunas, `childAspectRatio: 0.92`, spacing 14px, padding 16px |
+| **Grid** | 2 colunas, `childAspectRatio: 0.92`, spacing 14px, padding 16px; favoritos no topo (ver abaixo) |
 | **Nav secundária** | Bottom nav (Jogos / Ranking / Perfil) + drawer pelo menu |
+
+### Favoritos (Home)
+
+Jogador marca jogos com estrela no card; favoritos sobem para o **topo do grid**, na ordem em que foram marcados. Demais jogos mantêm a ordem do catálogo (`GameRegistry.enabledInCatalogOrder`).
+
+| Peça | Arquivo / API |
+|---|---|
+| Persistência | `PlayerProfile.favoriteGameIds` (JSON em `shared_preferences`) |
+| Toggle | `PlayerRepository.isFavorite` / `toggleFavorite` |
+| Ordenação | `sortGamesByFavorites(games, favoriteIds)` em `core/storage/favorite_games.dart` |
+| UI | `GameCard` — estrela canto inferior direito; toque na estrela **não** abre o jogo |
+
+**Independente da badge "NOVO!":** favorito só reordena o grid; `GameRegistry.isFeatured(id)` continua pela ordem de `registerBundledGames()`, não pela posição na tela.
+
+Testes: `test/core/favorite_games_test.dart`, widget `favorito sobe para o topo do grid` em `test/widget_test.dart`.
 
 ### Card de jogo (`GameCard`)
 
@@ -334,9 +351,10 @@ Todo jogo no catálogo **deve** seguir:
 2. **Título** — canto superior esquerdo, **CAIXA ALTA**, bold, branco; vinheta leve no topo (~64px).
 3. **Linha decorativa** — barra curta colorida abaixo do título (cor `accentColor`, largura proporcional à 1ª palavra).
 4. **Ilustração** — vetorial em `core/theme/game_card_art.dart` (`CustomPaint` + `GameCatalogHero`), **full-bleed** no card (Stack `fit: expand`). Arte centralizada com bolhas decorativas no fundo — **não** colocar PNG pequeno em `BoxFit.contain` (fica “caixa colada” com espaço vazio).
-5. **Badge "NOVO!"** — `HubTheme.featuredBadge`, canto superior direito, só se `metadata.featured == true`.
-6. **Feedback** — `AnimatedScale(0.96)` no toque; card inteiro é clicável.
-7. **Cores por jogo** — registrar em `HubTheme._themes` em `core/theme/hub_theme.dart` (não hardcodar no card).
+5. **Badge "NOVO!"** — `HubTheme.featuredBadge`, canto superior direito; automático via `GameRegistry.isFeatured()` — últimos `HubCatalogConfig.featuredNewGameCount` (3) jogos **habilitados** na ordem de `registerBundledGames()` (novo jogo sempre no **final** da lista). Ordem base do catálogo: `GameRegistry.enabledInCatalogOrder`.
+6. **Favorito** — estrela (`HubTheme.coinGold` quando ativo) canto inferior direito; `PlayerRepository.toggleFavorite`.
+7. **Feedback** — `AnimatedScale(0.96)` no toque; card inteiro é clicável.
+8. **Cores por jogo** — registrar em `HubTheme._themes` em `core/theme/hub_theme.dart` (não hardcodar no card).
 
 **Ilustração — o que NÃO fazer (aprendizado):**
 
@@ -396,6 +414,8 @@ Ao adicionar jogo: implementar painter em `GameCardArt`; catálogo, prep, rankin
 
 ```
 lib/core/economy/
+lib/core/game_sdk/hub_catalog_config.dart
+lib/core/storage/favorite_games.dart
 lib/core/theme/game_card_art.dart
 lib/core/theme/hub_theme.dart
 lib/features/home/widgets/hub_header.dart

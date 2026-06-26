@@ -44,6 +44,25 @@ void main() {
     expect(find.text('2048'), findsOneWidget);
   });
 
+  testWidgets('favorito sobe para o topo do grid', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await playerRepo.toggleFavorite('infinite_runner');
+
+    await tester.pumpWidget(
+      buildTestApp(
+        playerRepo: playerRepo,
+        leaderboardRepo: leaderboardRepo,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final runnerPos = tester.getTopLeft(find.text('CORRIDA INFINITA'));
+    final memoryPos = tester.getTopLeft(find.text('JOGO DA MEMÓRIA'));
+    expect(runnerPos.dx, lessThan(memoryPos.dx));
+  });
+
   testWidgets('navega para aba Perfil', (tester) async {
     await tester.pumpWidget(
       buildTestApp(

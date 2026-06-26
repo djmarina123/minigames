@@ -26,7 +26,6 @@ class InfiniteRunnerGame implements HubGame {
         description: 'Pule e agache para desviar dos obstáculos!',
         category: 'Arcade',
         icon: '🏃',
-        featured: true,
       );
 
   @override

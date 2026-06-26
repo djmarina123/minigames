@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/ads/ads_service.dart';
 import '../../core/game_sdk/game_prep_screen.dart';
 import '../../core/game_sdk/game_runner_screen.dart';
 import '../../core/game_sdk/game_registry.dart';
 import '../../core/game_sdk/hub_game.dart';
+import '../../core/storage/favorite_games.dart';
+import '../../core/storage/player_repository.dart';
 import '../../core/theme/hub_theme.dart';
 import 'widgets/daily_reward_banner.dart';
 import 'widgets/game_card.dart';
@@ -22,7 +25,11 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final games = GameRegistry.instance.enabled;
+    final playerRepo = context.watch<PlayerRepository>();
+    final games = sortGamesByFavorites(
+      GameRegistry.instance.enabledInCatalogOrder,
+      playerRepo.profile.favoriteGameIds,
+    );
 
     return ColoredBox(
       color: HubTheme.background,
@@ -51,6 +58,9 @@ class HomeScreen extends StatelessWidget {
                         final game = games[index];
                         return GameCard(
                           metadata: game.metadata,
+                          isFavorite: playerRepo.isFavorite(game.metadata.id),
+                          onFavoriteToggle: () =>
+                              playerRepo.toggleFavorite(game.metadata.id),
                           onTap: () => _openGame(context, game),
                         );
                       },

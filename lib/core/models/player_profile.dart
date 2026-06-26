@@ -10,6 +10,7 @@ class PlayerProfile {
     this.dailyStreak = 0,
     this.gamesPlayed = 0,
     this.lastGamePlayed,
+    this.favoriteGameIds = const [],
   });
 
   final int coins;
@@ -18,6 +19,9 @@ class PlayerProfile {
   final int dailyStreak;
   final int gamesPlayed;
   final DateTime? lastGamePlayed;
+
+  /// IDs de jogos favoritos — ordem define posição no topo do catálogo.
+  final List<String> favoriteGameIds;
 
   int get level => levelFromXp(xp);
 
@@ -34,6 +38,7 @@ class PlayerProfile {
     int? dailyStreak,
     int? gamesPlayed,
     DateTime? lastGamePlayed,
+    List<String>? favoriteGameIds,
     bool clearLastDailyClaim = false,
     bool clearLastGamePlayed = false,
   }) {
@@ -47,6 +52,7 @@ class PlayerProfile {
       lastGamePlayed: clearLastGamePlayed
           ? null
           : (lastGamePlayed ?? this.lastGamePlayed),
+      favoriteGameIds: favoriteGameIds ?? this.favoriteGameIds,
     );
   }
 
@@ -57,11 +63,16 @@ class PlayerProfile {
         'dailyStreak': dailyStreak,
         'gamesPlayed': gamesPlayed,
         'lastGamePlayed': lastGamePlayed?.toIso8601String(),
+        'favoriteGameIds': favoriteGameIds,
       };
 
   factory PlayerProfile.fromJson(Map<String, Object?> json) {
     final claim = json['lastDailyClaim'] as String?;
     final lastGame = json['lastGamePlayed'] as String?;
+    final rawFavorites = json['favoriteGameIds'];
+    final favorites = rawFavorites is List
+        ? rawFavorites.whereType<String>().toList(growable: false)
+        : const <String>[];
     return PlayerProfile(
       coins: json['coins'] as int? ?? EconomyConfig.startingCoins,
       xp: json['xp'] as int? ?? 0,
@@ -69,6 +80,7 @@ class PlayerProfile {
       dailyStreak: json['dailyStreak'] as int? ?? 0,
       gamesPlayed: json['gamesPlayed'] as int? ?? 0,
       lastGamePlayed: lastGame != null ? DateTime.tryParse(lastGame) : null,
+      favoriteGameIds: favorites,
     );
   }
 }

@@ -22,7 +22,6 @@ class DominoGame implements HubGame {
         description: 'Jogue peças contra a CPU e esvazie sua mão.',
         category: 'Cartas',
         icon: '🁫',
-        featured: true,
       );
 
   @override

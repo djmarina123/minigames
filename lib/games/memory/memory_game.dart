@@ -24,7 +24,6 @@ class MemoryGame implements HubGame {
         description: 'Encontre todos os pares de ícones.',
         category: 'Puzzle',
         icon: '🧠',
-        featured: false,
       );
 
   @override

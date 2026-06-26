@@ -41,9 +41,32 @@ void main() {
       expect(enabled.every((g) => g.metadata.enabled), isTrue);
     });
 
-    test('lista jogos em destaque', () {
+    test('enabledInCatalogOrder segue ordem de registro', () {
+      expect(
+        GameRegistry.instance.enabledInCatalogOrder
+            .map((g) => g.metadata.id)
+            .toList(),
+        ['demo_tap', 'memory', 'tap_rush'],
+      );
+    });
+
+    test('lista jogos em destaque pelos últimos registrados', () {
       final featured = GameRegistry.instance.featured;
-      expect(featured.any((g) => g.metadata.id == 'demo_tap'), isTrue);
+      expect(
+        featured.map((g) => g.metadata.id).toList(),
+        ['tap_rush', 'memory', 'demo_tap'],
+      );
+    });
+
+    test('registerBundledGames destaca os 3 jogos mais recentes', () {
+      GameRegistry.instance.resetForTesting();
+      registerBundledGames();
+
+      expect(GameRegistry.instance.isFeatured('sudoku'), isTrue);
+      expect(GameRegistry.instance.isFeatured('domino'), isTrue);
+      expect(GameRegistry.instance.isFeatured('snake'), isTrue);
+      expect(GameRegistry.instance.isFeatured('memory'), isFalse);
+      expect(GameRegistry.instance.isFeatured('tap_rush'), isFalse);
     });
 
     test('registerBundledGames registra jogos do hub', () {

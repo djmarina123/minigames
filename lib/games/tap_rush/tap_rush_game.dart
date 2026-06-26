@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,6 @@ class TapRushGame implements HubGame {
         description: 'Acerte alvos em sequência — combo aumenta a pontuação!',
         category: 'Arcade',
         icon: '🎯',
-        featured: true,
       );
 
   @override
@@ -31,7 +31,8 @@ class TapRushGame implements HubGame {
         help: const GameHelpContent(
           howToPlay:
               'Toque nos alvos antes que desapareçam. Acertos seguidos formam '
-              'combo e valem mais pontos. Errar ou deixar o alvo sumir zera o combo.',
+              'combo e valem mais pontos. Errar, tocar fora ou deixar o alvo '
+              'sumir zera o combo.',
           scoring:
               'Cada acerto vale 10 pts × combo (até ×5). Quanto mais tempo '
               'passa, os alvos ficam menores e somem mais rápido.',
@@ -93,6 +94,7 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
   double _missFlash = 0;
 
   bool _sessionStarted = false;
+  _TapMissLayer? _tapMissLayer;
   RushTarget? _activeTarget;
 
   double get _progress => tapRushProgress(_elapsed, durationSec);
@@ -108,7 +110,13 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    if (_sessionStarted || size.x <= 0) return;
+    if (size.x <= 0) return;
+    _tapMissLayer ??= _TapMissLayer(onMiss: _onBackgroundMiss);
+    _tapMissLayer!.size = size.clone();
+    if (_tapMissLayer!.parent == null) {
+      add(_tapMissLayer!);
+    }
+    if (_sessionStarted) return;
     _sessionStarted = true;
   }
 
@@ -190,6 +198,16 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
   void _onTargetMissed() {
     if (_phase != _Phase.playing) return;
 
+    _registerMiss('Errou!');
+    _activeTarget = null;
+  }
+
+  void _onBackgroundMiss() {
+    if (_phase != _Phase.playing) return;
+    _registerMiss('Fora!');
+  }
+
+  void _registerMiss(String label) {
     _misses++;
     _combo = 0;
     _missFlash = 1;
@@ -197,11 +215,10 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
     add(
       FloatingLabel(
         position: Vector2(size.x / 2, size.y * 0.35),
-        text: 'Errou!',
+        text: label,
         color: TapRushConfig.missRed,
       ),
     );
-    _activeTarget = null;
   }
 
   void _finish() {
@@ -311,5 +328,22 @@ class TapRushFlameGame extends FlameGame with TapCallbacks {
       TapRushConfig.hudText,
       align: GameSessionHudAlign.right,
     );
+  }
+}
+
+/// Captura toques fora do alvo ativo — zera combo.
+class _TapMissLayer extends PositionComponent with TapCallbacks {
+  _TapMissLayer({required this.onMiss})
+      : super(
+          position: Vector2.zero(),
+          anchor: Anchor.topLeft,
+          priority: -10,
+        );
+
+  final VoidCallback onMiss;
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    onMiss();
   }
 }

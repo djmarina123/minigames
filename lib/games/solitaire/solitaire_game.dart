@@ -24,7 +24,6 @@ class SolitaireGame implements HubGame {
         description: 'Organize as cartas nas fundações do Ás ao Rei.',
         category: 'Cartas',
         icon: '🃏',
-        featured: false,
       );
 
   @override

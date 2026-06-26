@@ -152,6 +152,18 @@ class PlayerRepository extends ChangeNotifier {
     return true;
   }
 
+  bool isFavorite(String gameId) =>
+      _profile.favoriteGameIds.contains(gameId);
+
+  Future<void> toggleFavorite(String gameId) async {
+    final current = _profile.favoriteGameIds;
+    final updated = current.contains(gameId)
+        ? current.where((id) => id != gameId).toList(growable: false)
+        : [...current, gameId];
+    _profile = _profile.copyWith(favoriteGameIds: updated);
+    await _save();
+  }
+
   static bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 

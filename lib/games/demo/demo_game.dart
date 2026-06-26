@@ -18,7 +18,6 @@ class DemoGame implements HubGame {
         description: 'Toque o botão o máximo que puder em 10 segundos.',
         category: 'Arcade',
         icon: '👆',
-        featured: true,
       );
 
   @override

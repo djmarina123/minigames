@@ -23,7 +23,6 @@ class Game2048Game implements HubGame {
         description: 'Deslize e combine peças até criar a peça-alvo!',
         category: 'Puzzle',
         icon: '🔢',
-        featured: true,
       );
 
   @override

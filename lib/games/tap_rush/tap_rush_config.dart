@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import '../../core/economy/performance_tier.dart';
@@ -11,12 +12,15 @@ abstract final class TapRushConfig {
 
   static const durationChoicesSec = [15, 30, 60];
 
-  static const baseTargetRadius = 44.0;
-  static const minTargetRadius = 26.0;
+  static const baseTargetRadius = 36.0;
+  static const minTargetRadius = 17.0;
 
   /// Tempo máximo (ms) antes do alvo sumir — diminui com a partida.
-  static const maxTargetLifetimeMs = 1400.0;
-  static const minTargetLifetimeMs = 650.0;
+  static const maxTargetLifetimeMs = 1000.0;
+  static const minTargetLifetimeMs = 400.0;
+
+  /// Tolerância extra (px) além do círculo visível para registrar acerto.
+  static const hitGracePx = 5.0;
 
   static const maxComboMultiplier = 5;
   static const basePointsPerHit = 10;
@@ -43,17 +47,25 @@ int tapRushPointsForHit(int combo) {
 double tapRushProgress(double elapsedSec, int durationSec) =>
     (elapsedSec / durationSec).clamp(0.0, 1.0);
 
-double tapRushTargetRadius(double progress) =>
-    TapRushConfig.baseTargetRadius -
-    (TapRushConfig.baseTargetRadius - TapRushConfig.minTargetRadius) * progress;
+/// Curva de dificuldade — acelera no meio/final da partida.
+double tapRushDifficultyProgress(double progress) =>
+    pow(progress.clamp(0.0, 1.0), 1.45).toDouble();
 
-double tapRushTargetLifetimeMs(double progress) =>
-    TapRushConfig.maxTargetLifetimeMs -
-    (TapRushConfig.maxTargetLifetimeMs - TapRushConfig.minTargetLifetimeMs) *
-        progress;
+double tapRushTargetRadius(double progress) {
+  final t = tapRushDifficultyProgress(progress);
+  return TapRushConfig.baseTargetRadius -
+      (TapRushConfig.baseTargetRadius - TapRushConfig.minTargetRadius) * t;
+}
 
-/// Score considerado "partida excelente" (desempenho `1.0`).
-const tapRushGoldScore = 470;
+double tapRushTargetLifetimeMs(double progress) {
+  final t = tapRushDifficultyProgress(progress);
+  return TapRushConfig.maxTargetLifetimeMs -
+      (TapRushConfig.maxTargetLifetimeMs - TapRushConfig.minTargetLifetimeMs) *
+          t;
+}
+
+/// Score considerado "partida excelente" (desempenho `1.0`) — recalibrado pós-dificuldade.
+const tapRushGoldScore = 420;
 
 /// Desempenho normalizado (`0.0`–`1.0`) pela pontuação obtida.
 double tapRushPerformanceRatio(int score) =>

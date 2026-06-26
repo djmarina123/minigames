@@ -24,7 +24,6 @@ class SudokuGame implements HubGame {
         description: 'Preencha o grid 9×9 sem repetir números.',
         category: 'Puzzle',
         icon: '🧩',
-        featured: true,
       );
 
   @override

@@ -7,7 +7,6 @@ class GameMetadata {
     required this.category,
     this.icon = '🎮',
     this.enabled = true,
-    this.featured = false,
   });
 
   final String id;
@@ -16,5 +15,4 @@ class GameMetadata {
   final String category;
   final String icon;
   final bool enabled;
-  final bool featured;
 }
