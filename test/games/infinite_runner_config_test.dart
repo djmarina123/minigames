@@ -38,6 +38,25 @@ void main() {
       );
     });
 
+    test('delta ao passar obstáculo inclui tempo acumulado desde último placar', () {
+      expect(
+        infiniteRunnerObstaclePassDelta(
+          previousReportedScore: 100,
+          elapsedSec: 11,
+          obstaclesClearedAfter: 1,
+        ),
+        40,
+      );
+      expect(
+        infiniteRunnerObstaclePassDelta(
+          previousReportedScore: 50,
+          elapsedSec: 5,
+          obstaclesClearedAfter: 1,
+        ),
+        30,
+      );
+    });
+
     test('intervalo de spawn diminui com progresso', () {
       expect(
         infiniteRunnerSpawnGapSec(0),

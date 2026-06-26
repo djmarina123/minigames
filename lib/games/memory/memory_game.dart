@@ -9,6 +9,7 @@ import '../../core/game_sdk/game_prep.dart';
 import '../../core/game_sdk/game_result.dart';
 import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
+import '../../core/game_sdk/game_session_hud.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/memory_card.dart';
 import 'components/memory_fx.dart';
@@ -87,6 +88,8 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
 
   int _pairsFound = 0;
   int _moves = 0;
+  int _displayScore = 0;
+  double _elapsedSec = 0;
   MemoryCard? _firstPick;
   MemoryCard? _secondPick;
   bool _lockInput = false;
@@ -94,12 +97,15 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
 
   bool _gridBuilt = false;
 
+  static const _hudHeight = GameSessionHud.reservedHeight;
+
   @override
   Color backgroundColor() => MemoryConfig.bgBottom;
 
   @override
   Future<void> onLoad() async {
     _startedAt = DateTime.now();
+    callbacks.onScoreUpdate(0);
   }
 
   @override
@@ -111,6 +117,9 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   @override
   void update(double dt) {
     super.update(dt);
+    if (!_finished) {
+      _elapsedSec += dt;
+    }
     if (_missFlash > 0) {
       _missFlash = (_missFlash - dt * 3).clamp(0.0, 1.0);
     }
@@ -132,14 +141,15 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
     const minCard = 52.0;
     const gridPadding = 20.0;
     final gridW = size.x - gridPadding * 2;
-    final gridH = size.y - gridPadding * 2;
+    final gridH = size.y - gridPadding * 2 - _hudHeight;
     final cardW = (gridW - (cols - 1) * gap) / cols;
     final cardH = (gridH - (rows - 1) * gap) / rows;
     final cardSize = max(minCard, min(cardW, cardH));
     final totalW = cols * cardSize + (cols - 1) * gap;
     final totalH = rows * cardSize + (rows - 1) * gap;
     final offsetX = (size.x - totalW) / 2;
-    final offsetY = (size.y - totalH) / 2;
+    final offsetY =
+        _hudHeight + (size.y - _hudHeight - totalH) / 2;
 
     for (var i = 0; i < deck.length; i++) {
       final col = i % cols;
@@ -191,13 +201,42 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
     }
   }
 
+  void _syncProgressScore() {
+    final newScore = memoryProgressScore(
+      pairsFound: _pairsFound,
+      moves: _moves,
+    );
+    _displayScore = newScore;
+    if (_sessionActive && !_finished) {
+      callbacks.onScoreUpdate(newScore);
+    }
+  }
+
+  String _floatingScoreLabel(int delta, {required bool matched}) {
+    if (delta != 0) {
+      return delta > 0 ? '+$delta' : '$delta';
+    }
+    if (!matched) {
+      return '-${MemoryConfig.penaltyPerMove}';
+    }
+    return '+0';
+  }
+
   Future<void> _handleMatch() async {
     final a = _firstPick!;
     final b = _secondPick!;
+    final previousScore = _displayScore;
 
     a.markMatched();
     b.markMatched();
     _pairsFound++;
+
+    final delta = memoryProgressScoreDelta(
+      previousScore: previousScore,
+      pairsFound: _pairsFound,
+      moves: _moves,
+    );
+    _syncProgressScore();
 
     final mid = Vector2(
       (a.absoluteCenter.x + b.absoluteCenter.x) / 2,
@@ -207,16 +246,10 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
     add(
       MemoryFloatingLabel(
         position: mid.clone()..y -= 24,
-        text: '+${MemoryConfig.pointsPerPair}',
+        text: _floatingScoreLabel(delta, matched: true),
         color: MemoryConfig.matchGlow,
       ),
     );
-
-    if (_sessionActive && !_finished) {
-      callbacks.onScoreUpdate(
-        memoryProgressScore(pairsFound: _pairsFound, moves: _moves),
-      );
-    }
 
     await Future<void>.delayed(
       Duration(milliseconds: (MemoryConfig.matchSettleSec * 1000).round()),
@@ -232,10 +265,18 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   Future<void> _handleMismatch() async {
     final a = _firstPick!;
     final b = _secondPick!;
+    final previousScore = _displayScore;
 
     a.shake();
     b.shake();
     _missFlash = 1;
+
+    final delta = memoryProgressScoreDelta(
+      previousScore: previousScore,
+      pairsFound: _pairsFound,
+      moves: _moves,
+    );
+    _syncProgressScore();
 
     add(
       MemoryFloatingLabel(
@@ -244,6 +285,15 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
         color: MemoryConfig.missRed,
       ),
     );
+    if (delta != 0 || _pairsFound == 0) {
+      add(
+        MemoryFloatingLabel(
+          position: Vector2(size.x / 2, size.y * 0.28),
+          text: _floatingScoreLabel(delta, matched: false),
+          color: MemoryConfig.missRed,
+        ),
+      );
+    }
 
     await Future<void>.delayed(
       Duration(milliseconds: (MemoryConfig.mismatchViewSec * 1000).round()),
@@ -312,6 +362,7 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
           ..color = MemoryConfig.missRed.withValues(alpha: _missFlash * 0.12),
       );
     }
+    _paintHud(canvas);
   }
 
   void _paintBackground(Canvas canvas) {
@@ -342,6 +393,51 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
       Offset(size.x * 0.75, size.y * 0.12),
       size.x * 0.1,
       Paint()..color = MemoryConfig.accentSoft.withValues(alpha: 0.1),
+    );
+  }
+
+  void _paintHud(Canvas canvas) {
+    if (_finished) return;
+
+    final elapsed = Duration(milliseconds: (_elapsedSec * 1000).round());
+    final timeBonusFootnote = memoryHudTimeBonusFootnote(elapsed);
+    final timeBonusRatio = memoryTimeBonusRatio(elapsed);
+
+    GameSessionHud.paintStatsBar(
+      canvas,
+      Size(size.x, size.y),
+      const GameSessionHudPalette(
+        text: MemoryConfig.hudText,
+        muted: MemoryConfig.hudMuted,
+        accent: MemoryConfig.matchGlow,
+      ),
+      columns: [
+        GameSessionHudStat(
+          caption: 'Pares',
+          value: '$_pairsFound/$pairCount',
+        ),
+        GameSessionHudStat(
+          caption: 'Tempo',
+          value: memoryFormatDuration(elapsed),
+          footnote: timeBonusFootnote,
+          footnoteColor: timeBonusFootnote != null
+              ? MemoryConfig.matchGlow
+              : MemoryConfig.hudMuted.withValues(alpha: 0.85),
+        ),
+        GameSessionHudStat(
+          caption: 'Jogadas',
+          value: '$_moves',
+          footnote: '−${MemoryConfig.penaltyPerMove}/jogada',
+          footnoteColor: MemoryConfig.hudMuted.withValues(alpha: 0.85),
+        ),
+      ],
+      progress: timeBonusFootnote != null
+          ? GameSessionHudProgress(
+              ratio: timeBonusRatio,
+              color: MemoryConfig.matchGlow,
+              lowColor: MemoryConfig.accentColor,
+            )
+          : null,
     );
   }
 }

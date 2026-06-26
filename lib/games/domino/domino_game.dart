@@ -562,6 +562,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     );
     final toSlot = chainLayout.slots.firstWhere((s) => s.index == chainIndex);
     final toRect = toSlot.rect;
+    final scoreDelta = result.scoreDelta;
 
     _state = result.state;
     _selectedHandIndex = null;
@@ -584,7 +585,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       add(
         DominoFloatingLabel(
           position: Vector2(dest.dx, dest.dy - 28),
-          text: '+${DominoConfig.pointsPerTilePlayed}',
+          text: scoreDelta > 0 ? '+$scoreDelta' : '+0',
           color: DominoConfig.successGlow,
         ),
       );

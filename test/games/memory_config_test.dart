@@ -45,6 +45,55 @@ void main() {
         250,
       );
     });
+
+    test('primeiro par com várias jogadas reflete penalidade acumulada', () {
+      expect(
+        memoryProgressScore(pairsFound: 1, moves: 6),
+        90,
+      );
+    });
+  });
+
+  group('memoryProgressScoreDelta', () {
+    test('acerto após erros mostra ganho líquido no placar', () {
+      expect(
+        memoryProgressScoreDelta(
+          previousScore: 0,
+          pairsFound: 1,
+          moves: 6,
+        ),
+        90,
+      );
+    });
+
+    test('erro após pares encontrados reduz o placar', () {
+      expect(
+        memoryProgressScoreDelta(
+          previousScore: memoryProgressScore(pairsFound: 2, moves: 5),
+          pairsFound: 2,
+          moves: 6,
+        ),
+        -10,
+      );
+    });
+  });
+
+  group('memoryTimeBonusRemaining', () {
+    test('decai 4 pts por segundo', () {
+      expect(memoryTimeBonusRemaining(Duration.zero), 200);
+      expect(memoryTimeBonusRemaining(const Duration(seconds: 10)), 160);
+      expect(memoryTimeBonusRemaining(const Duration(seconds: 50)), 0);
+    });
+  });
+
+  group('memoryHudTimeBonusFootnote', () {
+    test('formata preview do bônus de tempo', () {
+      expect(
+        memoryHudTimeBonusFootnote(const Duration(seconds: 10)),
+        '+160 tempo',
+      );
+      expect(memoryHudTimeBonusFootnote(const Duration(seconds: 60)), isNull);
+    });
   });
 
   group('memoryPerformanceTier', () {

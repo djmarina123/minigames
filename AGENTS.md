@@ -172,17 +172,33 @@ Todo jogo Flame novo deve atingir o **mesmo nível de polish** de **Tap Rush** (
 #### Feedback e animação (obrigatório)
 
 17. **Acerto** — FX positivo mínimo: label flutuante (`+pts`) e/ou burst/partículas no ponto de interação.
-18. **Erro** — FX negativo mínimo: shake, flash de tela suave ou label (“Errou!”, “Tente de novo”).
+18. **Erro** — FX negativo mínimo: shake, flash de tela suave ou label com **penalidade** (`−10`, `−15`) quando a regra reduz pontos; feedback emocional (“Errou!”, “Tente de novo”) pode coexistir, mas não substituir o delta.
 19. **Transições** — evitar mudanças instantâneas de estado visual; animar no `update(dt)` dos componentes (flip, scale, fade).
 20. **Bloqueio de input** durante animações críticas (`_lockInput`, `isFlipSettled`, etc.).
 
+#### Label flutuante vs placar (obrigatório)
+
+O jogador compara o `+N` flutuante com o que subiu na AppBar. **Devem bater.**
+
+21. **Delta real, não constante bruta** — o texto `+N` / `−N` deve refletir **`newScore − previousScore`** (variação líquida visível no placar), **não** a constante da regra (`pointsPerPair`, `pointsPerObstacle`, etc.) quando o placar usa fórmula composta ou penalidades acumuladas.
+22. **Penalidades na hora** — se erro/jogada reduz pontos, chamar `onScoreUpdate` na mesma ação e mostrar o delta negativo (ou `−N` quando o placar ainda está em 0 mas a regra já cobrou). Não acumular penalidade silenciosa até o próximo acerto.
+23. **Helpers testáveis** — expor `*ProgressScoreDelta(...)` / `*ObstaclePassDelta(...)` em `*_config.dart` e cobrir em `test/games/` o cenário em que label ≠ constante bruta.
+24. **Bônus só no final ≠ bug** — bônus de tempo, vitória ou perfeição aplicados só em `*FinalScore` / `onGameOver` podem fazer o modal final > placar ao vivo; o HUD deve fazer **preview** (`+160 tempo`, `+10/s`, `−10/jogada`).
+
+| Jogo | Padrão correto |
+|---|---|
+| Memória | `memoryProgressScoreDelta` — 1º par na 6ª jogada → `+90`, não `+150` |
+| Corrida | `infiniteRunnerObstaclePassDelta` — obstáculo + tempo desde último placar |
+| Tap Rush / 2048 / Cobra / Paciência | incremento direto — label = valor somado ao placar |
+| Sudoku / Dominó | `result.scoreDelta` do movimento, nunca constante hardcoded no FX |
+
 #### Prep, scoring e testes
 
-21. **`GamePrepDefinition`** — opções de dificuldade + `GameHelpContent` (como jogar + pontuação em PT-BR).
-22. **Scoring em funções puras** — `progressScore`, `finalScore`, previews do HUD em `*_config.dart`; `*PerformanceTier()` para economia.
-23. **Testes unitários** — cobrir scoring, penalidades, bônus e helpers de formatação em `test/games/`.
-24. **UI compartilhada** — `GameSessionAppBar` e `GameResultDialog` usam `GameCatalogThumbnail` (mesma arte do catálogo); estender `_GameResultStats` se o jogo tiver stats novas.
-25. **Dicas pagas** — usar `GameSessionHudAction(coinCost: …)` + `callbacks.trySpendCoins`; custos em `EconomyConfig`, não hardcoded no `render()`.
+25. **`GamePrepDefinition`** — opções de dificuldade + `GameHelpContent` (como jogar + pontuação em PT-BR).
+26. **Scoring em funções puras** — `progressScore`, `finalScore`, previews do HUD em `*_config.dart`; `*PerformanceTier()` para economia.
+27. **Testes unitários** — cobrir scoring, penalidades, bônus, deltas de label e helpers de formatação em `test/games/`.
+28. **UI compartilhada** — `GameSessionAppBar` e `GameResultDialog` usam `GameCatalogThumbnail` (mesma arte do catálogo); estender `_GameResultStats` se o jogo tiver stats novas.
+29. **Dicas pagas** — usar `GameSessionHudAction(coinCost: …)` + `callbacks.trySpendCoins`; custos em `EconomyConfig`, não hardcoded no `render()`.
 
 ### Padrões por referência
 
@@ -196,15 +212,24 @@ Todo jogo Flame novo deve atingir o **mesmo nível de polish** de **Tap Rush** (
 **Memória** (`memory_config.dart`, `memory_game.dart`, `components/`):
 
 - Paleta alinhada ao hub (`cardColor` `#5B4BB7`, `accentColor` `#FF7675`).
-- HUD: bolinhas de progresso, timer `m:ss`, contador de jogadas, preview de bônus tempo + barra.
+- HUD: pares `N/total`, timer `m:ss`, jogadas + `−10/jogada`, preview de bônus tempo + barra (`memoryTimeBonusRemaining`).
+- Label no acerto: `memoryProgressScoreDelta` (líquido); no erro: `−10` quando a jogada custa pontos.
 - Cartas: flip animado, shake em erro, pulse em par, verso com padrão + borda branca.
 - `MemoryMatchBurst` + `MemoryFloatingLabel` em `memory_fx.dart`.
-- `memoryProgressScore` / `memoryFinalScore` / `memoryTimeBonusRemaining` testados sem Flame.
+- `memoryProgressScore` / `memoryProgressScoreDelta` / `memoryFinalScore` / `memoryTimeBonusRemaining` testados sem Flame.
+
+**Corrida Infinita** (`infinite_runner_config.dart`, `infinite_runner_game.dart`):
+
+- Placar ao vivo = tempo (`+10/s`) + obstáculos (`+30` cada).
+- Label ao passar obstáculo: `infiniteRunnerObstaclePassDelta` (inclui tempo desde último placar), não `+30` fixo.
+- HUD: distância, velocidade, obstáculos + footnote `+10/s`.
 
 ### Anti-padrões (não entregar assim)
 
 - Fundo cinza/azul genérico sem relação com o card do catálogo.
 - Placar só na AppBar — jogador não entende **por que** o score muda.
+- **Label flutuante com constante bruta** (`+150`, `+30`) enquanto o placar usa fórmula líquida ou multi-componente — usar delta real (`newScore − previousScore` ou `result.scoreDelta`).
+- **Penalidade silenciosa** — jogadas/erros que custam pontos sem atualizar placar nem FX até o próximo acerto.
 - **HUD com texto cortado** — `TextPainter` tratando borda esquerda como direita (`pos.dx - width` para coluna esquerda); sempre testar em 390 px.
 - Estado visual que “teleporta” (carta vira sem animação, alvo some seco).
 - Cores hardcoded espalhadas no `render()` — centralizar no config.
@@ -387,7 +412,16 @@ Melhor score **por jogo** (`LeaderboardRepository.allBest`), persistido em `shar
 | Bônus tempo | até 200 pts (decai 4 pts/s) |
 | Partida perfeita | +100 pts (mínimo de jogadas) |
 
-Grid adapta ao nº de pares (4 → 4×2, 6 → 4×3, 8 → 4×4). HUD exibe pares, timer, jogadas e preview do bônus tempo (`memoryTimeBonusRemaining`).
+Grid adapta ao nº de pares (4 → 4×2, 6 → 4×3, 8 → 4×4). HUD exibe pares, timer, jogadas e preview do bônus tempo (`memoryTimeBonusRemaining`). Label flutuante no acerto usa delta líquido (`memoryProgressScoreDelta`), não `+150` fixo.
+
+### Pontuação — Corrida Infinita (`infinite_runner_config.dart`)
+
+| Componente | Valor |
+|---|---|
+| Tempo | +10 pts/s (contínuo no placar ao vivo) |
+| Obstáculo | +30 pts cada (ultrapassado) |
+
+Label ao passar obstáculo = delta real desde último placar (`infiniteRunnerObstaclePassDelta`), pois tempo e obstáculo somam juntos.
 
 ### Pontuação — Tap Rush (`tap_rush_config.dart`)
 
@@ -689,6 +723,7 @@ Ver `PLANO.md`.
 | Pós-polish | `GameSessionAppBar` + `GameResultDialog` com `GameCatalogThumbnail` | Mesma arte vetorial do catálogo; sem emoji solto na sessão de jogo |
 | Pós-polish | HUD in-game obrigatório | Jogador vê regras de score ao vivo; AppBar não basta |
 | Pós-polish | FX mínimo acerto/erro + animações no `update(dt)` | Evita sensação de protótipo |
+| Pós-polish | Label flutuante = delta do placar | Evita `+150`/`+30` fixo com placar líquido/multi-componente; helpers em `*_config.dart` |
 | Fase 2 econ. | `core/economy/` — score ≠ moedas/XP | Ranking e progressão com regras distintas |
 | Fase 2 econ. | `performanceTier` por jogo em `*_config.dart` | Recompensa testável e consistente entre jogos |
 | Fase 2 econ. | `HubTheme.coinIcon` / `levelIcon` | Ícones únicos de moeda e XP em todo o hub |

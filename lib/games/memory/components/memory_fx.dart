@@ -40,7 +40,7 @@ class MemoryMatchBurst extends PositionComponent {
   }
 }
 
-/// Texto flutuante "+150" ou feedback de erro.
+/// Texto flutuante com variação de pontos ou feedback de erro.
 class MemoryFloatingLabel extends PositionComponent {
   MemoryFloatingLabel({
     required super.position,

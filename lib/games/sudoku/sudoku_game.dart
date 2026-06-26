@@ -326,8 +326,8 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
       _shakeT = 1;
       _flashT = 1;
       add(SudokuFloatingLabel(
-        position: Vector2(cx, cy),
-        text: 'Errou!',
+        position: Vector2(cx, cy - 8),
+        text: '${result.scoreDelta}',
         color: SudokuConfig.missRed,
       ));
     }

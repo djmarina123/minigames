@@ -35,6 +35,8 @@ abstract final class MemoryConfig {
   static const cardBorder = Color(0xFFFFFFFF);
   static const missRed = Color(0xFFFF7675);
   static const matchGlow = Color(0xFFFDCB6E);
+  static const hudText = Color(0xFFF8F9FA);
+  static const hudMuted = Color(0xFFD4CFF0);
 
   static const flipDurationSec = 0.22;
   static const shakeDurationSec = 0.35;
@@ -88,6 +90,42 @@ int memoryProgressScore({
   final base = pairsFound * MemoryConfig.pointsPerPair;
   final penalty = moves * MemoryConfig.penaltyPerMove;
   return (base - penalty).clamp(0, MemoryConfig.maxScore);
+}
+
+/// Variação do placar após uma jogada (para FX e testes).
+int memoryProgressScoreDelta({
+  required int previousScore,
+  required int pairsFound,
+  required int moves,
+}) {
+  return memoryProgressScore(pairsFound: pairsFound, moves: moves) -
+      previousScore;
+}
+
+/// Bônus de tempo restante no momento da partida (preview no HUD).
+int memoryTimeBonusRemaining(Duration elapsed) {
+  final elapsedSec = elapsed.inSeconds;
+  return (MemoryConfig.timeBonusMax -
+          elapsedSec * MemoryConfig.timeBonusPerSecond)
+      .clamp(0, MemoryConfig.timeBonusMax);
+}
+
+/// Razão `0..1` do bônus de tempo ainda disponível.
+double memoryTimeBonusRatio(Duration elapsed) =>
+    memoryTimeBonusRemaining(elapsed) / MemoryConfig.timeBonusMax;
+
+/// Timer do HUD (`m:ss`).
+String memoryFormatDuration(Duration duration) {
+  final minutes = duration.inMinutes;
+  final seconds = duration.inSeconds % 60;
+  return '$minutes:${seconds.toString().padLeft(2, '0')}';
+}
+
+/// Nota do HUD para a coluna de tempo (`+160 tempo` ou vazio).
+String? memoryHudTimeBonusFootnote(Duration elapsed) {
+  final bonus = memoryTimeBonusRemaining(elapsed);
+  if (bonus <= 0) return null;
+  return '+$bonus tempo';
 }
 
 /// Pontuação final ao completar o tabuleiro.

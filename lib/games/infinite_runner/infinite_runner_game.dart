@@ -31,9 +31,9 @@ class InfiniteRunnerGame implements HubGame {
   GamePrepDefinition get prep => GamePrepDefinition(
         help: const GameHelpContent(
           howToPlay:
-              'Toque na metade superior da tela para pular obstáculos baixos. '
-              'Toque e segure na parte de baixo — ou deslize para baixo — para '
-              'agachar sob as vigas. A velocidade aumenta com o tempo.',
+              'Toque ou deslize para cima para pular obstáculos baixos. '
+              'Segure o dedo ou deslize para baixo para agachar sob as vigas. '
+              'Funciona em qualquer lugar da tela. A velocidade aumenta com o tempo.',
           scoring:
               'Ganhe 10 pts por segundo sobrevivido e +30 pts por cada '
               'obstáculo ultrapassado. Modos mais rápidos aceleram a corrida '
@@ -90,6 +90,15 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
   bool _sessionStarted = false;
   bool _sessionActive = true;
   bool _duckPointerActive = false;
+  bool _pointerDown = false;
+  bool _jumpedThisGesture = false;
+  double _pointerHoldSec = 0;
+  Vector2 _pointerDelta = Vector2.zero();
+
+  static const _tapMoveThreshold = 16.0;
+  static const _duckSwipeThreshold = 14.0;
+  static const _jumpSwipeThreshold = 16.0;
+  static const _holdDuckSec = 0.22;
 
   double _scrollSpeed = 0;
   double _spawnTimer = 0;
@@ -114,9 +123,6 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
       infiniteRunnerSpeedModeMultiplier(speedModeIndex);
 
   double get _progress => infiniteRunnerProgress(_elapsed);
-
-  double get _duckZoneY =>
-      size.y * (1 - InfiniteRunnerConfig.duckZoneRatio);
 
   @override
   Color backgroundColor() => InfiniteRunnerConfig.skyTop;
@@ -175,6 +181,7 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
           modeMultiplier: _modeMultiplier,
         );
         _scrollOffset += _scrollSpeed * dt;
+        _updatePointerHold(dt);
 
         final player = _player;
         if (player != null) {
@@ -226,6 +233,11 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
       if (!obs.cleared && obs.position.x + obs.size.x < _playerX) {
         obs.cleared = true;
         _obstaclesCleared++;
+        final scoreDelta = infiniteRunnerObstaclePassDelta(
+          previousReportedScore: _lastReportedScore < 0 ? 0 : _lastReportedScore,
+          elapsedSec: _elapsed,
+          obstaclesClearedAfter: _obstaclesCleared,
+        );
         add(
           RunnerPassBurst(
             position: Vector2(
@@ -234,13 +246,16 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
             ),
           ),
         );
-        add(
-          RunnerFloatingLabel(
-            position: Vector2(_playerX + _playerW, _groundY - _playerH * 0.55),
-            text: '+${InfiniteRunnerConfig.pointsPerObstacle}',
-            color: InfiniteRunnerConfig.passGreen,
-          ),
-        );
+        if (scoreDelta > 0) {
+          add(
+            RunnerFloatingLabel(
+              position:
+                  Vector2(_playerX + _playerW, _groundY - _playerH * 0.55),
+              text: '+$scoreDelta',
+              color: InfiniteRunnerConfig.passGreen,
+            ),
+          );
+        }
       }
       if (obs.position.x + obs.size.x < -40) {
         toRemove.add(obs);
@@ -332,8 +347,8 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
     if (_phase != _Phase.playing) return;
     _phase = _Phase.crashed;
     _crashFlash = 1;
-    _player?.setDuck(false);
-    _duckPointerActive = false;
+    _releaseDuck();
+    _pointerDown = false;
 
     add(
       RunnerFloatingLabel(
@@ -387,67 +402,95 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
     );
   }
 
-  bool _isDuckZone(double y) => y >= _duckZoneY;
+  void _beginPointerGesture() {
+    _pointerDown = true;
+    _jumpedThisGesture = false;
+    _pointerHoldSec = 0;
+    _pointerDelta = Vector2.zero();
+  }
 
-  void _handleJumpAttempt(double y) {
+  void _updatePointerHold(double dt) {
+    if (!_pointerDown || _phase != _Phase.playing) return;
+    _pointerHoldSec += dt;
+    if (_pointerHoldSec >= _holdDuckSec &&
+        _pointerDelta.length < _tapMoveThreshold) {
+      _setDuck(true);
+    }
+  }
+
+  void _applyPointerDelta(Vector2 delta) {
     if (_phase != _Phase.playing) return;
-    if (_isDuckZone(y)) {
+    _pointerDelta += delta;
+    if (_pointerDelta.y >= _duckSwipeThreshold) {
+      _setDuck(true);
+    } else if (_pointerDelta.y <= -_jumpSwipeThreshold && !_jumpedThisGesture) {
+      _player?.jump();
+      _jumpedThisGesture = true;
+      _releaseDuck();
+    }
+  }
+
+  void _setDuck(bool duck) {
+    if (duck) {
       _player?.setDuck(true);
       _duckPointerActive = true;
     } else {
+      _releaseDuck();
+    }
+  }
+
+  void _releaseDuck() {
+    if (!_duckPointerActive) return;
+    _player?.setDuck(false);
+    _duckPointerActive = false;
+  }
+
+  void _endPointerGesture() {
+    if (!_pointerDown) return;
+    if (_phase == _Phase.playing &&
+        _pointerDelta.length < _tapMoveThreshold &&
+        !_jumpedThisGesture &&
+        !_duckPointerActive) {
       _player?.jump();
     }
+    _releaseDuck();
+    _pointerDown = false;
+    _pointerHoldSec = 0;
+    _pointerDelta = Vector2.zero();
+    _jumpedThisGesture = false;
   }
 
   @override
   void onTapDown(TapDownEvent event) {
-    _handleJumpAttempt(event.localPosition.y);
+    _beginPointerGesture();
   }
 
   @override
   void onTapUp(TapUpEvent event) {
-    if (_duckPointerActive) {
-      _player?.setDuck(false);
-      _duckPointerActive = false;
-    }
+    _endPointerGesture();
   }
 
   @override
   void onTapCancel(TapCancelEvent event) {
-    if (_duckPointerActive) {
-      _player?.setDuck(false);
-      _duckPointerActive = false;
-    }
+    _endPointerGesture();
   }
 
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    if (_phase == _Phase.playing && event.localPosition.y >= _duckZoneY * 0.9) {
-      _player?.setDuck(true);
-      _duckPointerActive = true;
-    }
+    _beginPointerGesture();
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    if (_phase != _Phase.playing) return;
-    if (event.localDelta.y > 6) {
-      _player?.setDuck(true);
-      _duckPointerActive = true;
-    } else if (event.localDelta.y < -10) {
-      _player?.jump();
-    }
+    _applyPointerDelta(event.localDelta);
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-    if (_duckPointerActive) {
-      _player?.setDuck(false);
-      _duckPointerActive = false;
-    }
+    _endPointerGesture();
   }
 
   @override
@@ -504,33 +547,21 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
   void _paintControlHints(Canvas canvas) {
     if (_phase != _Phase.countdown && _phase != _Phase.playing) return;
 
-    final duckTop = _duckZoneY;
     final fade = _phase == _Phase.countdown ? 1.0 : 0.35;
-
-    canvas.drawRect(
-      Rect.fromLTWH(0, duckTop, size.x, size.y - duckTop),
-      Paint()..color = Colors.white.withValues(alpha: 0.02 * fade),
-    );
-    canvas.drawLine(
-      Offset(0, duckTop),
-      Offset(size.x, duckTop),
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.18 * fade)
-        ..strokeWidth = 1.5,
-    );
+    final hintY = size.y * 0.52;
 
     if (_phase == _Phase.countdown) {
-      _paintHintChip(canvas, Offset(size.x * 0.5, duckTop - 36), '↑ Pular', fade);
+      _paintHintChip(canvas, Offset(size.x * 0.5, hintY - 28), 'Toque / ↑ pular', fade);
       _paintHintChip(
         canvas,
-        Offset(size.x * 0.5, duckTop + (size.y - duckTop) * 0.42),
-        '↓ Agachar',
+        Offset(size.x * 0.5, hintY + 28),
+        'Segure / ↓ agachar',
         fade,
       );
     } else if (_player?.ducking == true) {
       _paintHintChip(
         canvas,
-        Offset(size.x * 0.5, duckTop + 28),
+        Offset(size.x * 0.5, hintY),
         'Agachado',
         0.65,
         color: InfiniteRunnerConfig.passGreen,

@@ -41,9 +41,6 @@ abstract final class InfiniteRunnerConfig {
   static const playerWidthRatio = 0.15;
   static const playerHeightRatio = 0.17;
 
-  /// Zona inferior da tela — toque/segure para agachar.
-  static const duckZoneRatio = 0.42;
-
   /// Paleta alinhada ao card do hub (`HubTheme` id `infinite_runner`).
   static const cardColor = Color(0xFFFF9F43);
   static const accentColor = Color(0xFF54A0FF);
@@ -121,6 +118,19 @@ int infiniteRunnerScore({
   final obstaclePts =
       obstaclesCleared * InfiniteRunnerConfig.pointsPerObstacle;
   return timePts + obstaclePts;
+}
+
+/// Variação visível no placar ao ultrapassar um obstáculo (tempo + obstáculo).
+int infiniteRunnerObstaclePassDelta({
+  required int previousReportedScore,
+  required double elapsedSec,
+  required int obstaclesClearedAfter,
+}) {
+  final newScore = infiniteRunnerScore(
+    elapsedSec: elapsedSec,
+    obstaclesCleared: obstaclesClearedAfter,
+  );
+  return newScore - previousReportedScore;
 }
 
 /// Intervalo entre spawns (diminui com o progresso).
