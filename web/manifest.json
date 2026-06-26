@@ -1,7 +1,7 @@
 {
     "name": "MiniPlay",
     "short_name": "MiniPlay",
-    "start_url": ".",
+    "start_url": "/minigames/",
     "display": "standalone",
     "background_color": "#F5F0E8",
     "theme_color": "#E84393",
