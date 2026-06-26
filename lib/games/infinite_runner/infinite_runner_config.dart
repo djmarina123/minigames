@@ -149,6 +149,28 @@ int infiniteRunnerObstaclePassDelta({
   return newScore - previousReportedScore;
 }
 
+/// Escolhe se o próximo obstáculo é alto (agachar) ou baixo (pular).
+///
+/// Sorteio quase uniforme no início; só aumenta a chance de trocar após
+/// sequências longas do mesmo tipo — evita o padrão fixo cacto-barreira.
+bool infiniteRunnerPickHighObstacle({
+  required bool? lastWasHigh,
+  required int consecutiveSameKind,
+  required double randomUnit,
+}) {
+  if (lastWasHigh == null) {
+    return randomUnit >= 0.5;
+  }
+
+  final pickOther = switch (consecutiveSameKind) {
+    1 => randomUnit < 0.45,
+    2 => randomUnit < 0.68,
+    _ => randomUnit < 0.85,
+  };
+
+  return pickOther ? !lastWasHigh : lastWasHigh;
+}
+
 /// Intervalo entre spawns (diminui com o progresso).
 double infiniteRunnerSpawnGapSec(double progress) {
   final gap = InfiniteRunnerConfig.maxSpawnGapSec -

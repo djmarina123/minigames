@@ -116,6 +116,7 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
   int _obstaclesCleared = 0;
   int _lastReportedScore = -1;
   RunnerObstacleKind? _lastSpawnKind;
+  int _sameKindStreak = 0;
 
   RunnerPlayer? _player;
   final _obstacles = <RunnerObstacle>[];
@@ -292,6 +293,11 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
     _spawnTimer = gap + _random.nextDouble() * 0.35;
 
     final kind = _pickObstacleKind();
+    if (_lastSpawnKind == kind) {
+      _sameKindStreak++;
+    } else {
+      _sameKindStreak = 1;
+    }
     _lastSpawnKind = kind;
 
     final obstacle = _buildObstacle(kind);
@@ -300,20 +306,14 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
   }
 
   RunnerObstacleKind _pickObstacleKind() {
-    // Alterna com leve aleatoriedade para variedade legível.
-    if (_lastSpawnKind == null) {
-      return _random.nextBool()
-          ? RunnerObstacleKind.low
-          : RunnerObstacleKind.high;
-    }
-    if (_random.nextDouble() < 0.72) {
-      return _lastSpawnKind == RunnerObstacleKind.low
-          ? RunnerObstacleKind.high
-          : RunnerObstacleKind.low;
-    }
-    return _random.nextBool()
-        ? RunnerObstacleKind.low
-        : RunnerObstacleKind.high;
+    final isHigh = infiniteRunnerPickHighObstacle(
+      lastWasHigh: _lastSpawnKind == null
+          ? null
+          : _lastSpawnKind == RunnerObstacleKind.high,
+      consecutiveSameKind: _sameKindStreak,
+      randomUnit: _random.nextDouble(),
+    );
+    return isHigh ? RunnerObstacleKind.high : RunnerObstacleKind.low;
   }
 
   RunnerObstacle _buildObstacle(RunnerObstacleKind kind) {

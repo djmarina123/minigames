@@ -57,6 +57,73 @@ void main() {
       );
     });
 
+    test('tipo de obstáculo não alterna de forma fixa', () {
+      expect(
+        infiniteRunnerPickHighObstacle(
+          lastWasHigh: false,
+          consecutiveSameKind: 1,
+          randomUnit: 0.3,
+        ),
+        isTrue,
+      );
+      expect(
+        infiniteRunnerPickHighObstacle(
+          lastWasHigh: false,
+          consecutiveSameKind: 1,
+          randomUnit: 0.6,
+        ),
+        isFalse,
+      );
+      expect(
+        infiniteRunnerPickHighObstacle(
+          lastWasHigh: false,
+          consecutiveSameKind: 2,
+          randomUnit: 0.5,
+        ),
+        isTrue,
+      );
+      expect(
+        infiniteRunnerPickHighObstacle(
+          lastWasHigh: true,
+          consecutiveSameKind: 3,
+          randomUnit: 0.1,
+        ),
+        isFalse,
+      );
+    });
+
+    test('sequência simulada evita alternância rígida', () {
+      var lastWasHigh = infiniteRunnerPickHighObstacle(
+        lastWasHigh: null,
+        consecutiveSameKind: 0,
+        randomUnit: 0.2,
+      );
+      var streak = 1;
+      var alternations = 0;
+      var doubles = 0;
+
+      for (var i = 1; i < 200; i++) {
+        final unit = (i * 0.137) % 1.0;
+        final next = infiniteRunnerPickHighObstacle(
+          lastWasHigh: lastWasHigh,
+          consecutiveSameKind: streak,
+          randomUnit: unit,
+        );
+        if (next == lastWasHigh) {
+          doubles++;
+          streak++;
+        } else {
+          alternations++;
+          streak = 1;
+        }
+        lastWasHigh = next;
+      }
+
+      expect(alternations, greaterThan(40));
+      expect(doubles, greaterThan(20));
+      expect(alternations, lessThan(170));
+    });
+
     test('intervalo de spawn diminui com progresso', () {
       expect(
         infiniteRunnerSpawnGapSec(0),
