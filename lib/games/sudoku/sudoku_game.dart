@@ -200,10 +200,6 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
         return true;
       }
     }
-    if (layout.eraseRect.contains(pos)) {
-      _eraseSelected();
-      return true;
-    }
     return false;
   }
 
@@ -594,16 +590,16 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
         canvas,
         layout.numPadRects[i],
         '${sudokuNumPadDigitForIndex(i)}',
+        fontSize: layout.numPadKeyFontSize,
       );
     }
-    _paintPadButton(canvas, layout.eraseRect, 'Apagar', compact: true);
   }
 
   void _paintPadButton(
     Canvas canvas,
     Rect rect,
     String label, {
-    bool compact = false,
+    required double fontSize,
   }) {
     final rr = RRect.fromRectAndRadius(rect, const Radius.circular(10));
     canvas.drawRRect(
@@ -622,9 +618,8 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
         text: label,
         style: TextStyle(
           color: SudokuConfig.hudText,
-          fontSize: compact ? 14 : 22,
+          fontSize: fontSize,
           fontWeight: FontWeight.w700,
-          letterSpacing: compact ? 0.2 : 0,
         ),
       ),
       textDirection: TextDirection.ltr,

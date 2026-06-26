@@ -216,13 +216,19 @@ void main() {
       // Pinpad clássico: 1 acima de 4, 2 acima de 5…
       expect(layout.numPadRects[0].top, lessThan(layout.numPadRects[3].top));
       expect(layout.numPadRects[0].left, lessThan(layout.numPadRects[1].left));
-      expect(layout.eraseRect.top, greaterThan(layout.numPadRects[6].bottom));
-      expect(layout.eraseRect.width, closeTo(layout.numPadWidth, 0.01));
-      expect(layout.eraseRect.bottom, lessThanOrEqualTo(844));
+      expect(layout.numPadRects[6].bottom, lessThanOrEqualTo(844));
 
       expect(sudokuNumPadPositionForDigit(1), (0, 0));
       expect(sudokuNumPadPositionForDigit(5), (1, 1));
       expect(sudokuNumPadPositionForDigit(9), (2, 2));
+    });
+
+    test('layout mobile baixo usa quase toda a largura', () {
+      const screenW = 390.0;
+      const screenH = 640.0;
+      final layout = sudokuBoardLayout(screenW: screenW, screenH: screenH);
+      final availW = screenW - SudokuConfig.layoutMarginH * 2;
+      expect(layout.boardSize, closeTo(availW, 1.0));
     });
 
     test('helpers do HUD formatam tempo e progresso', () {

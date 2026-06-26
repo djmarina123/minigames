@@ -48,20 +48,19 @@ abstract final class SudokuConfig {
   static const missRed = Color(0xFFFF7675);
   static const successGlow = Color(0xFFF9CA24);
 
-  static const layoutMarginH = 16.0;
-  static const layoutHudGap = 10.0;
-  static const layoutPadGap = 12.0;
+  static const layoutMarginH = 12.0;
+  static const layoutBottomMargin = 10.0;
+  static const layoutHudGap = 8.0;
+  static const layoutPadGap = 8.0;
   static const layoutHudHeight = GameSessionHudActionBar.reservedHeight;
   static const layoutNumPadCols = 3;
-  static const layoutNumPadKeyGap = 8.0;
-  static const layoutNumPadRowGap = 8.0;
-  static const layoutNumPadKeyRowH = 46.0;
-  static const layoutNumPadEraseRowH = 40.0;
+  static const layoutNumPadKeyGap = 6.0;
+  static const layoutNumPadRowGap = 6.0;
+  static const layoutNumPadKeyRowH = 36.0;
 
-  /// Altura total do bloco pinpad (3 linhas de dígitos + apagar).
-  static const layoutNumPadHeight = layoutNumPadKeyRowH * 3 +
-      layoutNumPadEraseRowH +
-      layoutNumPadRowGap * 3;
+  /// Altura total do bloco pinpad (3 linhas de dígitos; apagar fica no HUD).
+  static const layoutNumPadHeight =
+      layoutNumPadKeyRowH * 3 + layoutNumPadRowGap * 2;
 }
 
 /// Índice 0–8 → dígito 1–9 no layout de pinpad (linhas 1–2–3 / 4–5–6 / 7–8–9).
@@ -102,8 +101,8 @@ class SudokuBoardLayout {
     required this.cellSize,
     required this.numPadTop,
     required this.numPadWidth,
+    required this.numPadKeyFontSize,
     required this.numPadRects,
-    required this.eraseRect,
   });
 
   final double boardSize;
@@ -112,8 +111,8 @@ class SudokuBoardLayout {
   final double cellSize;
   final double numPadTop;
   final double numPadWidth;
+  final double numPadKeyFontSize;
   final List<Rect> numPadRects;
-  final Rect eraseRect;
 }
 
 SudokuBoardLayout sudokuBoardLayout({
@@ -128,15 +127,15 @@ SudokuBoardLayout sudokuBoardLayout({
   const keyGap = SudokuConfig.layoutNumPadKeyGap;
   const rowGap = SudokuConfig.layoutNumPadRowGap;
   const keyRowH = SudokuConfig.layoutNumPadKeyRowH;
-  const eraseRowH = SudokuConfig.layoutNumPadEraseRowH;
   const cols = SudokuConfig.layoutNumPadCols;
-  const bottomMargin = 16.0;
+  const bottomMargin = SudokuConfig.layoutBottomMargin;
 
   final availW = screenW - marginH * 2;
-  final availH = screenH - hudHeight - hudGap - padGap - padBlockH - bottomMargin;
+  final availH =
+      screenH - hudHeight - hudGap - padGap - padBlockH - bottomMargin;
 
   var boardSize = min(availW, availH);
-  boardSize = boardSize.clamp(220.0, availW);
+  boardSize = boardSize.clamp(200.0, availW);
 
   final boardLeft = (screenW - boardSize) / 2;
   final boardTop = hudHeight + hudGap;
@@ -160,9 +159,6 @@ SudokuBoardLayout sudokuBoardLayout({
     );
   }
 
-  final eraseY = numPadTop + 3 * (keyRowH + rowGap);
-  final eraseRect = Rect.fromLTWH(numPadLeft, eraseY, numPadWidth, eraseRowH);
-
   return SudokuBoardLayout(
     boardSize: boardSize,
     boardLeft: boardLeft,
@@ -170,8 +166,8 @@ SudokuBoardLayout sudokuBoardLayout({
     cellSize: cellSize,
     numPadTop: numPadTop,
     numPadWidth: numPadWidth,
+    numPadKeyFontSize: keyRowH * 0.48,
     numPadRects: numPadRects,
-    eraseRect: eraseRect,
   );
 }
 
