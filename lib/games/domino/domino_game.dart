@@ -39,7 +39,7 @@ class DominoGame implements HubGame {
         ),
         optionGroups: [
           GamePrepOptionGroup(
-            label: 'CPU',
+            label: L10nScope.of.gameDominoCpuTurn,
             optionKey: DominoConfig.optionKeyDifficulty,
             choices: const [
               GamePrepChoice(
