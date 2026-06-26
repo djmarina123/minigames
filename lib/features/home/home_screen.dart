@@ -12,8 +12,6 @@ import '../../core/storage/player_repository.dart';
 import '../../core/l10n/l10n_extensions.dart';
 import '../../core/theme/hub_theme.dart';
 import '../../l10n/app_localizations.dart';
-import 'widgets/daily_missions_banner.dart';
-import 'widgets/daily_reward_banner.dart';
 import 'widgets/game_card.dart';
 import 'widgets/hub_header.dart';
 
@@ -46,8 +44,6 @@ class HomeScreen extends StatelessWidget {
               onMenuTap: onMenuTap,
               onProfileTap: onProfileTap,
             ),
-            const DailyRewardBanner(),
-            const DailyMissionsBanner(),
             Expanded(
               child: games.isEmpty
                   ? Center(child: Text(l10n.homeNoGames))

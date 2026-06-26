@@ -21,7 +21,20 @@
   "dailyRewardEarnCoins": "Gana +{amount} monedas",
   "dailyRewardClaim": "Reclamar",
 
+  "hubDailyRewardTooltip": "Reclamar +{amount} monedas",
+  "@hubDailyRewardTooltip": {
+    "placeholders": { "amount": { "type": "int" } }
+  },
+  "hubMissionsTooltip": "Misiones de hoy",
+
   "missionsTodayTitle": "Misiones de hoy",
+  "missionsProgressSummary": "{done} de {total} completadas",
+  "@missionsProgressSummary": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "missionCompletedReward": "¡Misión completada! +{reward} monedas",
   "missionClaim": "Reclamar",
 

@@ -202,11 +202,29 @@ abstract class AppLocalizations {
   /// **'Resgatar'**
   String get dailyRewardClaim;
 
+  /// No description provided for @hubDailyRewardTooltip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resgatar +{amount} moedas'**
+  String hubDailyRewardTooltip(int amount);
+
+  /// No description provided for @hubMissionsTooltip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Missões de hoje'**
+  String get hubMissionsTooltip;
+
   /// No description provided for @missionsTodayTitle.
   ///
   /// In pt, this message translates to:
   /// **'Missões de hoje'**
   String get missionsTodayTitle;
+
+  /// No description provided for @missionsProgressSummary.
+  ///
+  /// In pt, this message translates to:
+  /// **'{done} de {total} concluídas'**
+  String missionsProgressSummary(int done, int total);
 
   /// No description provided for @missionCompletedReward.
   ///

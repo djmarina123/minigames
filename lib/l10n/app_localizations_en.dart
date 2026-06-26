@@ -71,7 +71,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailyRewardClaim => 'Claim';
 
   @override
+  String hubDailyRewardTooltip(int amount) {
+    return 'Claim +$amount coins';
+  }
+
+  @override
+  String get hubMissionsTooltip => 'Today\'s missions';
+
+  @override
   String get missionsTodayTitle => 'Today\'s missions';
+
+  @override
+  String missionsProgressSummary(int done, int total) {
+    return '$done of $total complete';
+  }
 
   @override
   String missionCompletedReward(int reward) {

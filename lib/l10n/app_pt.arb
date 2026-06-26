@@ -36,7 +36,20 @@
   },
   "dailyRewardClaim": "Resgatar",
 
+  "hubDailyRewardTooltip": "Resgatar +{amount} moedas",
+  "@hubDailyRewardTooltip": {
+    "placeholders": { "amount": { "type": "int" } }
+  },
+  "hubMissionsTooltip": "Missões de hoje",
+
   "missionsTodayTitle": "Missões de hoje",
+  "missionsProgressSummary": "{done} de {total} concluídas",
+  "@missionsProgressSummary": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "missionCompletedReward": "Missão concluída! +{reward} moedas",
   "@missionCompletedReward": {
     "placeholders": { "reward": { "type": "int" } }

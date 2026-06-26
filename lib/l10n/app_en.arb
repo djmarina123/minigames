@@ -21,7 +21,20 @@
   "dailyRewardEarnCoins": "Earn +{amount} coins",
   "dailyRewardClaim": "Claim",
 
+  "hubDailyRewardTooltip": "Claim +{amount} coins",
+  "@hubDailyRewardTooltip": {
+    "placeholders": { "amount": { "type": "int" } }
+  },
+  "hubMissionsTooltip": "Today's missions",
+
   "missionsTodayTitle": "Today's missions",
+  "missionsProgressSummary": "{done} of {total} complete",
+  "@missionsProgressSummary": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "missionCompletedReward": "Mission complete! +{reward} coins",
   "missionClaim": "Claim",
 

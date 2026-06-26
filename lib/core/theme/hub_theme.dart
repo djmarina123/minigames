@@ -16,6 +16,14 @@ abstract final class HubTheme {
   static const levelIcon = Icons.star_rounded;
   static const levelPillBg = Color(0xFFEDE8FF);
   static const removeAdsPurple = Color(0xFF7B5CF0);
+  /// Recompensa diária no header — presente (coral quente).
+  static const dailyRewardAccent = Color(0xFFE17055);
+  static const dailyRewardPillBg = Color(0xFFFFF0EB);
+  static const dailyRewardIcon = Icons.card_giftcard_rounded;
+  /// Missões diárias no header — metas (teal).
+  static const missionAccent = Color(0xFF00B894);
+  static const missionPillBg = Color(0xFFE0F5F0);
+  static const missionIcon = Icons.emoji_events_rounded;
   static const featuredBadge = Color(0xFFFF4757);
   static const cardBorder = Colors.white;
   static const cardRadius = 22.0;
