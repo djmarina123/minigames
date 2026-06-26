@@ -55,7 +55,6 @@ abstract final class DominoConfig {
   static const cpuThinkSecMin = 0.45;
   static const cpuThinkSecMax = 0.85;
   static const chainTileScale = 0.88;
-  static const chainRowGap = 8.0;
   static const chainMinScale = 0.62;
 
   static const layoutMarginH = 12.0;
@@ -676,6 +675,7 @@ DominoChainLayout dominoChainLayout({
   required double baseTileW,
   required double baseTileH,
   required int chainLength,
+  List<PlacedDomino>? chain,
 }) {
   final emptyZone = tableBounds.inflate(-6);
   final baseLong = baseTileH * DominoConfig.chainTileScale;
@@ -697,94 +697,145 @@ DominoChainLayout dominoChainLayout({
     );
   }
 
-  const hGap = 2.0;
   var long = baseLong;
   var short = baseShort;
-  var vGap = DominoConfig.chainRowGap;
 
   final availW = tableBounds.width - 20;
   final availH = tableBounds.height - 16;
 
-  int perRow(double l) => max(1, (availW / (l + hGap)).floor());
-  // Cada banda tem altura `long` para caber a peça-esquina (vertical).
-  double bandsHeight(double l, double g, int r) => r * l + (r - 1) * g;
+  int perRow(double l) => max(1, (availW / l).floor());
+  double bandsHeight(double l, int r) => r * l;
 
   var cols = perRow(long);
   var rows = (chainLength / cols).ceil();
 
-  if (bandsHeight(long, vGap, rows) > availH) {
+  if (bandsHeight(long, rows) > availH) {
     final scale = max(
       DominoConfig.chainMinScale,
-      availH / bandsHeight(long, vGap, rows),
+      availH / bandsHeight(long, rows),
     );
     long *= scale;
     short *= scale;
-    vGap *= scale;
     cols = perRow(long);
     rows = (chainLength / cols).ceil();
   }
 
-  final stepX = long + hGap;
-  final stepY = long + vGap;
-  final fullRowTiles = min(chainLength, cols);
-  final gridW = fullRowTiles * stepX - hGap;
-  final gridLeft = tableBounds.left + max(8.0, (tableBounds.width - gridW) / 2);
-  final usedH = bandsHeight(long, vGap, rows);
-  final startY = tableBounds.top + 8 + max(0.0, (availH - usedH) / 2);
+  final yInset = (long - short) / 2;
 
-  double cellX(int col) => gridLeft + col * stepX;
-  double cellY(int row) => startY + row * stepY;
+  /// Fileira contínua: peças encostam sem folga; duplas ficam perpendiculares;
+  /// a quina é uma peça vertical em L (referência visual casual).
+  List<DominoChainSlot> buildSlots({double originX = 0, double originY = 0}) {
+    final out = <DominoChainSlot>[];
+    var bandTop = originY;
+    var anchor = originX;
+    var dir = 1;
 
-  // Coluna/linha e orientação da peça no índice [i].
-  ({int col, int row, bool vertical}) cellFor(int i) {
-    final row = i ~/ cols;
-    final pos = i % cols;
-    if (row == 0) return (col: pos, row: 0, vertical: false);
-    if (pos == 0) {
-      // Peça-esquina: mesma coluna da última peça da linha de cima, na vertical.
-      return (col: row.isOdd ? cols - 1 : 0, row: row, vertical: true);
+    for (var i = 0; i < chainLength; i++) {
+      final row = i ~/ cols;
+      final pos = i % cols;
+      final isCorner = row > 0 && pos == 0;
+      final isDouble = !isCorner &&
+          chain != null &&
+          i < chain.length &&
+          chain[i].tile.isDouble;
+
+      if (isCorner) {
+        final left = dir > 0 ? anchor : anchor - short;
+        out.add(
+          DominoChainSlot(
+            index: i,
+            rect: Rect.fromLTWH(left, bandTop, short, long),
+            horizontal: false,
+          ),
+        );
+        bandTop += long;
+        dir = -dir;
+        continue;
+      }
+
+      if (isDouble) {
+        final left = dir > 0 ? anchor : anchor - short;
+        out.add(
+          DominoChainSlot(
+            index: i,
+            rect: Rect.fromLTWH(left, bandTop, short, long),
+            horizontal: false,
+          ),
+        );
+        anchor = dir > 0 ? left + short : left;
+        continue;
+      }
+
+      final left = dir > 0 ? anchor : anchor - long;
+      out.add(
+        DominoChainSlot(
+          index: i,
+          rect: Rect.fromLTWH(left, bandTop + yInset, long, short),
+          horizontal: true,
+          mirrored: dir < 0,
+        ),
+      );
+      anchor = dir > 0 ? left + long : left;
     }
-    final col = row.isOdd ? cols - 1 - pos : pos;
-    return (col: col, row: row, vertical: false);
+    return out;
   }
 
-  Rect rectFor(({int col, int row, bool vertical}) cell) {
-    final x = cellX(cell.col);
-    final y = cellY(cell.row);
-    if (cell.vertical) {
-      return Rect.fromLTWH(x + (long - short) / 2, y, short, long);
-    }
-    return Rect.fromLTWH(x, y + (long - short) / 2, long, short);
+  var slots = buildSlots();
+  var bbox = slots.fold<Rect?>(
+    null,
+    (acc, s) => acc == null ? s.rect : acc.expandToInclude(s.rect),
+  )!;
+
+  if (bbox.width > availW || bbox.height > availH) {
+    final scale = min(
+      availW / bbox.width,
+      availH / bbox.height,
+    ).clamp(DominoConfig.chainMinScale, 1.0);
+    long *= scale;
+    short *= scale;
+    cols = perRow(long);
+    rows = (chainLength / cols).ceil();
+    slots = buildSlots();
+    bbox = slots.fold<Rect?>(
+      null,
+      (acc, s) => acc == null ? s.rect : acc.expandToInclude(s.rect),
+    )!;
   }
 
-  final slots = <DominoChainSlot>[];
-  for (var i = 0; i < chainLength; i++) {
-    final cell = cellFor(i);
-    slots.add(
-      DominoChainSlot(
-        index: i,
-        rect: rectFor(cell),
-        horizontal: !cell.vertical,
-        // Linhas ímpares correm para a esquerda: espelha os pips horizontais
-        // para o lado que encosta combinar com a peça vizinha.
-        mirrored: !cell.vertical && cell.row.isOdd,
-      ),
-    );
-  }
+  final offset = Offset(
+    tableBounds.left +
+        max(8.0, (tableBounds.width - bbox.width) / 2) -
+        bbox.left,
+    tableBounds.top + 8 + max(0.0, (availH - bbox.height) / 2) - bbox.top,
+  );
+  slots = slots
+      .map(
+        (s) => DominoChainSlot(
+          index: s.index,
+          rect: s.rect.shift(offset),
+          horizontal: s.horizontal,
+          mirrored: s.mirrored,
+        ),
+      )
+      .toList();
 
   const leftArrow = Offset(-1, 0);
   final firstRect = slots.first.rect;
-  final lastCell = cellFor(chainLength - 1);
-  final lastRect = slots.last.rect;
+  final lastSlot = slots.last;
+  final lastRect = lastSlot.rect;
 
   // Sentido em que a ponta direita está aberta.
   final Offset rightArrow;
-  if (lastCell.vertical) {
-    rightArrow = const Offset(0, 1); // acabou de virar a quina → abre p/ baixo
-  } else if (lastCell.row.isOdd) {
-    rightArrow = const Offset(-1, 0);
+  if (!lastSlot.horizontal) {
+    final lastRow = (chainLength - 1) ~/ cols;
+    final lastPos = (chainLength - 1) % cols;
+    final isCornerEnd = lastRow > 0 && lastPos == 0;
+    rightArrow = isCornerEnd
+        ? const Offset(0, 1)
+        : const Offset(1, 0);
   } else {
-    rightArrow = const Offset(1, 0);
+    final lastRow = (chainLength - 1) ~/ cols;
+    rightArrow = lastRow.isOdd ? const Offset(-1, 0) : const Offset(1, 0);
   }
 
   const hitPad = 14.0;

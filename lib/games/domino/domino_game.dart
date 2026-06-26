@@ -378,6 +378,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
   DominoChainLayout _chainLayout(
     DominoBoardLayout layout, {
     int? chainLength,
+    List<PlacedDomino>? chain,
   }) =>
       dominoChainLayout(
         screenW: size.x,
@@ -385,6 +386,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
         baseTileW: layout.tileW,
         baseTileH: layout.tileH,
         chainLength: chainLength ?? _state.chain.length,
+        chain: chain ?? _state.chain,
       );
 
   void _finishGame() {
@@ -558,6 +560,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     final chainLayout = _chainLayout(
       layout,
       chainLength: result.state.chain.length,
+      chain: result.state.chain,
     );
     final toSlot = chainLayout.slots.firstWhere((s) => s.index == chainIndex);
     final toRect = toSlot.rect;
@@ -949,8 +952,6 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       return;
     }
 
-    _paintChainSpine(canvas, chainLayout);
-
     final hiddenSlots = _flyingTiles.map((f) => f.chainIndex).toSet();
     for (final slot in chainLayout.slots) {
       if (hiddenSlots.contains(slot.index)) continue;
@@ -996,29 +997,6 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       chainLayout.rightEndBadge,
       chainLayout.rightEndArrow,
       _state.chainRightEnd(),
-    );
-  }
-
-  /// Traço sutil entre peças da fileira — só quando há curva longa.
-  void _paintChainSpine(Canvas canvas, DominoChainLayout chainLayout) {
-    if (chainLayout.slots.length < 4) return;
-    final path = Path();
-    for (var i = 0; i < chainLayout.slots.length; i++) {
-      final c = chainLayout.slots[i].rect.center;
-      if (i == 0) {
-        path.moveTo(c.dx, c.dy);
-      } else {
-        path.lineTo(c.dx, c.dy);
-      }
-    }
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = DominoConfig.tileOutline.withValues(alpha: 0.06)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = chainLayout.tileH * 0.45
-        ..strokeJoin = StrokeJoin.round
-        ..strokeCap = StrokeCap.round,
     );
   }
 

@@ -238,14 +238,53 @@ void main() {
       expect(firstRow.length, greaterThan(1));
       expect(firstRow.every((s) => s.horizontal), isTrue);
 
-      // A 1ª peça da 2ª linha é a esquina: vertical, abaixo e alinhada pelo
-      // centro com a última peça da 1ª linha (a fileira dobra a quina).
-      final lastOfFirstRow = layout.slots[firstRow.length - 1].rect;
+      // A 1ª peça da 2ª linha é a esquina: vertical, encostada na última da 1ª.
+      final lastOfFirstRow = firstRow.last.rect;
       final corner = layout.slots[firstRow.length];
       expect(corner.horizontal, isFalse);
       expect(corner.rect.height, greaterThan(corner.rect.width));
-      expect(corner.rect.center.dx, closeTo(lastOfFirstRow.center.dx, 0.5));
-      expect(corner.rect.top, greaterThan(lastOfFirstRow.top));
+      expect(corner.rect.left, closeTo(lastOfFirstRow.right, 0.5));
+    });
+
+    test('peças da fileira encostam sem folga horizontal', () {
+      final table = const Rect.fromLTWH(12, 200, 366, 280);
+      final layout = dominoChainLayout(
+        screenW: 390,
+        tableBounds: table,
+        baseTileW: 48,
+        baseTileH: 92,
+        chainLength: 5,
+      );
+
+      for (var i = 1; i < 5; i++) {
+        final prev = layout.slots[i - 1];
+        final curr = layout.slots[i];
+        if (prev.horizontal && curr.horizontal) {
+          expect(curr.rect.left, closeTo(prev.rect.right, 0.5));
+        }
+      }
+    });
+
+    test('dupla na fileira fica perpendicular à linha', () {
+      final table = const Rect.fromLTWH(12, 200, 366, 280);
+      final chain = [
+        const PlacedDomino(tile: DominoTile(id: 0, left: 3, right: 3)),
+        const PlacedDomino(tile: DominoTile(id: 1, left: 3, right: 6)),
+        const PlacedDomino(tile: DominoTile(id: 2, left: 6, right: 4)),
+      ];
+      final layout = dominoChainLayout(
+        screenW: 390,
+        tableBounds: table,
+        baseTileW: 48,
+        baseTileH: 92,
+        chainLength: 3,
+        chain: chain,
+      );
+
+      expect(layout.slots.first.horizontal, isFalse);
+      expect(layout.slots.first.rect.height, greaterThan(layout.slots.first.rect.width));
+      expect(layout.slots[1].horizontal, isTrue);
+      expect(layout.slots[1].rect.left, closeTo(layout.slots.first.rect.right, 0.5));
     });
 
     test('peças de linhas invertidas são espelhadas no encaixe', () {
