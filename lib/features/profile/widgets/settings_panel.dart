@@ -41,23 +41,134 @@ class SettingsPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            l10n.settingsLanguage,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-              color: HubTheme.textSecondary,
+          Material(
+            color: HubTheme.background,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () => _showLanguagePicker(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                child: Row(
+                  children: [
+                    _LanguageFlag(locale: current),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        l10n.settingsLanguage,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: HubTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      l10n.languageLabel(current),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: HubTheme.removeAdsPurple,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: HubTheme.textSecondary,
+                      size: 22,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          for (final locale in AppLocales.supported) ...[
-            _LanguageTile(
-              label: l10n.languageLabel(locale),
-              selected: current == locale,
-              onTap: () => localeRepo.setLocale(locale),
-            ),
-          ],
         ],
+      ),
+    );
+  }
+}
+
+Future<void> _showLanguagePicker(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: HubTheme.background,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (sheetContext) {
+      final l10n = AppLocalizations.of(sheetContext);
+      final localeRepo = sheetContext.watch<LocaleRepository>();
+      final current = localeRepo.locale;
+
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: HubTheme.textSecondary.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.settingsLanguage,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: HubTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              for (final locale in AppLocales.supported) ...[
+                _LanguageTile(
+                  locale: locale,
+                  label: l10n.languageLabel(locale),
+                  selected: current == locale,
+                  onTap: () {
+                    localeRepo.setLocale(locale);
+                    Navigator.of(sheetContext).pop();
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _LanguageFlag extends StatelessWidget {
+  const _LanguageFlag({required this.locale, this.size = 24});
+
+  final Locale locale;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: HubTheme.cardBorder.withValues(alpha: 0.6),
+        ),
+      ),
+      child: Text(
+        AppLocales.flagEmoji(locale),
+        style: TextStyle(fontSize: size),
       ),
     );
   }
@@ -65,11 +176,13 @@ class SettingsPanel extends StatelessWidget {
 
 class _LanguageTile extends StatelessWidget {
   const _LanguageTile({
+    required this.locale,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
+  final Locale locale;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -81,7 +194,7 @@ class _LanguageTile extends StatelessWidget {
       child: Material(
         color: selected
             ? HubTheme.removeAdsPurple.withValues(alpha: 0.1)
-            : HubTheme.background,
+            : Colors.white,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,
@@ -90,6 +203,8 @@ class _LanguageTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
+                _LanguageFlag(locale: locale, size: 22),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     label,

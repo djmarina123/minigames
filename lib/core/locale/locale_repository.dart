@@ -19,6 +19,14 @@ abstract final class AppLocales {
     return null;
   }
 
+  /// Emoji de bandeira para exibição no seletor de idioma.
+  static String flagEmoji(Locale locale) => switch (locale.languageCode) {
+        'pt' => '🇧🇷',
+        'en' => '🇺🇸',
+        'es' => '🇪🇸',
+        _ => '🌐',
+      };
+
   /// Resolve idioma inicial: preferência salva ou idioma do dispositivo.
   static const localePrefsKey = 'app_locale';
 
