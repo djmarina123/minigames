@@ -38,24 +38,17 @@ flutter test
 flutter analyze
 ```
 
-## Configurar Firebase (próximo passo seu)
+## Configurar Firebase
 
-1. Crie um projeto em [Firebase Console](https://console.firebase.google.com/)
-2. Instale o FlutterFire CLI:
+Guia completo: [`docs/firebase-setup.md`](docs/firebase-setup.md)
 
-```bash
-dart pub global activate flutterfire_cli
-export PATH="$PATH:$HOME/.pub-cache/bin"
-```
+Resumo:
 
-3. Na pasta do projeto:
-
-```bash
-flutterfire configure
-```
-
-4. Em `lib/core/firebase/firebase_options.dart`, altere `kFirebaseConfigured` para `true`
-5. Baixe `google-services.json` (Android) e adicione plugins Gradle conforme [documentação FlutterFire](https://firebase.flutter.dev/docs/overview)
+1. Crie o projeto **MiniPlay** no [Firebase Console](https://console.firebase.google.com/)
+2. Ative **Auth anônimo** e **Crashlytics**
+3. `npm install -g firebase-tools && firebase login`
+4. `./scripts/configure-firebase.sh`
+5. Em `lib/core/firebase/firebase_config.dart`, altere `kFirebaseConfigured` para `true`
 
 ## Estrutura
 

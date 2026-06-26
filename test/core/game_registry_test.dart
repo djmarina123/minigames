@@ -8,10 +8,14 @@ import 'package:minigames_hub/games/tap_rush/tap_rush_game.dart';
 
 void main() {
   group('FirebaseBootstrap', () {
-    test('não inicializa sem configuração', () async {
+    test('isConfigured reflete firebase_config', () {
+      expect(FirebaseBootstrap.isConfigured, isTrue);
+    });
+
+    test('initialize não lança em ambiente de teste', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
       await FirebaseBootstrap.initialize();
       expect(FirebaseBootstrap.isInitialized, isFalse);
-      expect(FirebaseBootstrap.isConfigured, isFalse);
     });
   });
 

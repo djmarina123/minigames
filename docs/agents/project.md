@@ -25,7 +25,7 @@ Roadmap e backlog: [`PLANO.md`](../../PLANO.md).
 | Jogos 2D | Flame |
 | Estado | Provider + ChangeNotifier |
 | Persistência | shared_preferences |
-| Backend / Ads | Firebase / AdMob — stubs (`kFirebaseConfigured`, `kAdsConfigured` = false) |
+| Backend / Ads | Firebase (Auth, Analytics, Crashlytics) · AdMob stub (`kAdsConfigured` = false). Setup Firebase: [`docs/firebase-setup.md`](../../docs/firebase-setup.md) |
 | CI | GitHub Actions — `flutter analyze` + `flutter test` |
 
 ## Estrutura
@@ -48,7 +48,7 @@ test/golden/, test/goldens/, test/games/, test/core/, test/helpers/
 
 ## Dívidas técnicas
 
-- Firebase / AdMob não configurados.
+- AdMob não configurado (`kAdsConfigured` = false).
 - `GameRunnerScreen` acoplado a ads/economia — extrair `SessionResultHandler`.
 - `onRewardEarned` sem uso real.
 - Sinks de moedas: só Sudoku + Paciência.

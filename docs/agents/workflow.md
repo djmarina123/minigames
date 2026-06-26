@@ -23,7 +23,7 @@ Fora do "pronto", **não** commitar nem dar push sem pedido explícito.
 
 1. **Escopo mínimo** — só o necessário para a tarefa.
 2. **Seguir padrões existentes** — nomes, pastas, imports relativos a `lib/`.
-3. **Stub first** — Firebase/AdMob offline até configurar (`kFirebaseConfigured`, `kAdsConfigured`).
+3. **Stub first** — Firebase/AdMob offline até configurar (`kFirebaseConfigured` em `firebase_config.dart`, `kAdsConfigured`). Ver [`docs/firebase-setup.md`](../../docs/firebase-setup.md).
 4. **Persistência MVP** — `shared_preferences` (Firestore quando configurado).
 5. **Testes** — rodar `flutter test` antes de encerrar; jogo Flame novo → `test/games/*_config_test.dart`; UI do hub → `--update-goldens`.
 6. **UI em PT-BR.**

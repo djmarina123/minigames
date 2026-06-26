@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "358782525857",
+    "project_id": "miniplay-5ea9f",
+    "storage_bucket": "miniplay-5ea9f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358782525857:android:444cc60b7ef43124852be0",
+        "android_client_info": {
+          "package_name": "com.miniplay.games"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSBjIhFFrUFaNvCJSyhzuV6iPoIa_x3YI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
