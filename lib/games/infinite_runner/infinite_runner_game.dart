@@ -37,9 +37,9 @@ class InfiniteRunnerGame implements HubGame {
               'baixo e mantenha o dedo na tela para agachar sob as vigas. '
               'No navegador, use também as setas ↑/↓, Espaço ou W/S.',
           scoring:
-              'Ganhe 10 pts por segundo sobrevivido e +30 pts por cada '
-              'obstáculo ultrapassado. Modos mais rápidos aceleram a corrida '
-              'desde o início.',
+              '+${InfiniteRunnerConfig.pointsPerObstacle} pts por cada obstáculo '
+              'ultrapassado. Modos mais rápidos aceleram a corrida desde o '
+              'início.',
         ),
         optionGroups: [
           GamePrepOptionGroup(
@@ -114,7 +114,6 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
 
   int _score = 0;
   int _obstaclesCleared = 0;
-  int _lastReportedScore = -1;
   RunnerObstacleKind? _lastSpawnKind;
   int _sameKindStreak = 0;
 
@@ -211,7 +210,6 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
         _moveObstacles(dt);
         _spawnObstacles(dt);
         _checkCollisions();
-        _updateScore();
 
       case _Phase.crashed:
       case _Phase.finished:
@@ -251,9 +249,11 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
       if (!obs.cleared && obs.position.x + obs.size.x < _playerX) {
         obs.cleared = true;
         _obstaclesCleared++;
+        final previousScore = _score;
+        _score = infiniteRunnerScore(obstaclesCleared: _obstaclesCleared);
+        callbacks.onScoreUpdate(_score);
         final scoreDelta = infiniteRunnerObstaclePassDelta(
-          previousReportedScore: _lastReportedScore < 0 ? 0 : _lastReportedScore,
-          elapsedSec: _elapsed,
+          previousScore: previousScore,
           obstaclesClearedAfter: _obstaclesCleared,
         );
         add(
@@ -382,17 +382,6 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
     });
   }
 
-  void _updateScore() {
-    _score = infiniteRunnerScore(
-      elapsedSec: _elapsed,
-      obstaclesCleared: _obstaclesCleared,
-    );
-    if (_score != _lastReportedScore) {
-      _lastReportedScore = _score;
-      callbacks.onScoreUpdate(_score);
-    }
-  }
-
   void _finish() {
     if (_phase == _Phase.finished) return;
     _phase = _Phase.finished;
@@ -409,10 +398,6 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
           ),
           'speedLevel': infiniteRunnerSpeedLevel(_elapsed),
           'performanceTier': infiniteRunnerPerformanceTier(
-            distanceM: infiniteRunnerDistanceMeters(
-              _elapsed,
-              modeMultiplier: _modeMultiplier,
-            ),
             obstaclesCleared: _obstaclesCleared,
           ).name,
         },
@@ -663,8 +648,6 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
         GameSessionHudStat(
           caption: 'Distância',
           value: '$distance m',
-          footnote: '+${InfiniteRunnerConfig.pointsPerSecond}/s',
-          footnoteColor: InfiniteRunnerConfig.hudMuted.withValues(alpha: 0.9),
         ),
         GameSessionHudStat(
           caption: 'Velocidade',
@@ -674,6 +657,8 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
           caption: 'Obstáculos',
           value: '$_obstaclesCleared',
           valueColor: InfiniteRunnerConfig.passGreen,
+          footnote: '+${InfiniteRunnerConfig.pointsPerObstacle}/obs',
+          footnoteColor: InfiniteRunnerConfig.hudMuted.withValues(alpha: 0.9),
         ),
       ],
       progress: GameSessionHudProgress(

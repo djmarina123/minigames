@@ -29,7 +29,6 @@ abstract final class InfiniteRunnerConfig {
   static const highObstacleWidthMax = 1.35;
   static const highObstacleHeightFactor = 0.88;
 
-  static const pointsPerSecond = 10;
   static const pointsPerObstacle = 30;
 
   static const minSpawnGapSec = 1.35;
@@ -124,30 +123,16 @@ double infiniteRunnerScrollSpeed(double elapsedSec, {double modeMultiplier = 1.0
 int infiniteRunnerSpeedLevel(double elapsedSec) =>
     (1 + infiniteRunnerProgress(elapsedSec) * 9).floor().clamp(1, 10);
 
-/// Pontos acumulados por tempo e obstáculos ultrapassados.
-int infiniteRunnerScore({
-  required double elapsedSec,
-  required int obstaclesCleared,
-}) {
-  final timePts =
-      (elapsedSec * InfiniteRunnerConfig.pointsPerSecond).floor();
-  final obstaclePts =
-      obstaclesCleared * InfiniteRunnerConfig.pointsPerObstacle;
-  return timePts + obstaclePts;
-}
+/// Pontos acumulados por obstáculos ultrapassados.
+int infiniteRunnerScore({required int obstaclesCleared}) =>
+    obstaclesCleared * InfiniteRunnerConfig.pointsPerObstacle;
 
-/// Variação visível no placar ao ultrapassar um obstáculo (tempo + obstáculo).
+/// Variação visível no placar ao ultrapassar um obstáculo.
 int infiniteRunnerObstaclePassDelta({
-  required int previousReportedScore,
-  required double elapsedSec,
+  required int previousScore,
   required int obstaclesClearedAfter,
-}) {
-  final newScore = infiniteRunnerScore(
-    elapsedSec: elapsedSec,
-    obstaclesCleared: obstaclesClearedAfter,
-  );
-  return newScore - previousReportedScore;
-}
+}) =>
+    infiniteRunnerScore(obstaclesCleared: obstaclesClearedAfter) - previousScore;
 
 /// Escolhe se o próximo obstáculo é alto (agachar) ou baixo (pular).
 ///
@@ -231,28 +216,12 @@ double infiniteRunnerSpeedModeMultiplier(int modeIndex) {
   return (width, height);
 }
 
-/// Distância (m) considerada "partida excelente" (desempenho `1.0`).
-const infiniteRunnerGoldDistanceM = 235;
-
 /// Obstáculos desviados considerados "partida excelente" (desempenho `1.0`).
 const infiniteRunnerGoldObstacles = 17;
 
-/// Desempenho normalizado (`0.0`–`1.0`) — o melhor entre distância e obstáculos.
-double infiniteRunnerPerformanceRatio({
-  required int distanceM,
-  required int obstaclesCleared,
-}) {
-  final byDistance = distanceM / infiniteRunnerGoldDistanceM;
-  final byObstacles = obstaclesCleared / infiniteRunnerGoldObstacles;
-  final best = byDistance > byObstacles ? byDistance : byObstacles;
-  return best.clamp(0.0, 1.0);
-}
+/// Desempenho normalizado (`0.0`–`1.0`) a partir dos obstáculos ultrapassados.
+double infiniteRunnerPerformanceRatio({required int obstaclesCleared}) =>
+    (obstaclesCleared / infiniteRunnerGoldObstacles).clamp(0.0, 1.0);
 
-PerformanceTier infiniteRunnerPerformanceTier({
-  required int distanceM,
-  required int obstaclesCleared,
-}) =>
-    tierFromRatio(infiniteRunnerPerformanceRatio(
-      distanceM: distanceM,
-      obstaclesCleared: obstaclesCleared,
-    ));
+PerformanceTier infiniteRunnerPerformanceTier({required int obstaclesCleared}) =>
+    tierFromRatio(infiniteRunnerPerformanceRatio(obstaclesCleared: obstaclesCleared));

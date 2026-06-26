@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:minigames_hub/core/economy/performance_tier.dart';
 import 'package:minigames_hub/games/infinite_runner/infinite_runner_config.dart';
 
 void main() {
@@ -23,37 +24,38 @@ void main() {
       expect(infiniteRunnerSpeedLevel(80), 10);
     });
 
-    test('pontuação combina tempo e obstáculos', () {
+    test('pontuação vem só de obstáculos ultrapassados', () {
+      expect(infiniteRunnerScore(obstaclesCleared: 0), 0);
+      expect(infiniteRunnerScore(obstaclesCleared: 4), 120);
+      expect(infiniteRunnerScore(obstaclesCleared: 17), 510);
+    });
+
+    test('delta ao passar obstáculo é fixo por obstáculo', () {
       expect(
-        infiniteRunnerScore(elapsedSec: 10, obstaclesCleared: 0),
-        100,
+        infiniteRunnerObstaclePassDelta(
+          previousScore: 0,
+          obstaclesClearedAfter: 1,
+        ),
+        InfiniteRunnerConfig.pointsPerObstacle,
       );
       expect(
-        infiniteRunnerScore(elapsedSec: 0, obstaclesCleared: 4),
-        120,
-      );
-      expect(
-        infiniteRunnerScore(elapsedSec: 5, obstaclesCleared: 2),
-        50 + 60,
+        infiniteRunnerObstaclePassDelta(
+          previousScore: 90,
+          obstaclesClearedAfter: 4,
+        ),
+        30,
       );
     });
 
-    test('delta ao passar obstáculo inclui tempo acumulado desde último placar', () {
+    test('desempenho normalizado usa obstáculos', () {
+      expect(infiniteRunnerPerformanceRatio(obstaclesCleared: 0), 0);
       expect(
-        infiniteRunnerObstaclePassDelta(
-          previousReportedScore: 100,
-          elapsedSec: 11,
-          obstaclesClearedAfter: 1,
-        ),
-        40,
+        infiniteRunnerPerformanceRatio(obstaclesCleared: 17),
+        closeTo(1.0, 0.001),
       );
       expect(
-        infiniteRunnerObstaclePassDelta(
-          previousReportedScore: 50,
-          elapsedSec: 5,
-          obstaclesClearedAfter: 1,
-        ),
-        30,
+        infiniteRunnerPerformanceTier(obstaclesCleared: 17),
+        PerformanceTier.gold,
       );
     });
 
