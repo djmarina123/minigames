@@ -6,6 +6,10 @@ Quando o usuário digitar **"pronto"** (ou typo equivalente):
 
 1. Conferir tarefa concluída (testes/análise local se aplicável).
 2. **`git commit`** — mensagem em português, foco no *porquê*.
+   - **Escopo do commit:** somente arquivos que **este agente** criou ou alterou nesta sessão (via edições no contexto da conversa).
+   - **Não** usar `git add .`, `git add -A` nem commitar tudo que aparece em `git status` — outros agentes ou o usuário podem ter mudanças paralelas no working tree.
+   - Montar a lista a partir do histórico da sessão (Write/StrReplace/Delete); conferir com `git diff` / `git status` antes de `git add <caminhos…>`.
+   - Se um arquivo tocado por este agente também foi alterado por outra sessão, incluir só se as mudanças forem claramente desta tarefa; caso contrário, avisar o usuário em vez de misturar commits.
 3. **`git push`** (autorizado pelo "pronto").
 4. Acompanhar CI (`.github/workflows/ci.yml` — `flutter analyze` + `flutter test`):
    - `gh run watch --exit-status` no run mais recente do branch, **ou**

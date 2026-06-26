@@ -23,7 +23,7 @@
 
 ### "Pronto" = commit + push + CI verde
 
-Ver [`workflow.md`](docs/agents/workflow.md). Fora do "pronto", não commitar/push sem pedido explícito.
+Ver [`workflow.md`](docs/agents/workflow.md). Commitar **apenas** arquivos alterados por este agente na sessão — não o working tree inteiro. Fora do "pronto", não commitar/push sem pedido explícito.
 
 ### Jogo Flame novo (resumo)
 
