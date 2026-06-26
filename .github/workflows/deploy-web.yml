@@ -35,7 +35,9 @@ jobs:
         run: flutter analyze && flutter test
 
       - name: Build web
-        run: flutter build web --base-href /minigames/ --release
+        run: |
+          flutter build web --base-href /minigames/ --release \
+            --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

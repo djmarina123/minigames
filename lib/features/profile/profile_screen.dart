@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/app_info.dart';
 import '../../core/economy/economy_copy.dart';
 import '../../core/economy/economy_help_dialog.dart';
 import '../../core/storage/player_repository.dart';
@@ -81,6 +83,7 @@ class ProfileScreen extends StatelessWidget {
                     value: '${player.dailyStreak} dias',
                     accent: const Color(0xFFFDCB6E),
                   ),
+                  const _AppVersionFooter(),
                 ],
               ),
             ),
@@ -231,6 +234,51 @@ class _EconomySummaryCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AppVersionFooter extends StatefulWidget {
+  const _AppVersionFooter();
+
+  @override
+  State<_AppVersionFooter> createState() => _AppVersionFooterState();
+}
+
+class _AppVersionFooterState extends State<_AppVersionFooter> {
+  PackageInfo? _info;
+
+  @override
+  void initState() {
+    super.initState();
+    loadAppPackageInfo().then((info) {
+      if (mounted) setState(() => _info = info);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final info = _info;
+    if (info == null) return const SizedBox.shrink();
+
+    final buildLabel = appInfoBuildDateTimeLabel();
+    final muted = TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: HubTheme.textSecondary.withValues(alpha: 0.75),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        children: [
+          Text('MiniPlay · versão ${appInfoVersionLabel(info)}', style: muted),
+          if (buildLabel != null) ...[
+            const SizedBox(height: 4),
+            Text('Build: $buildLabel', style: muted),
+          ],
+        ],
       ),
     );
   }
