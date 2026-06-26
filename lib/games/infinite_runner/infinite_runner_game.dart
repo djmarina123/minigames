@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/game_sdk/game_metadata.dart';
 import '../../core/game_sdk/game_session_hud.dart';
@@ -12,6 +13,7 @@ import '../../core/game_sdk/game_session_callbacks.dart';
 import '../../core/game_sdk/game_session_config.dart';
 import '../../core/game_sdk/hub_game.dart';
 import 'components/infinite_runner_fx.dart';
+import 'components/runner_input.dart';
 import 'components/runner_entities.dart';
 import 'components/runner_scenery.dart';
 import 'infinite_runner_config.dart';
@@ -31,9 +33,9 @@ class InfiniteRunnerGame implements HubGame {
   GamePrepDefinition get prep => GamePrepDefinition(
         help: const GameHelpContent(
           howToPlay:
-              'Deslize para cima em qualquer lugar da tela para pular '
-              'obstáculos baixos. Deslize para baixo para agachar sob as vigas '
-              'enquanto mantém o dedo na tela. A velocidade aumenta com o tempo.',
+              'Deslize para cima para pular obstáculos baixos. Deslize para '
+              'baixo e mantenha o dedo na tela para agachar sob as vigas. '
+              'No navegador, use também as setas ↑/↓, Espaço ou W/S.',
           scoring:
               'Ganhe 10 pts por segundo sobrevivido e +30 pts por cada '
               'obstáculo ultrapassado. Modos mais rápidos aceleram a corrida '
@@ -62,10 +64,13 @@ class InfiniteRunnerGame implements HubGame {
       InfiniteRunnerConfig.optionKeySpeedMode,
       0,
     );
-    return GameWidget(
-      game: InfiniteRunnerFlameGame(
-        callbacks: callbacks,
-        speedModeIndex: speedMode,
+    return Focus(
+      autofocus: true,
+      child: GameWidget(
+        game: InfiniteRunnerFlameGame(
+          callbacks: callbacks,
+          speedModeIndex: speedMode,
+        ),
       ),
     );
   }
@@ -73,7 +78,7 @@ class InfiniteRunnerGame implements HubGame {
 
 enum _Phase { countdown, playing, crashed, finished }
 
-class InfiniteRunnerFlameGame extends FlameGame with DragCallbacks {
+class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
   InfiniteRunnerFlameGame({
     required this.callbacks,
     required this.speedModeIndex,
@@ -93,8 +98,9 @@ class InfiniteRunnerFlameGame extends FlameGame with DragCallbacks {
   bool _dragActive = false;
   bool _jumpedThisGesture = false;
   Vector2 _dragDelta = Vector2.zero();
+  Vector2? _dragOriginCanvas;
 
-  static const _swipeThreshold = 18.0;
+  RunnerInputLayer? _inputLayer;
 
   double _scrollSpeed = 0;
   double _spawnTimer = 0;
@@ -131,9 +137,25 @@ class InfiniteRunnerFlameGame extends FlameGame with DragCallbacks {
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    if (_sessionStarted || size.x <= 0) return;
+    if (size.x <= 0) return;
+    _ensureInputLayer(size);
+    if (_sessionStarted) return;
     _sessionStarted = true;
     _layoutWorld();
+  }
+
+  void _ensureInputLayer(Vector2 gameSize) {
+    final layer = _inputLayer;
+    if (layer == null) {
+      _inputLayer = RunnerInputLayer(
+        onDragStarted: _onDragStarted,
+        onDragMoved: _onDragMoved,
+        onDragFinished: _onDragFinished,
+      )..size = gameSize.clone();
+      add(_inputLayer!);
+      return;
+    }
+    layer.size.setFrom(gameSize);
   }
 
   void _layoutWorld() {
@@ -344,6 +366,7 @@ class InfiniteRunnerFlameGame extends FlameGame with DragCallbacks {
     _crashFlash = 1;
     _stopDuck();
     _dragActive = false;
+    _dragOriginCanvas = null;
 
     add(
       RunnerFloatingLabel(
@@ -397,35 +420,53 @@ class InfiniteRunnerFlameGame extends FlameGame with DragCallbacks {
     );
   }
 
-  void _beginDrag() {
+  void _beginDrag(DragStartEvent event) {
     _dragActive = true;
     _jumpedThisGesture = false;
     _dragDelta = Vector2.zero();
+    _dragOriginCanvas = event.canvasPosition.clone();
   }
 
-  void _endDrag() {
-    _stopDuck();
-    _dragActive = false;
-    _dragDelta = Vector2.zero();
-    _jumpedThisGesture = false;
+  void _onDragStarted(DragStartEvent event) {
+    _beginDrag(event);
   }
 
-  bool _isVerticalSwipe() =>
-      _dragDelta.y.abs() >= _swipeThreshold &&
-      _dragDelta.y.abs() > _dragDelta.x.abs();
-
-  void _applyDragDelta(Vector2 delta) {
+  void _onDragMoved(DragUpdateEvent event) {
     if (_phase != _Phase.playing || !_dragActive) return;
-    _dragDelta += delta;
-    if (!_isVerticalSwipe()) return;
+    final origin = _dragOriginCanvas;
+    if (origin == null) return;
+    _dragDelta = event.canvasEndPosition - origin;
+    _applyDragGesture();
+  }
 
-    if (_dragDelta.y >= _swipeThreshold) {
-      _startDuck();
-    } else if (_dragDelta.y <= -_swipeThreshold && !_jumpedThisGesture) {
+  void _applyDragGesture() {
+    switch (infiniteRunnerSwipeActionFromDelta(_dragDelta.x, _dragDelta.y)) {
+      case InfiniteRunnerSwipeAction.down:
+        _startDuck();
+      case InfiniteRunnerSwipeAction.up:
+        if (!_jumpedThisGesture) {
+          _stopDuck();
+          _player?.jump();
+          _jumpedThisGesture = true;
+        }
+      case null:
+        break;
+    }
+  }
+
+  void _onDragFinished() {
+    if (_phase == _Phase.playing &&
+        !_jumpedThisGesture &&
+        infiniteRunnerSwipeActionFromDelta(_dragDelta.x, _dragDelta.y) ==
+            InfiniteRunnerSwipeAction.up) {
       _stopDuck();
       _player?.jump();
-      _jumpedThisGesture = true;
     }
+    _stopDuck();
+    _dragActive = false;
+    _dragOriginCanvas = null;
+    _dragDelta = Vector2.zero();
+    _jumpedThisGesture = false;
   }
 
   void _startDuck() {
@@ -440,27 +481,32 @@ class InfiniteRunnerFlameGame extends FlameGame with DragCallbacks {
   }
 
   @override
-  void onDragStart(DragStartEvent event) {
-    super.onDragStart(event);
-    _beginDrag();
-  }
+  KeyEventResult onKeyEvent(
+    KeyEvent event,
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
+    if (_phase != _Phase.playing) return KeyEventResult.ignored;
 
-  @override
-  void onDragUpdate(DragUpdateEvent event) {
-    super.onDragUpdate(event);
-    _applyDragDelta(event.localDelta);
-  }
-
-  @override
-  void onDragEnd(DragEndEvent event) {
-    super.onDragEnd(event);
-    _endDrag();
-  }
-
-  @override
-  void onDragCancel(DragCancelEvent event) {
-    super.onDragCancel(event);
-    _endDrag();
+    final key = event.logicalKey;
+    if (event is KeyDownEvent) {
+      if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
+        _startDuck();
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.arrowUp ||
+          key == LogicalKeyboardKey.keyW ||
+          key == LogicalKeyboardKey.space) {
+        _stopDuck();
+        _player?.jump();
+        return KeyEventResult.handled;
+      }
+    } else if (event is KeyUpEvent) {
+      if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
+        _stopDuck();
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -525,7 +571,7 @@ class InfiniteRunnerFlameGame extends FlameGame with DragCallbacks {
       _paintHintChip(
         canvas,
         Offset(size.x * 0.5, hintY + 28),
-        '↓ Deslize p/ agachar',
+        '↓ Segure p/ agachar',
         fade,
       );
     } else if (_player?.ducking == true) {

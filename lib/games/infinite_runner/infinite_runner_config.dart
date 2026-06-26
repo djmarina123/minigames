@@ -35,6 +35,9 @@ abstract final class InfiniteRunnerConfig {
   static const minSpawnGapSec = 1.35;
   static const maxSpawnGapSec = 2.5;
 
+  /// Distância mínima (px) para reconhecer swipe vertical nos controles.
+  static const swipeThresholdPx = 22.0;
+
   static const hudReservedTop = 56.0;
   static const groundRatio = 0.70;
   static const playerXRatio = 0.2;
@@ -88,6 +91,19 @@ abstract final class InfiniteRunnerConfig {
   static const bgTop = skyTop;
   static const bgBottom = skyBottom;
   static const obstacleColor = obstacleDark;
+}
+
+enum InfiniteRunnerSwipeAction { up, down }
+
+/// Swipe vertical reconhecido a partir do deslocamento acumulado do arraste.
+InfiniteRunnerSwipeAction? infiniteRunnerSwipeActionFromDelta(
+  double dx,
+  double dy, {
+  double minDist = InfiniteRunnerConfig.swipeThresholdPx,
+}) {
+  if (dx.abs() < minDist && dy.abs() < minDist) return null;
+  if (dx.abs() > dy.abs()) return null;
+  return dy > 0 ? InfiniteRunnerSwipeAction.down : InfiniteRunnerSwipeAction.up;
 }
 
 /// Progresso da partida 0.0 → 1.0 (velocidade e dificuldade).

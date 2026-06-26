@@ -144,7 +144,7 @@ Todo jogo Flame novo deve atingir o **mesmo nível de polish** de **Tap Rush** (
 2. **Estado síncrono antes do layout** — dados usados em `onGameResize`/`_buildGrid` no **construtor**, não só em `onLoad()` async (`LateInitializationError` se violar).
 3. **Timer no `update(dt)`** — tempo, animações e decaimento no loop Flame; **não** `Timer.periodic` para gameplay.
 4. **Score via callback** — `onScoreUpdate(int)` durante a partida; **nunca** `setState` no pai que recria o `GameWidget`.
-5. **`GameResult.metadata`** — stats úteis para o placar final (`moves`, `hits`, `timeBonus`, etc.) **e** `performanceTier` (`bronze` / `silver` / `gold`) para a economia global.
+5. **`GameResult.metadata`** — stats úteis para o placar final (`moves`, `hits`, `timeBonus`, etc.), **`won`** (`true`/`false`) quando a partida tem vitória/derrota, **e** `performanceTier` (`bronze` / `silver` / `gold`) para a economia global.
 6. **`_sessionActive`** — guardas após `await` / `onRemove` para não chamar callbacks pós-dispose.
 7. **Recompensa de sessão** — jogos **não** calculam `coinsEarned`/`xpEarned` a partir do score de ranking; o runner chama `resolveSessionReward()` em `core/economy/`.
 
@@ -197,8 +197,9 @@ O jogador compara o `+N` flutuante com o que subiu na AppBar. **Devem bater.**
 25. **`GamePrepDefinition`** — opções de dificuldade + `GameHelpContent` (como jogar + pontuação em PT-BR).
 26. **Scoring em funções puras** — `progressScore`, `finalScore`, previews do HUD em `*_config.dart`; `*PerformanceTier()` para economia.
 27. **Testes unitários** — cobrir scoring, penalidades, bônus, deltas de label e helpers de formatação em `test/games/`.
-28. **UI compartilhada** — `GameSessionAppBar` e `GameResultDialog` usam `GameCatalogThumbnail` (mesma arte do catálogo); estender `_GameResultStats` se o jogo tiver stats novas.
-29. **Dicas pagas** — usar `GameSessionHudAction(coinCost: …)` + `callbacks.trySpendCoins`; custos em `EconomyConfig`, não hardcoded no `render()`.
+28. **UI compartilhada** — `GameSessionAppBar` e `GameResultDialog` usam `GameCatalogThumbnail` (mesma arte do catálogo); estender `_StatsChips` se o jogo tiver stats novas.
+29. **Resultado binário no placar** — jogos com vitória/derrota gravam `metadata['won']`; `GameResultDialog` exibe banner **VITÓRIA** / **DERROTA** via `gameResultOutcomeWon()`. **Não** usar `won` em jogos só de pontuação (Tap Rush, Corrida, 2048) nem nos que só terminam ao completar (Memória).
+30. **Dicas pagas** — usar `GameSessionHudAction(coinCost: …)` + `callbacks.trySpendCoins`; custos em `EconomyConfig`, não hardcoded no `render()`.
 
 ### Padrões por referência
 
@@ -223,12 +224,14 @@ O jogador compara o `+N` flutuante com o que subiu na AppBar. **Devem bater.**
 - Placar ao vivo = tempo (`+10/s`) + obstáculos (`+30` cada).
 - Label ao passar obstáculo: `infiniteRunnerObstaclePassDelta` (inclui tempo desde último placar), não `+30` fixo.
 - HUD: distância, velocidade, obstáculos + footnote `+10/s`.
+- Input: `RunnerInputLayer` (camada Flame full-screen) + swipe vertical via `infiniteRunnerSwipeActionFromDelta()`; teclado web (↑/↓, Espaço, W/S) em `KeyboardEvents`. Sem `metadata['won']` — fim de corrida = pontuação.
 
 ### Anti-padrões (não entregar assim)
 
 - Fundo cinza/azul genérico sem relação com o card do catálogo.
 - Placar só na AppBar — jogador não entende **por que** o score muda.
 - **Label flutuante com constante bruta** (`+150`, `+30`) enquanto o placar usa fórmula líquida ou multi-componente — usar delta real (`newScore − previousScore` ou `result.scoreDelta`).
+- **Vitória/derrota ambígua** — jogos com `won` no metadata mas placar final genérico (“Partida encerrada”); usar banner do `GameResultDialog`.
 - **Penalidade silenciosa** — jogadas/erros que custam pontos sem atualizar placar nem FX até o próximo acerto.
 - **HUD com texto cortado** — `TextPainter` tratando borda esquerda como direita (`pos.dx - width` para coluna esquerda); sempre testar em 390 px.
 - Estado visual que “teleporta” (carta vira sem animação, alvo some seco).
@@ -472,7 +475,7 @@ Callbacks que o jogo **deve** usar:
 | Callback | Quando |
 |---|---|
 | `onScoreUpdate(int)` | Durante a partida (score de **ranking**) |
-| `onGameOver(GameResult)` | Fim da partida — incluir `metadata['performanceTier']` |
+| `onGameOver(GameResult)` | Fim da partida — incluir `metadata['performanceTier']`; **`metadata['won']`** quando houver vitória/derrota (Dominó, Paciência, Sudoku, Cobra) |
 | `onRewardEarned(type, amount)` | Recompensa mid-game (ex.: ad) — reservado |
 | `onExit()` | Jogador desiste |
 | `trySpendCoins(amount)` | Gasto mid-game (dicas Sudoku/Paciência) — retorna `false` se saldo insuficiente |
@@ -554,7 +557,7 @@ Curva de nível: `level_curve.dart` — quadrática (`nível 2` = 100 XP total).
 |---|---|
 | Header | Pill de nível (anel) + pill de moedas |
 | Perfil | Hero com barra XP, card “Moedas e XP”, tile XP total, **?** → `showEconomyHelpDialog` |
-| Placar final | Colunas moedas + “XP nível”; banner “Nível up!” com moedas bônus |
+| Placar final | Banner vitória/derrota (se `won`); colunas moedas + “XP nível”; banner “Nível up!” com moedas bônus |
 | HUD dica | `GameSessionHudAction.coinCost` — ícone + número em dourado |
 
 Textos PT-BR centralizados em `economy_copy.dart`.
@@ -568,7 +571,7 @@ Persistência defensiva: JSON inválido em `load()` cai para perfil default (nã
 `GameRegistry.instance.resetForTesting()` em `setUp`/`tearDown` — evita vazamento entre arquivos.
 `test/helpers/test_app.dart` centraliza providers + `registerBundledGames()`.
 
-**Jogos Flame:** todo jogo com scoring não-trivial deve ter `test/games/<jogo>_config_test.dart` (scoring, tiers, helpers do HUD). Economia global: `test/core/session_rewards_test.dart`, `level_curve_test.dart`, `economy_copy_test.dart`. Goldens ficam no hub (`test/golden/`).
+**Jogos Flame:** todo jogo com scoring não-trivial deve ter `test/games/<jogo>_config_test.dart` (scoring, tiers, helpers do HUD). SDK compartilhado: `test/core/game_result_dialog_test.dart` (`gameResultOutcomeWon`, banner vitória/derrota). Economia global: `test/core/session_rewards_test.dart`, `level_curve_test.dart`, `economy_copy_test.dart`. Goldens ficam no hub (`test/golden/`).
 
 ## Convenções de código
 
@@ -729,3 +732,5 @@ Ver `PLANO.md`.
 | Fase 2 econ. | `HubTheme.coinIcon` / `levelIcon` | Ícones únicos de moeda e XP em todo o hub |
 | Fase 2 econ. | Dicas pagas via `trySpendCoins` + `coinCost` no HUD | Primeiro sink de moedas com custo visível no botão |
 | Fase 2 econ. | `showEconomyHelpDialog` no Perfil | Jogador entende loop moedas → XP → nível |
+| Pós-polish | `metadata['won']` + banner no `GameResultDialog` | Vitória/derrota explícita (Dominó, Paciência, Sudoku, Cobra); arcade/memória sem `won` |
+| Pós-polish | Corrida: `RunnerInputLayer` + teclado web | Swipe confiável no browser; helper `infiniteRunnerSwipeActionFromDelta` testável |

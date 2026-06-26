@@ -74,6 +74,19 @@ void main() {
       expect(infiniteRunnerSpeedModeMultiplier(99), 1.5);
     });
 
+    test('swipe vertical reconhece cima e baixo', () {
+      expect(
+        infiniteRunnerSwipeActionFromDelta(0, -30),
+        InfiniteRunnerSwipeAction.up,
+      );
+      expect(
+        infiniteRunnerSwipeActionFromDelta(0, 30),
+        InfiniteRunnerSwipeAction.down,
+      );
+      expect(infiniteRunnerSwipeActionFromDelta(40, 5), isNull);
+      expect(infiniteRunnerSwipeActionFromDelta(5, 5), isNull);
+    });
+
     test('obstáculos baixos visíveis mas puláveis', () {
       const pw = 58.0;
       const ph = 143.0;

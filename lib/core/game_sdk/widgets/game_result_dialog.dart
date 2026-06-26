@@ -52,7 +52,7 @@ class GameResultDialog extends StatelessWidget {
     final mistakes = _metaInt(result.metadata['mistakes']);
     final hintsUsed = _metaInt(result.metadata['hintsUsed']);
     final cellsFilled = _metaInt(result.metadata['cellsFilled']);
-    final won = result.metadata['won'] == true;
+    final outcomeWon = gameResultOutcomeWon(result.metadata);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -83,12 +83,17 @@ class GameResultDialog extends StatelessWidget {
                     metadata: metadata,
                     theme: theme,
                     isNewRecord: isNewRecord,
+                    outcomeWon: outcomeWon,
                     bestScore: bestScore,
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                     child: Column(
                       children: [
+                        if (outcomeWon != null) ...[
+                          _OutcomeBanner(won: outcomeWon),
+                          const SizedBox(height: 14),
+                        ],
                         _ScoreHero(
                           score: result.score,
                           bestScore: bestScore,
@@ -126,8 +131,7 @@ class GameResultDialog extends StatelessWidget {
                             (snakeLength != null && snakeLength > 0) ||
                             (mistakes != null && mistakes > 0) ||
                             (hintsUsed != null && hintsUsed > 0) ||
-                            (cellsFilled != null && cellsFilled > 0) ||
-                            won) ...[
+                            (cellsFilled != null && cellsFilled > 0)) ...[
                           const SizedBox(height: 14),
                           _StatsChips(
                             cardColor: theme.cardColor,
@@ -149,7 +153,6 @@ class GameResultDialog extends StatelessWidget {
                             mistakes: mistakes,
                             hintsUsed: hintsUsed,
                             cellsFilled: cellsFilled,
-                            won: won,
                           ),
                         ],
                         const SizedBox(height: 20),
@@ -172,18 +175,104 @@ class GameResultDialog extends StatelessWidget {
   }
 }
 
+class _OutcomeBanner extends StatelessWidget {
+  const _OutcomeBanner({required this.won});
+
+  final bool won;
+
+  static const _victoryColor = Color(0xFF00B894);
+  static const _defeatColor = HubTheme.featuredBadge;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = won ? _victoryColor : _defeatColor;
+    final icon = won ? Icons.emoji_events_rounded : Icons.close_rounded;
+    final title = won ? 'VITÓRIA' : 'DERROTA';
+    final subtitle = won
+        ? 'Você venceu a partida!'
+        : 'Não foi desta vez — tente de novo.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withValues(alpha: 0.45), width: 2),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    color: color,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: HubTheme.textSecondary,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ResultHeader extends StatelessWidget {
   const _ResultHeader({
     required this.metadata,
     required this.theme,
     required this.isNewRecord,
+    this.outcomeWon,
     this.bestScore,
   });
 
   final GameMetadata metadata;
   final HubGameTheme theme;
   final bool isNewRecord;
+  final bool? outcomeWon;
   final int? bestScore;
+
+  String _subtitle() {
+    if (isNewRecord) return 'Novo recorde!';
+    if (outcomeWon == true) return 'Vitória!';
+    if (outcomeWon == false) return 'Derrota';
+    return 'Partida encerrada';
+  }
+
+  Color _subtitleColor() {
+    if (isNewRecord) return theme.accentColor;
+    if (outcomeWon == true) return const Color(0xFF00B894);
+    if (outcomeWon == false) return HubTheme.featuredBadge;
+    return Colors.white.withValues(alpha: 0.82);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -268,13 +357,11 @@ class _ResultHeader extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        isNewRecord ? 'Novo recorde!' : 'Partida encerrada',
+                        _subtitle(),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: isNewRecord
-                              ? theme.accentColor
-                              : Colors.white.withValues(alpha: 0.82),
+                          color: _subtitleColor(),
                         ),
                       ),
                     ],
@@ -629,7 +716,6 @@ class _StatsChips extends StatelessWidget {
     this.mistakes,
     this.hintsUsed,
     this.cellsFilled,
-    this.won = false,
   });
 
   final Color cardColor;
@@ -651,7 +737,6 @@ class _StatsChips extends StatelessWidget {
   final int? mistakes;
   final int? hintsUsed;
   final int? cellsFilled;
-  final bool won;
 
   @override
   Widget build(BuildContext context) {
@@ -694,8 +779,6 @@ class _StatsChips extends StatelessWidget {
           _Chip(label: 'Dicas', value: '$hintsUsed', color: cardColor),
         if (cellsFilled != null && cellsFilled! > 0)
           _Chip(label: 'Células', value: '$cellsFilled/81', color: accentColor),
-        if (won)
-          _Chip(label: 'Vitória', value: '✓', color: HubTheme.coinGold),
       ],
     );
   }
