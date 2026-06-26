@@ -31,9 +31,9 @@ class InfiniteRunnerGame implements HubGame {
   GamePrepDefinition get prep => GamePrepDefinition(
         help: const GameHelpContent(
           howToPlay:
-              'Toque ou deslize para cima para pular obstáculos baixos. '
-              'Segure o dedo ou deslize para baixo para agachar sob as vigas. '
-              'Funciona em qualquer lugar da tela. A velocidade aumenta com o tempo.',
+              'Deslize para cima em qualquer lugar da tela para pular '
+              'obstáculos baixos. Deslize para baixo para agachar sob as vigas '
+              'enquanto mantém o dedo na tela. A velocidade aumenta com o tempo.',
           scoring:
               'Ganhe 10 pts por segundo sobrevivido e +30 pts por cada '
               'obstáculo ultrapassado. Modos mais rápidos aceleram a corrida '
@@ -73,7 +73,7 @@ class InfiniteRunnerGame implements HubGame {
 
 enum _Phase { countdown, playing, crashed, finished }
 
-class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
+class InfiniteRunnerFlameGame extends FlameGame with DragCallbacks {
   InfiniteRunnerFlameGame({
     required this.callbacks,
     required this.speedModeIndex,
@@ -90,15 +90,11 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
   bool _sessionStarted = false;
   bool _sessionActive = true;
   bool _duckPointerActive = false;
-  bool _pointerDown = false;
+  bool _dragActive = false;
   bool _jumpedThisGesture = false;
-  double _pointerHoldSec = 0;
-  Vector2 _pointerDelta = Vector2.zero();
+  Vector2 _dragDelta = Vector2.zero();
 
-  static const _tapMoveThreshold = 16.0;
-  static const _duckSwipeThreshold = 14.0;
-  static const _jumpSwipeThreshold = 16.0;
-  static const _holdDuckSec = 0.22;
+  static const _swipeThreshold = 18.0;
 
   double _scrollSpeed = 0;
   double _spawnTimer = 0;
@@ -181,7 +177,6 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
           modeMultiplier: _modeMultiplier,
         );
         _scrollOffset += _scrollSpeed * dt;
-        _updatePointerHold(dt);
 
         final player = _player;
         if (player != null) {
@@ -347,8 +342,8 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
     if (_phase != _Phase.playing) return;
     _phase = _Phase.crashed;
     _crashFlash = 1;
-    _releaseDuck();
-    _pointerDown = false;
+    _stopDuck();
+    _dragActive = false;
 
     add(
       RunnerFloatingLabel(
@@ -402,95 +397,70 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
     );
   }
 
-  void _beginPointerGesture() {
-    _pointerDown = true;
+  void _beginDrag() {
+    _dragActive = true;
     _jumpedThisGesture = false;
-    _pointerHoldSec = 0;
-    _pointerDelta = Vector2.zero();
+    _dragDelta = Vector2.zero();
   }
 
-  void _updatePointerHold(double dt) {
-    if (!_pointerDown || _phase != _Phase.playing) return;
-    _pointerHoldSec += dt;
-    if (_pointerHoldSec >= _holdDuckSec &&
-        _pointerDelta.length < _tapMoveThreshold) {
-      _setDuck(true);
-    }
+  void _endDrag() {
+    _stopDuck();
+    _dragActive = false;
+    _dragDelta = Vector2.zero();
+    _jumpedThisGesture = false;
   }
 
-  void _applyPointerDelta(Vector2 delta) {
-    if (_phase != _Phase.playing) return;
-    _pointerDelta += delta;
-    if (_pointerDelta.y >= _duckSwipeThreshold) {
-      _setDuck(true);
-    } else if (_pointerDelta.y <= -_jumpSwipeThreshold && !_jumpedThisGesture) {
+  bool _isVerticalSwipe() =>
+      _dragDelta.y.abs() >= _swipeThreshold &&
+      _dragDelta.y.abs() > _dragDelta.x.abs();
+
+  void _applyDragDelta(Vector2 delta) {
+    if (_phase != _Phase.playing || !_dragActive) return;
+    _dragDelta += delta;
+    if (!_isVerticalSwipe()) return;
+
+    if (_dragDelta.y >= _swipeThreshold) {
+      _startDuck();
+    } else if (_dragDelta.y <= -_swipeThreshold && !_jumpedThisGesture) {
+      _stopDuck();
       _player?.jump();
       _jumpedThisGesture = true;
-      _releaseDuck();
     }
   }
 
-  void _setDuck(bool duck) {
-    if (duck) {
-      _player?.setDuck(true);
-      _duckPointerActive = true;
-    } else {
-      _releaseDuck();
-    }
+  void _startDuck() {
+    _player?.setDuck(true);
+    _duckPointerActive = true;
   }
 
-  void _releaseDuck() {
+  void _stopDuck() {
     if (!_duckPointerActive) return;
     _player?.setDuck(false);
     _duckPointerActive = false;
   }
 
-  void _endPointerGesture() {
-    if (!_pointerDown) return;
-    if (_phase == _Phase.playing &&
-        _pointerDelta.length < _tapMoveThreshold &&
-        !_jumpedThisGesture &&
-        !_duckPointerActive) {
-      _player?.jump();
-    }
-    _releaseDuck();
-    _pointerDown = false;
-    _pointerHoldSec = 0;
-    _pointerDelta = Vector2.zero();
-    _jumpedThisGesture = false;
-  }
-
-  @override
-  void onTapDown(TapDownEvent event) {
-    _beginPointerGesture();
-  }
-
-  @override
-  void onTapUp(TapUpEvent event) {
-    _endPointerGesture();
-  }
-
-  @override
-  void onTapCancel(TapCancelEvent event) {
-    _endPointerGesture();
-  }
-
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    _beginPointerGesture();
+    _beginDrag();
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    _applyPointerDelta(event.localDelta);
+    _applyDragDelta(event.localDelta);
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-    _endPointerGesture();
+    _endDrag();
+  }
+
+  @override
+  void onDragCancel(DragCancelEvent event) {
+    super.onDragCancel(event);
+    _endDrag();
   }
 
   @override
@@ -551,11 +521,11 @@ class InfiniteRunnerFlameGame extends FlameGame with TapCallbacks, DragCallbacks
     final hintY = size.y * 0.52;
 
     if (_phase == _Phase.countdown) {
-      _paintHintChip(canvas, Offset(size.x * 0.5, hintY - 28), 'Toque / ↑ pular', fade);
+      _paintHintChip(canvas, Offset(size.x * 0.5, hintY - 28), '↑ Deslize p/ pular', fade);
       _paintHintChip(
         canvas,
         Offset(size.x * 0.5, hintY + 28),
-        'Segure / ↓ agachar',
+        '↓ Deslize p/ agachar',
         fade,
       );
     } else if (_player?.ducking == true) {
