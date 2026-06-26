@@ -33,7 +33,8 @@ void main() {
     });
 
     test('performance tier calibrado', () {
-      expect(tapRushPerformanceTier(420), PerformanceTier.gold);
+      expect(tapRushPerformanceTier(450), PerformanceTier.gold);
+      expect(tapRushPerformanceTier(383), PerformanceTier.gold);
       expect(tapRushPerformanceTier(200), PerformanceTier.bronze);
     });
   });

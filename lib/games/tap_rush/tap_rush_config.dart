@@ -12,15 +12,15 @@ abstract final class TapRushConfig {
 
   static const durationChoicesSec = [15, 30, 60];
 
-  static const baseTargetRadius = 36.0;
-  static const minTargetRadius = 17.0;
+  static const baseTargetRadius = 40.0;
+  static const minTargetRadius = 22.0;
 
   /// Tempo máximo (ms) antes do alvo sumir — diminui com a partida.
-  static const maxTargetLifetimeMs = 1000.0;
-  static const minTargetLifetimeMs = 400.0;
+  static const maxTargetLifetimeMs = 1200.0;
+  static const minTargetLifetimeMs = 525.0;
 
   /// Tolerância extra (px) além do círculo visível para registrar acerto.
-  static const hitGracePx = 5.0;
+  static const hitGracePx = 8.0;
 
   static const maxComboMultiplier = 5;
   static const basePointsPerHit = 10;
@@ -47,9 +47,9 @@ int tapRushPointsForHit(int combo) {
 double tapRushProgress(double elapsedSec, int durationSec) =>
     (elapsedSec / durationSec).clamp(0.0, 1.0);
 
-/// Curva de dificuldade — acelera no meio/final da partida.
+/// Curva de dificuldade — acelera suavemente no meio/final da partida.
 double tapRushDifficultyProgress(double progress) =>
-    pow(progress.clamp(0.0, 1.0), 1.45).toDouble();
+    pow(progress.clamp(0.0, 1.0), 1.2).toDouble();
 
 double tapRushTargetRadius(double progress) {
   final t = tapRushDifficultyProgress(progress);
@@ -64,8 +64,8 @@ double tapRushTargetLifetimeMs(double progress) {
           t;
 }
 
-/// Score considerado "partida excelente" (desempenho `1.0`) — recalibrado pós-dificuldade.
-const tapRushGoldScore = 420;
+/// Score considerado "partida excelente" (desempenho `1.0`).
+const tapRushGoldScore = 450;
 
 /// Desempenho normalizado (`0.0`–`1.0`) pela pontuação obtida.
 double tapRushPerformanceRatio(int score) =>
