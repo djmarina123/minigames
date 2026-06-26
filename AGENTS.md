@@ -552,7 +552,7 @@ Assim "ouro" significa o **mesmo nível de excelência** em todos os jogos; cali
 | Jogo | Como o ratio é computado (alvo `1.0`) |
 |---|---|
 | Memória | eficiência de jogadas (perfeito = `1.0`; cai até `pares × 2.5` jogadas) |
-| Tap Rush | `score / tapRushGoldScore` (470) |
+| Tap Rush | `score / tapRushGoldScore` (420) |
 | 2048 | escala **log2** da maior peça (`64` → `0`, `1024` → `1.0`) |
 | Cobra | vencer = `1.0`; senão `comprimento / 21` |
 | Corrida | melhor entre `dist/235` e `obstáculos/17` |
