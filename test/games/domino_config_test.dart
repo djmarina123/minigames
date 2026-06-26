@@ -3,9 +3,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minigames_hub/core/economy/performance_tier.dart';
+import 'package:minigames_hub/core/l10n/l10n_scope.dart';
 import 'package:minigames_hub/games/domino/domino_config.dart';
 
 void main() {
+  setUpAll(() async {
+    await L10nScope.installForTest();
+  });
+
   group('DominoConfig', () {
     test('conjunto completo tem 28 peças double-six', () {
       final set = dominoCreateSet();

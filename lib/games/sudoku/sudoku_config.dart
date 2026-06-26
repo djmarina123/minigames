@@ -89,9 +89,9 @@ SudokuDifficulty sudokuDifficultyFromValue(String value) => switch (value) {
     };
 
 String sudokuDifficultyLabel(SudokuDifficulty difficulty) => switch (difficulty) {
-      SudokuDifficulty.easy => 'Fácil',
-      SudokuDifficulty.medium => 'Médio',
-      SudokuDifficulty.hard => 'Difícil',
+      SudokuDifficulty.easy => L10nScope.of.difficultyEasy,
+      SudokuDifficulty.medium => L10nScope.of.difficultyMedium,
+      SudokuDifficulty.hard => L10nScope.of.difficultyHard,
     };
 
 class SudokuBoardLayout {

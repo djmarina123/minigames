@@ -807,7 +807,7 @@ class DominoFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     // Objetivo central.
     _paintCenteredText(
       canvas,
-      'OBJETIVO ${DominoConfig.timeBonusMax}',
+      '${L10nScope.of.hudObjective} ${DominoConfig.timeBonusMax}',
       barCenterY - 5,
       DominoConfig.hudMuted,
       9,

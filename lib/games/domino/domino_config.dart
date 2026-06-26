@@ -580,7 +580,7 @@ int dominoTimeBonusRemaining(double elapsedSec) {
 
 String dominoHudTimeBonusPreview(double elapsedSec) {
   final bonus = dominoTimeBonusRemaining(elapsedSec);
-  return '+$bonus tempo';
+  return L10nScope.of.hudTimeBonus(bonus);
 }
 
 int dominoWinBonus({
@@ -838,9 +838,9 @@ String dominoTurnLabel(DominoPlayer turn) =>
         : L10nScope.of.gameDominoCpuTurn;
 
 String dominoDifficultyLabel(String difficulty) => switch (difficulty) {
-      DominoConfig.difficultyEasy => 'Fácil',
-      DominoConfig.difficultyHard => 'Difícil',
-      _ => 'Normal',
+      DominoConfig.difficultyEasy => L10nScope.of.difficultyEasy,
+      DominoConfig.difficultyHard => L10nScope.of.difficultyHard,
+      _ => L10nScope.of.difficultyNormal,
     };
 
 /// Layout do tabuleiro (testável sem Flame).

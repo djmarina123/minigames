@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import '../../core/economy/performance_tier.dart';
+import '../../core/l10n/l10n_scope.dart';
 import 'memory_symbols.dart';
 
 /// Constantes e regras de pontuação do Jogo da Memória.
@@ -125,7 +126,7 @@ String memoryFormatDuration(Duration duration) {
 String? memoryHudTimeBonusFootnote(Duration elapsed) {
   final bonus = memoryTimeBonusRemaining(elapsed);
   if (bonus <= 0) return null;
-  return '+$bonus tempo';
+  return L10nScope.of.hudTimeBonus(bonus);
 }
 
 /// Pontuação final ao completar o tabuleiro.

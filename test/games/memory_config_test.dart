@@ -1,8 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minigames_hub/core/economy/performance_tier.dart';
+import 'package:minigames_hub/core/l10n/l10n_scope.dart';
 import 'package:minigames_hub/games/memory/memory_config.dart';
 
 void main() {
+  setUpAll(() async {
+    await L10nScope.installForTest();
+  });
   group('memoryFinalScore', () {
     test('partida perfeita rápida atinge score alto', () {
       final result = memoryFinalScore(

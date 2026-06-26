@@ -651,7 +651,7 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
         ),
         GameSessionHudStat(
           caption: L10nScope.of.hudSpeed,
-          value: 'Nv. $speedLevel',
+          value: L10nScope.of.resultStatSpeedLevel(speedLevel),
         ),
         GameSessionHudStat(
           caption: L10nScope.of.hudObstacles,
