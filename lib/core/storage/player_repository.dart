@@ -164,6 +164,12 @@ class PlayerRepository extends ChangeNotifier {
     await _save();
   }
 
+  Future<void> setAdsRemoved(bool removed) async {
+    if (_profile.adsRemoved == removed) return;
+    _profile = _profile.copyWith(adsRemoved: removed);
+    await _save();
+  }
+
   static bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 

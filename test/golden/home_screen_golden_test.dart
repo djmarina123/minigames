@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:minigames_hub/core/iap/purchase_service.dart';
 import 'package:minigames_hub/core/leaderboard/leaderboard_repository.dart';
+import 'package:minigames_hub/core/progression/achievements_repository.dart';
+import 'package:minigames_hub/core/progression/missions_repository.dart';
 import 'package:minigames_hub/core/storage/player_repository.dart';
 import 'package:minigames_hub/features/shell/main_shell.dart';
 
@@ -22,6 +25,9 @@ void main() {
     late ({
       PlayerRepository playerRepo,
       LeaderboardRepository leaderboardRepo,
+      AchievementsRepository achievementsRepo,
+      MissionsRepository missionsRepo,
+      PurchaseService purchaseService,
     }) repos;
 
     setUp(() async {
@@ -38,6 +44,9 @@ void main() {
         app: buildTestApp(
           playerRepo: repos.playerRepo,
           leaderboardRepo: repos.leaderboardRepo,
+          achievementsRepo: repos.achievementsRepo,
+          missionsRepo: repos.missionsRepo,
+          purchaseService: repos.purchaseService,
         ),
         surfaceSize: viewport,
       );

@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 
 import 'firebase_config.dart';
 import 'firebase_options.dart';
+import 'messaging_service.dart';
+import 'remote_config_service.dart';
 
 /// Inicializa Firebase (Auth anônimo, Analytics, Crashlytics).
 /// Sem configuração, o app continua em modo local para desenvolvimento.
@@ -45,6 +47,9 @@ class FirebaseBootstrap {
 
       await FirebaseAnalytics.instance.logAppOpen();
       _initialized = true;
+
+      await RemoteConfigService.initialize();
+      await MessagingService.initialize();
     } catch (error, stack) {
       debugPrint('FirebaseBootstrap: falha ao inicializar — $error\n$stack');
     }

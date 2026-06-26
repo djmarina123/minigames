@@ -9,6 +9,8 @@ import 'package:minigames_hub/core/economy/session_rewards.dart';
 import 'package:minigames_hub/core/game_sdk/game_result.dart';
 import 'package:minigames_hub/core/game_sdk/game_runner_screen.dart';
 import 'package:minigames_hub/core/leaderboard/leaderboard_repository.dart';
+import 'package:minigames_hub/core/progression/achievements_repository.dart';
+import 'package:minigames_hub/core/progression/missions_repository.dart';
 import 'package:minigames_hub/core/storage/player_repository.dart';
 
 import '../helpers/mock_game.dart';
@@ -19,6 +21,8 @@ void main() {
   group('GameRunnerScreen', () {
     late PlayerRepository playerRepo;
     late LeaderboardRepository leaderboardRepo;
+    late AchievementsRepository achievementsRepo;
+    late MissionsRepository missionsRepo;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
@@ -27,6 +31,10 @@ void main() {
       await playerRepo.load();
       leaderboardRepo = LeaderboardRepository(prefs);
       await leaderboardRepo.refresh();
+      achievementsRepo = AchievementsRepository(prefs, playerRepo);
+      await achievementsRepo.load();
+      missionsRepo = MissionsRepository(prefs, playerRepo);
+      await missionsRepo.load();
     });
 
     Widget buildRunner({MockInstantGame? game}) {
@@ -35,6 +43,12 @@ void main() {
           ChangeNotifierProvider<PlayerRepository>.value(value: playerRepo),
           ChangeNotifierProvider<LeaderboardRepository>.value(
             value: leaderboardRepo,
+          ),
+          ChangeNotifierProvider<AchievementsRepository>.value(
+            value: achievementsRepo,
+          ),
+          ChangeNotifierProvider<MissionsRepository>.value(
+            value: missionsRepo,
           ),
         ],
         child: MaterialApp(
@@ -62,7 +76,8 @@ void main() {
       );
 
       expect(playerRepo.profile.gamesPlayed, 1);
-      expect(playerRepo.profile.coins, EconomyConfig.startingCoins + expected.coins);
+      // Inclui bônus de conquistas (first_game, gold_once, new_record).
+      expect(playerRepo.profile.coins, 110);
       expect(playerRepo.profile.xp, expected.xp);
       expect(leaderboardRepo.allBest, hasLength(1));
     });

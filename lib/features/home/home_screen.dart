@@ -6,9 +6,11 @@ import '../../core/game_sdk/game_prep_screen.dart';
 import '../../core/game_sdk/game_runner_screen.dart';
 import '../../core/game_sdk/game_registry.dart';
 import '../../core/game_sdk/hub_game.dart';
+import '../../core/progression/achievements_repository.dart';
 import '../../core/storage/favorite_games.dart';
 import '../../core/storage/player_repository.dart';
 import '../../core/theme/hub_theme.dart';
+import 'widgets/daily_missions_banner.dart';
 import 'widgets/daily_reward_banner.dart';
 import 'widgets/game_card.dart';
 import 'widgets/hub_header.dart';
@@ -42,6 +44,7 @@ class HomeScreen extends StatelessWidget {
               onProfileTap: onProfileTap,
             ),
             const DailyRewardBanner(),
+            const DailyMissionsBanner(),
             Expanded(
               child: games.isEmpty
                   ? const Center(child: Text('Nenhum jogo disponível.'))
@@ -81,5 +84,24 @@ class HomeScreen extends StatelessWidget {
 
     await Navigator.of(context).push<void>(route);
     await AdsService.maybeShowInterstitial();
+    if (!context.mounted) return;
+    _showAchievementNotifications(context);
+  }
+
+  void _showAchievementNotifications(BuildContext context) {
+    final repo = context.read<AchievementsRepository>();
+    final pending = repo.pendingNotifications;
+    if (pending.isEmpty) return;
+
+    final label = pending.length == 1
+        ? 'Conquista: ${pending.first.definition.title}'
+        : '${pending.length} conquistas desbloqueadas!';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(label),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    repo.clearPendingNotifications();
   }
 }

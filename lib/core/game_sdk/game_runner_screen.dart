@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import '../ads/ads_service.dart';
 import '../economy/session_rewards.dart';
 import '../leaderboard/leaderboard_repository.dart';
+import '../progression/achievements_repository.dart';
+import '../progression/missions_repository.dart';
+import '../progression/progression_models.dart';
 import '../storage/player_repository.dart';
 import '../theme/game_ui.dart';
 import 'game_result.dart';
@@ -86,6 +89,28 @@ class _GameRunnerScreenState extends State<GameRunnerScreen> {
       gameTitle: widget.game.metadata.title,
       score: result.score,
     );
+
+    final profile = playerRepo.profile;
+    final sessionEvent = SessionEvent(
+      gameId: gameId,
+      score: result.score,
+      tierName: result.metadata['performanceTier'] as String?,
+      isNewRecord: isNewRecord,
+      gamesPlayed: profile.gamesPlayed,
+      level: sessionRecord.newLevel,
+      dailyStreak: profile.dailyStreak,
+      uniqueGamesPlayed: 0,
+      won: gameResultOutcomeWon(result.metadata),
+    );
+
+    if (!mounted) return;
+
+    final achievementsRepo = context.read<AchievementsRepository>();
+    final missionsRepo = context.read<MissionsRepository>();
+    await achievementsRepo.onSession(sessionEvent);
+    await missionsRepo.onSession(sessionEvent);
+
+    if (!mounted) return;
 
     final bestScore =
         _bestScoreFor(leaderboardRepo, gameId) ?? result.score;

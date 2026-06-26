@@ -11,6 +11,7 @@ class PlayerProfile {
     this.gamesPlayed = 0,
     this.lastGamePlayed,
     this.favoriteGameIds = const [],
+    this.adsRemoved = false,
   });
 
   final int coins;
@@ -22,6 +23,9 @@ class PlayerProfile {
 
   /// IDs de jogos favoritos — ordem define posição no topo do catálogo.
   final List<String> favoriteGameIds;
+
+  /// Compra "remover anúncios" — desativa interstitials.
+  final bool adsRemoved;
 
   int get level => levelFromXp(xp);
 
@@ -39,6 +43,7 @@ class PlayerProfile {
     int? gamesPlayed,
     DateTime? lastGamePlayed,
     List<String>? favoriteGameIds,
+    bool? adsRemoved,
     bool clearLastDailyClaim = false,
     bool clearLastGamePlayed = false,
   }) {
@@ -53,6 +58,7 @@ class PlayerProfile {
           ? null
           : (lastGamePlayed ?? this.lastGamePlayed),
       favoriteGameIds: favoriteGameIds ?? this.favoriteGameIds,
+      adsRemoved: adsRemoved ?? this.adsRemoved,
     );
   }
 
@@ -64,6 +70,7 @@ class PlayerProfile {
         'gamesPlayed': gamesPlayed,
         'lastGamePlayed': lastGamePlayed?.toIso8601String(),
         'favoriteGameIds': favoriteGameIds,
+        'adsRemoved': adsRemoved,
       };
 
   factory PlayerProfile.fromJson(Map<String, Object?> json) {
@@ -81,6 +88,7 @@ class PlayerProfile {
       gamesPlayed: json['gamesPlayed'] as int? ?? 0,
       lastGamePlayed: lastGame != null ? DateTime.tryParse(lastGame) : null,
       favoriteGameIds: favorites,
+      adsRemoved: json['adsRemoved'] as bool? ?? false,
     );
   }
 }

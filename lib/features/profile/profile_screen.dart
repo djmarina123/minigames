@@ -7,6 +7,8 @@ import '../../core/economy/economy_copy.dart';
 import '../../core/economy/economy_help_dialog.dart';
 import '../../core/storage/player_repository.dart';
 import '../../core/theme/hub_theme.dart';
+import 'widgets/achievements_panel.dart';
+import 'widgets/shop_panel.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -58,6 +60,10 @@ class ProfileScreen extends StatelessWidget {
                   _EconomySummaryCard(
                     onLearnMore: () => showEconomyHelpDialog(context),
                   ),
+                  const SizedBox(height: 16),
+                  const ShopPanel(),
+                  const SizedBox(height: 16),
+                  const AchievementsPanel(),
                   const SizedBox(height: 16),
                   _StatTile(
                     icon: HubTheme.coinIcon,
