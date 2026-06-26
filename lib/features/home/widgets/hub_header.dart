@@ -185,25 +185,65 @@ class _DailyRewardButton extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(right: 6),
-      child: _HubActionChip(
-        tooltip: l10n.hubDailyRewardTooltip(amount),
-        leading: const _GiftIconBadge(),
-        backgroundColor: HubTheme.dailyRewardPillBg,
-        borderColor: HubTheme.dailyRewardAccent.withValues(alpha: 0.4),
-        badgeLabel: '+$amount',
-        badgeColor: HubTheme.dailyRewardAccent,
-        badgeTextColor: Colors.white,
-        onTap: () async {
-          final reward = await context.read<PlayerRepository>().claimDailyReward();
-          if (context.mounted && reward != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.dailyRewardClaimed(reward)),
-                behavior: SnackBarBehavior.floating,
+      child: Tooltip(
+        message: l10n.hubDailyRewardTooltip(amount),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () async {
+              final reward =
+                  await context.read<PlayerRepository>().claimDailyReward();
+              if (context.mounted && reward != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.dailyRewardClaimed(reward)),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    HubTheme.dailyRewardIcon,
+                    size: 28,
+                    color: HubTheme.dailyRewardAccent,
+                  ),
+                  Positioned(
+                    top: -5,
+                    right: -10,
+                    child: Container(
+                      constraints: const BoxConstraints(minWidth: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: HubTheme.dailyRewardAccent,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: Text(
+                        '+$amount',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            );
-          }
-        },
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -243,42 +283,6 @@ class _MissionsButton extends StatelessWidget {
         badgeTextColor:
             hasClaimable ? HubTheme.textPrimary : Colors.white,
         onTap: () => showDailyMissionsSheet(context),
-      ),
-    );
-  }
-}
-
-class _GiftIconBadge extends StatelessWidget {
-  const _GiftIconBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 30,
-      height: 30,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            HubTheme.dailyRewardAccent,
-            HubTheme.dailyRewardAccent.withValues(alpha: 0.82),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: Colors.white, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: HubTheme.dailyRewardAccent.withValues(alpha: 0.35),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: const Icon(
-        HubTheme.dailyRewardIcon,
-        size: 18,
-        color: Colors.white,
       ),
     );
   }

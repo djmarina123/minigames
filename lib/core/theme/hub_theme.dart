@@ -18,8 +18,7 @@ abstract final class HubTheme {
   static const removeAdsPurple = Color(0xFF7B5CF0);
   /// Recompensa diária no header — presente (coral quente).
   static const dailyRewardAccent = Color(0xFFE17055);
-  static const dailyRewardPillBg = Color(0xFFFFF0EB);
-  static const dailyRewardIcon = Icons.card_giftcard_rounded;
+  static const dailyRewardIcon = Icons.redeem_outlined;
   /// Missões diárias no header — metas (teal).
   static const missionAccent = Color(0xFF00B894);
   static const missionPillBg = Color(0xFFE0F5F0);
