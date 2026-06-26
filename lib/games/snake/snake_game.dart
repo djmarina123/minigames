@@ -32,10 +32,12 @@ class SnakeGame implements HubGame {
           howToPlay:
               'Deslize na tela para mudar a direção da cobra. Coma as frutas '
               'douradas para crescer e ganhar pontos. Evite bater nas paredes '
-              'ou no próprio corpo. A velocidade aumenta com o tempo.',
+              'ou no próprio corpo — isso encerra a partida. Vence quem '
+              'preencher todo o tabuleiro. A velocidade aumenta com o tempo.',
           scoring:
               'Cada fruta vale 20 pts (+5 a cada 5 frutas comidas). O tempo '
-              'só aumenta a velocidade da cobra — não soma pontos.',
+              'só aumenta a velocidade da cobra — não soma pontos. Pontos não '
+              'definem vitória; só encher o tabuleiro vence.',
         ),
         optionGroups: [
           GamePrepOptionGroup(
