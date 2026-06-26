@@ -32,6 +32,11 @@ void main() {
       );
     });
 
+    test('área de toque não encolhe abaixo do mínimo', () {
+      expect(tapRushHitRadius(18), TapRushConfig.minHitRadius + TapRushConfig.hitGracePx);
+      expect(tapRushHitRadius(40), greaterThan(TapRushConfig.minHitRadius));
+    });
+
     test('performance tier calibrado', () {
       expect(tapRushPerformanceTier(450), PerformanceTier.gold);
       expect(tapRushPerformanceTier(383), PerformanceTier.gold);

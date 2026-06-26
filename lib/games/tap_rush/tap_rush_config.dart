@@ -13,14 +13,17 @@ abstract final class TapRushConfig {
   static const durationChoicesSec = [15, 30, 60];
 
   static const baseTargetRadius = 40.0;
-  static const minTargetRadius = 22.0;
+  static const minTargetRadius = 26.0;
 
   /// Tempo máximo (ms) antes do alvo sumir — diminui com a partida.
   static const maxTargetLifetimeMs = 1200.0;
   static const minTargetLifetimeMs = 525.0;
 
-  /// Tolerância extra (px) além do círculo visível para registrar acerto.
-  static const hitGracePx = 8.0;
+  /// Raio mínimo da área de toque — independente do tamanho visual.
+  static const minHitRadius = 32.0;
+
+  /// Tolerância extra (px) além do raio de toque para registrar acerto.
+  static const hitGracePx = 10.0;
 
   static const maxComboMultiplier = 5;
   static const basePointsPerHit = 10;
@@ -63,6 +66,10 @@ double tapRushTargetLifetimeMs(double progress) {
       (TapRushConfig.maxTargetLifetimeMs - TapRushConfig.minTargetLifetimeMs) *
           t;
 }
+
+/// Raio efetivo de toque — não encolhe abaixo do mínimo confortável no mobile.
+double tapRushHitRadius(double visualRadius) =>
+    max(visualRadius, TapRushConfig.minHitRadius) + TapRushConfig.hitGracePx;
 
 /// Score considerado "partida excelente" (desempenho `1.0`).
 const tapRushGoldScore = 450;

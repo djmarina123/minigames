@@ -32,15 +32,17 @@ class RushTarget extends PositionComponent with TapCallbacks {
       (1 - _age / lifetimeSec).clamp(0.0, 1.0);
 
   double get visualRadius =>
-      radius * _easeOutBack(_spawnScale) * (0.85 + 0.15 * lifeRatio);
+      radius * _easeOutBack(_spawnScale) * (0.95 + 0.05 * lifeRatio);
+
+  double get hitRadius => tapRushHitRadius(visualRadius);
 
   @override
   void update(double dt) {
     super.update(dt);
     _spawnScale = (_spawnScale + dt * 4).clamp(0.0, 1.0);
     _age += dt;
-    final vr = visualRadius;
-    size.setValues(vr * 2, vr * 2);
+    final hr = hitRadius;
+    size.setValues(hr * 2, hr * 2);
     if (!_resolved && _age >= lifetimeSec) {
       _resolved = true;
       onMissed();
@@ -87,7 +89,7 @@ class RushTarget extends PositionComponent with TapCallbacks {
     final dx = local.x - size.x / 2;
     final dy = local.y - size.y / 2;
     final dist = sqrt(dx * dx + dy * dy);
-    if (dist > visualRadius + TapRushConfig.hitGracePx) {
+    if (dist > hitRadius) {
       _resolved = true;
       onMissed();
       removeFromParent();

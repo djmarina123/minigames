@@ -1,15 +1,8 @@
-# Minigames Hub
+# MiniPlay
 
-Hub de jogos casuais para mobile (Android primeiro, iOS depois).
+Hub de minijogos casuais para mobile (Android primeiro, iOS depois).
 
-## Fase 1 — concluída
-
-- Bottom nav: **Jogos**, **Ranking**, **Perfil**
-- Moedas, XP, recompensa diária, ranking local
-- Jogos Flame: **Jogo da Memória**, **Tap Rush** (+ Demo Tap)
-- AdMob stub (`kAdsConfigured = false`)
-
-Guia para agentes de IA: [`AGENTS.md`](AGENTS.md)
+Roadmap: [`PLANO.md`](PLANO.md) · guia para agentes: [`AGENTS.md`](AGENTS.md) · [`docs/agents/`](docs/agents/)
 
 ## Pré-requisitos
 
@@ -66,19 +59,7 @@ flutterfire configure
 
 ## Estrutura
 
-```
-lib/
-├── main.dart              # bootstrap
-├── app.dart               # MaterialApp
-├── core/
-│   ├── firebase/          # Auth, Analytics, Crashlytics
-│   ├── game_sdk/          # contrato HubGame + registry + runner
-│   └── theme/
-├── features/
-│   └── home/              # catálogo
-└── games/
-    └── demo/              # jogo de exemplo
-```
+Ver [`docs/agents/project.md`](docs/agents/project.md).
 
 ## GitHub
 
@@ -120,4 +101,3 @@ Identidade Git **só neste repositório** (não altera projetos do Senado):
 
 O workflow `.github/workflows/ci.yml` roda `flutter analyze` e `flutter test` em cada push/PR para `main`.
 
-Próxima etapa: **Fase 2** — ver [PLANO.md](PLANO.md).
