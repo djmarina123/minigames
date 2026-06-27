@@ -89,7 +89,7 @@ class ColorBlocksFlameGame extends FlameGame with DragCallbacks, TapCallbacks {
   bool _inputLocked = false;
 
   ColorBlocksBoard _board;
-  List<ColorBlockPiece?> _tray;
+  final List<ColorBlockPiece?> _tray;
   final _random = Random();
 
   int _score = 0;

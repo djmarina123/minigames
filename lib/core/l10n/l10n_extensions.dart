@@ -136,7 +136,7 @@ extension HubL10n on AppLocalizations {
         ('drawCount', 3) => prepDrawThree,
         ('pairCount', _) => '$value',
         ('targetTile', _) => '$value',
-        ('gridSize', _) => '${value}×$value',
+        ('gridSize', _) => '$value×$value',
         _ => '$value',
       };
     }
