@@ -178,9 +178,22 @@
   "prepDraw": "Draw",
   "prepTargetTile": "target tile",
   "prepCluesCount": "{count} clues",
+  "prepCellsCount": "{count} cells",
+  "@prepCellsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "prepGridSize": "{size}×{size}",
+  "@prepGridSize": {
+    "placeholders": {
+      "size": { "type": "int" }
+    }
+  },
   "prepPairsCount": "{count} pairs",
   "prepDrawOne": "1 card",
   "prepDrawThree": "3 cards",
+  "prepBoard": "Board",
+  "prepDefault": "default",
+  "prepChallenge": "challenge",
   "prepSeconds": "{seconds} s",
 
   "hudPairs": "Pairs",
@@ -206,6 +219,16 @@
   "hudMovesCount": "{moves} moves",
   "hudMistakesCount": "{mistakes}/{max} errors",
   "hudCpuTiles": "CPU: {count}",
+  "hudLines": "Lines",
+  "hudMines": "Mines",
+  "hudMinesRemaining": "{count} left",
+  "@hudMinesRemaining": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "prepMinesCount": "{count} mines",
+  "@prepMinesCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "hudPointsPerObstacle": "+{pts}/obs",
 
   "gameCountdownPrepare": "Get ready...",
@@ -264,6 +287,43 @@
   "gameSudokuDescription": "Fill the 9×9 grid without repeating numbers.",
   "gameSudokuHowToPlay": "Tap an empty cell and pick a number from 1 to 9. Each row, column, and 3×3 block must contain all digits without repetition. HINT costs {hintCost} coins and reveals a cell. Use ERASE to clear. The game ends when the grid is complete or after 5 errors.",
   "gameSudokuScoring": "Each correct entry is +12 pts. Error −15 pts. Complete the puzzle for +500 pts, time bonus (up to 300 pts), and +100 pts if you finish with no errors or paid hints.",
+
+  "gameCrossSumsTitle": "Cross Sums",
+  "gameCrossSumsDescription": "Mark the right numbers so row and column sums match.",
+  "gameCrossSumsHowToPlay": "Remove or restore numbers so active cells in each row and column add up to the targets on the left and top. Use ERASER to remove and PENCIL to restore. HINT costs {hintCost} coins. Finish when every cell is correct or after 5 mistakes.",
+  "@gameCrossSumsHowToPlay": {
+    "placeholders": { "hintCost": { "type": "int" } }
+  },
+  "gameCrossSumsScoring": "Each correct toggle is +15 pts. Mistake −18 pts. Complete the puzzle for +450 pts, time bonus (up to 280 pts) and +120 pts if you finish with no mistakes or paid hints.",
+  "gameCrossSumsLevel": "Level {level}",
+  "@gameCrossSumsLevel": {
+    "placeholders": { "level": { "type": "int" } }
+  },
+
+  "gameColorBlocksTitle": "Color Blocks",
+  "gameColorBlocksDescription": "Fit colored blocks and clear full lines!",
+  "gameColorBlocksHowToPlay": "Drag pieces from the tray onto the board. Full rows or columns disappear. The game ends when no piece fits on the grid.",
+  "gameColorBlocksScoring": "Each placed cell is +10 pts. Each cleared row or column is +80 pts; multiple lines at once earn combo bonus.",
+  "gameColorBlocksNoFit": "Does not fit",
+  "gameColorBlocksOverlap": "Overlaps block!",
+  "gameColorBlocksOutOfBounds": "Off the board!",
+  "gameColorBlocksLinesPreview": "{count, plural, =1{1 line!} other{{count} lines!}}",
+  "@gameColorBlocksLinesPreview": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gameColorBlocksComboPreview": "Combo ×{count}",
+  "@gameColorBlocksComboPreview": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "gameMinesweeperTitle": "Minesweeper",
+  "gameMinesweeperDescription": "Reveal safe cells and flag every mine.",
+  "gameMinesweeperHowToPlay": "Tap to reveal a cell. The number shows nearby mines. Use FLAG to mark suspects or hold to toggle a flag. HINT costs {hintCost} coins and reveals a safe cell. Your first move never hits a mine. Win by revealing every safe cell.",
+  "@gameMinesweeperHowToPlay": {
+    "placeholders": { "hintCost": { "type": "int" } }
+  },
+  "gameMinesweeperScoring": "Each revealed cell is +8 pts. Clear the board for +400 pts, time bonus (up to 250 pts), and +80 pts with no paid hints.",
+  "gameMinesweeperMineHit": "Boom!",
 
   "gameDemoTitle": "Demo Tap",
   "gameDemoDescription": "Tap the button as many times as you can in 10 seconds."

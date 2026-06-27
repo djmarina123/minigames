@@ -61,6 +61,18 @@ abstract final class HubTheme {
       cardColor: Color(0xFF16A085),
       accentColor: Color(0xFFF39C12),
     ),
+    'cross_sums': HubGameTheme(
+      cardColor: Color(0xFF1291B5),
+      accentColor: Color(0xFFF9A825),
+    ),
+    'color_blocks': HubGameTheme(
+      cardColor: Color(0xFF6C5CE7),
+      accentColor: Color(0xFFFF7675),
+    ),
+    'minesweeper': HubGameTheme(
+      cardColor: Color(0xFF34495E),
+      accentColor: Color(0xFFE74C3C),
+    ),
     'demo_tap': HubGameTheme(
       cardColor: Color(0xFF0984E3),
       accentColor: Color(0xFF74B9FF),

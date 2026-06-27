@@ -34,7 +34,7 @@ class GameSessionHudActionBar {
   static const coinButtonWidth = 44.0;
   static const gap = 8.0;
   static const edgePad = 8.0;
-  static const belowPanelGap = 4.0;
+  static const belowPanelGap = 10.0;
 
   /// Altura total a reservar no topo do canvas (painel + faixa de botões).
   static const reservedHeight = GameSessionHud.panelTop +

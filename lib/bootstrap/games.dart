@@ -5,6 +5,9 @@ import '../games/memory/memory_game.dart';
 import '../games/snake/snake_game.dart';
 import '../games/solitaire/solitaire_game.dart';
 import '../games/sudoku/sudoku_game.dart';
+import '../games/color_blocks/color_blocks_game.dart';
+import '../games/cross_sums/cross_sums_game.dart';
+import '../games/minesweeper/minesweeper_game.dart';
 import '../games/tap_rush/tap_rush_game.dart';
 
 /// Registra jogos empacotados no hub. Chamado uma vez no bootstrap (`main.dart`).
@@ -20,5 +23,8 @@ void registerBundledGames() {
     SolitaireGame(),
     SnakeGame(),
     SudokuGame(),
+    CrossSumsGame(),
+    ColorBlocksGame(),
+    MinesweeperGame(),
   ]);
 }

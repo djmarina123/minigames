@@ -514,6 +514,16 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String prepCellsCount(int count) {
+    return '$count células';
+  }
+
+  @override
+  String prepGridSize(int size) {
+    return '$size×$size';
+  }
+
+  @override
   String prepPairsCount(int count) {
     return '$count pares';
   }
@@ -523,6 +533,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get prepDrawThree => '3 cartas';
+
+  @override
+  String get prepBoard => 'Tabuleiro';
+
+  @override
+  String get prepDefault => 'padrão';
+
+  @override
+  String get prepChallenge => 'desafio';
 
   @override
   String prepSeconds(int seconds) {
@@ -610,6 +629,22 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String hudCpuTiles(int count) {
     return 'CPU: $count';
+  }
+
+  @override
+  String get hudLines => 'Linhas';
+
+  @override
+  String get hudMines => 'Minas';
+
+  @override
+  String hudMinesRemaining(int count) {
+    return '$count restantes';
+  }
+
+  @override
+  String prepMinesCount(int count) {
+    return '$count minas';
   }
 
   @override
@@ -791,6 +826,86 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get gameSudokuScoring =>
       'Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts, bônus de tempo (até 300 pts) e +100 pts se terminar sem erros nem dicas pagas.';
+
+  @override
+  String get gameCrossSumsTitle => 'Cross Sums';
+
+  @override
+  String get gameCrossSumsDescription =>
+      'Marque os números certos para bater as soma das linhas e colunas.';
+
+  @override
+  String gameCrossSumsHowToPlay(int hintCost) {
+    return 'Remova ou marque números na grade para que a soma dos ativos em cada linha e coluna bata com os alvos à esquerda e acima. Use a BORRACHA para remover e o LÁPIS para restaurar. DICA custa $hintCost moedas. Termine ao acertar todas as células ou após 5 erros.';
+  }
+
+  @override
+  String get gameCrossSumsScoring =>
+      'Cada acerto vale +15 pts. Erro −18 pts. Complete o puzzle para +450 pts, bônus de tempo (até 280 pts) e +120 pts se terminar sem erros nem dicas pagas.';
+
+  @override
+  String gameCrossSumsLevel(int level) {
+    return 'Nível $level';
+  }
+
+  @override
+  String get gameColorBlocksTitle => 'Color Blocks';
+
+  @override
+  String get gameColorBlocksDescription =>
+      'Encaixe blocos coloridos e limpe linhas completas!';
+
+  @override
+  String get gameColorBlocksHowToPlay =>
+      'Arraste as peças da bandeja para o tabuleiro. Linhas ou colunas completas desaparecem. A partida termina quando nenhuma peça cabe no grid.';
+
+  @override
+  String get gameColorBlocksScoring =>
+      'Cada célula colocada vale +10 pts. Cada linha ou coluna limpa vale +80 pts; várias de uma vez dão bônus de combo.';
+
+  @override
+  String get gameColorBlocksNoFit => 'Não encaixa';
+
+  @override
+  String get gameColorBlocksOverlap => 'Sobrepõe bloco!';
+
+  @override
+  String get gameColorBlocksOutOfBounds => 'Fora do tabuleiro!';
+
+  @override
+  String gameColorBlocksLinesPreview(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count linhas!',
+      one: '1 linha!',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String gameColorBlocksComboPreview(int count) {
+    return 'Combo ×$count';
+  }
+
+  @override
+  String get gameMinesweeperTitle => 'Campo Minado';
+
+  @override
+  String get gameMinesweeperDescription =>
+      'Revele células seguras e marque todas as minas.';
+
+  @override
+  String gameMinesweeperHowToPlay(int hintCost) {
+    return 'Toque para revelar uma célula. O número indica minas vizinhas. Use BANDEIRA para marcar suspeitas ou segure para alternar bandeira. DICA custa $hintCost moedas e revela uma célula segura. A primeira jogada nunca acerta mina. Vença revelando todas as células seguras.';
+  }
+
+  @override
+  String get gameMinesweeperScoring =>
+      'Cada célula revelada vale +8 pts. Complete o tabuleiro para +400 pts, bônus de tempo (até 250 pts) e +80 pts sem dicas pagas.';
+
+  @override
+  String get gameMinesweeperMineHit => 'Boom!';
 
   @override
   String get gameDemoTitle => 'Demo Tap';

@@ -245,12 +245,25 @@
   "@prepCluesCount": {
     "placeholders": { "count": { "type": "int" } }
   },
+  "prepCellsCount": "{count} células",
+  "@prepCellsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "prepGridSize": "{size}×{size}",
+  "@prepGridSize": {
+    "placeholders": {
+      "size": { "type": "int" }
+    }
+  },
   "prepPairsCount": "{count} pares",
   "@prepPairsCount": {
     "placeholders": { "count": { "type": "int" } }
   },
   "prepDrawOne": "1 carta",
   "prepDrawThree": "3 cartas",
+  "prepBoard": "Tabuleiro",
+  "prepDefault": "padrão",
+  "prepChallenge": "desafio",
   "prepSeconds": "{seconds} s",
   "@prepSeconds": {
     "placeholders": { "seconds": { "type": "int" } }
@@ -301,6 +314,16 @@
   },
   "hudCpuTiles": "CPU: {count}",
   "@hudCpuTiles": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "hudLines": "Linhas",
+  "hudMines": "Minas",
+  "hudMinesRemaining": "{count} restantes",
+  "@hudMinesRemaining": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "prepMinesCount": "{count} minas",
+  "@prepMinesCount": {
     "placeholders": { "count": { "type": "int" } }
   },
   "hudPointsPerObstacle": "+{pts}/obs",
@@ -379,6 +402,43 @@
     "placeholders": { "hintCost": { "type": "int" } }
   },
   "gameSudokuScoring": "Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts, bônus de tempo (até 300 pts) e +100 pts se terminar sem erros nem dicas pagas.",
+
+  "gameCrossSumsTitle": "Cross Sums",
+  "gameCrossSumsDescription": "Marque os números certos para bater as soma das linhas e colunas.",
+  "gameCrossSumsHowToPlay": "Remova ou marque números na grade para que a soma dos ativos em cada linha e coluna bata com os alvos à esquerda e acima. Use a BORRACHA para remover e o LÁPIS para restaurar. DICA custa {hintCost} moedas. Termine ao acertar todas as células ou após 5 erros.",
+  "@gameCrossSumsHowToPlay": {
+    "placeholders": { "hintCost": { "type": "int" } }
+  },
+  "gameCrossSumsScoring": "Cada acerto vale +15 pts. Erro −18 pts. Complete o puzzle para +450 pts, bônus de tempo (até 280 pts) e +120 pts se terminar sem erros nem dicas pagas.",
+  "gameCrossSumsLevel": "Nível {level}",
+  "@gameCrossSumsLevel": {
+    "placeholders": { "level": { "type": "int" } }
+  },
+
+  "gameColorBlocksTitle": "Color Blocks",
+  "gameColorBlocksDescription": "Encaixe blocos coloridos e limpe linhas completas!",
+  "gameColorBlocksHowToPlay": "Arraste as peças da bandeja para o tabuleiro. Linhas ou colunas completas desaparecem. A partida termina quando nenhuma peça cabe no grid.",
+  "gameColorBlocksScoring": "Cada célula colocada vale +10 pts. Cada linha ou coluna limpa vale +80 pts; várias de uma vez dão bônus de combo.",
+  "gameColorBlocksNoFit": "Não encaixa",
+  "gameColorBlocksOverlap": "Sobrepõe bloco!",
+  "gameColorBlocksOutOfBounds": "Fora do tabuleiro!",
+  "gameColorBlocksLinesPreview": "{count, plural, =1{1 linha!} other{{count} linhas!}}",
+  "@gameColorBlocksLinesPreview": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gameColorBlocksComboPreview": "Combo ×{count}",
+  "@gameColorBlocksComboPreview": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "gameMinesweeperTitle": "Campo Minado",
+  "gameMinesweeperDescription": "Revele células seguras e marque todas as minas.",
+  "gameMinesweeperHowToPlay": "Toque para revelar uma célula. O número indica minas vizinhas. Use BANDEIRA para marcar suspeitas ou segure para alternar bandeira. DICA custa {hintCost} moedas e revela uma célula segura. A primeira jogada nunca acerta mina. Vença revelando todas as células seguras.",
+  "@gameMinesweeperHowToPlay": {
+    "placeholders": { "hintCost": { "type": "int" } }
+  },
+  "gameMinesweeperScoring": "Cada célula revelada vale +8 pts. Complete o tabuleiro para +400 pts, bônus de tempo (até 250 pts) e +80 pts sem dicas pagas.",
+  "gameMinesweeperMineHit": "Boom!",
 
   "gameDemoTitle": "Demo Tap",
   "gameDemoDescription": "Toque o botão o máximo que puder em 10 segundos."

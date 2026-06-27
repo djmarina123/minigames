@@ -62,7 +62,7 @@ abstract final class GameSessionHud {
   static const reservedHeight = 56.0;
   static const margin = 16.0;
   static const panelRadius = 14.0;
-  static const panelTop = 4.0;
+  static const panelTop = 8.0;
   static const panelHeight = 52.0;
   static const panelHeightWithBar = 64.0;
 

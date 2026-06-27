@@ -513,6 +513,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String prepCellsCount(int count) {
+    return '$count cells';
+  }
+
+  @override
+  String prepGridSize(int size) {
+    return '$size×$size';
+  }
+
+  @override
   String prepPairsCount(int count) {
     return '$count pairs';
   }
@@ -522,6 +532,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prepDrawThree => '3 cards';
+
+  @override
+  String get prepBoard => 'Board';
+
+  @override
+  String get prepDefault => 'default';
+
+  @override
+  String get prepChallenge => 'challenge';
 
   @override
   String prepSeconds(int seconds) {
@@ -609,6 +628,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String hudCpuTiles(int count) {
     return 'CPU: $count';
+  }
+
+  @override
+  String get hudLines => 'Lines';
+
+  @override
+  String get hudMines => 'Mines';
+
+  @override
+  String hudMinesRemaining(int count) {
+    return '$count left';
+  }
+
+  @override
+  String prepMinesCount(int count) {
+    return '$count mines';
   }
 
   @override
@@ -789,6 +824,86 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gameSudokuScoring =>
       'Each correct entry is +12 pts. Error −15 pts. Complete the puzzle for +500 pts, time bonus (up to 300 pts), and +100 pts if you finish with no errors or paid hints.';
+
+  @override
+  String get gameCrossSumsTitle => 'Cross Sums';
+
+  @override
+  String get gameCrossSumsDescription =>
+      'Mark the right numbers so row and column sums match.';
+
+  @override
+  String gameCrossSumsHowToPlay(int hintCost) {
+    return 'Remove or restore numbers so active cells in each row and column add up to the targets on the left and top. Use ERASER to remove and PENCIL to restore. HINT costs $hintCost coins. Finish when every cell is correct or after 5 mistakes.';
+  }
+
+  @override
+  String get gameCrossSumsScoring =>
+      'Each correct toggle is +15 pts. Mistake −18 pts. Complete the puzzle for +450 pts, time bonus (up to 280 pts) and +120 pts if you finish with no mistakes or paid hints.';
+
+  @override
+  String gameCrossSumsLevel(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String get gameColorBlocksTitle => 'Color Blocks';
+
+  @override
+  String get gameColorBlocksDescription =>
+      'Fit colored blocks and clear full lines!';
+
+  @override
+  String get gameColorBlocksHowToPlay =>
+      'Drag pieces from the tray onto the board. Full rows or columns disappear. The game ends when no piece fits on the grid.';
+
+  @override
+  String get gameColorBlocksScoring =>
+      'Each placed cell is +10 pts. Each cleared row or column is +80 pts; multiple lines at once earn combo bonus.';
+
+  @override
+  String get gameColorBlocksNoFit => 'Does not fit';
+
+  @override
+  String get gameColorBlocksOverlap => 'Overlaps block!';
+
+  @override
+  String get gameColorBlocksOutOfBounds => 'Off the board!';
+
+  @override
+  String gameColorBlocksLinesPreview(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lines!',
+      one: '1 line!',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String gameColorBlocksComboPreview(int count) {
+    return 'Combo ×$count';
+  }
+
+  @override
+  String get gameMinesweeperTitle => 'Minesweeper';
+
+  @override
+  String get gameMinesweeperDescription =>
+      'Reveal safe cells and flag every mine.';
+
+  @override
+  String gameMinesweeperHowToPlay(int hintCost) {
+    return 'Tap to reveal a cell. The number shows nearby mines. Use FLAG to mark suspects or hold to toggle a flag. HINT costs $hintCost coins and reveals a safe cell. Your first move never hits a mine. Win by revealing every safe cell.';
+  }
+
+  @override
+  String get gameMinesweeperScoring =>
+      'Each revealed cell is +8 pts. Clear the board for +400 pts, time bonus (up to 250 pts), and +80 pts with no paid hints.';
+
+  @override
+  String get gameMinesweeperMineHit => 'Boom!';
 
   @override
   String get gameDemoTitle => 'Demo Tap';

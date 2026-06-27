@@ -66,9 +66,10 @@ void main() {
       GameRegistry.instance.resetForTesting();
       registerBundledGames();
 
-      expect(GameRegistry.instance.isFeatured('sudoku'), isTrue);
-      expect(GameRegistry.instance.isFeatured('snake'), isTrue);
-      expect(GameRegistry.instance.isFeatured('solitaire'), isTrue);
+      expect(GameRegistry.instance.isFeatured('sudoku'), isFalse);
+      expect(GameRegistry.instance.isFeatured('cross_sums'), isTrue);
+      expect(GameRegistry.instance.isFeatured('color_blocks'), isTrue);
+      expect(GameRegistry.instance.isFeatured('minesweeper'), isTrue);
       expect(GameRegistry.instance.isFeatured('memory'), isFalse);
       expect(GameRegistry.instance.isFeatured('tap_rush'), isFalse);
     });
@@ -84,7 +85,10 @@ void main() {
       expect(GameRegistry.instance.findById('solitaire'), isNotNull);
       expect(GameRegistry.instance.findById('snake'), isNotNull);
       expect(GameRegistry.instance.findById('sudoku'), isNotNull);
-      expect(GameRegistry.instance.enabled, hasLength(7));
+      expect(GameRegistry.instance.findById('cross_sums'), isNotNull);
+      expect(GameRegistry.instance.findById('color_blocks'), isNotNull);
+      expect(GameRegistry.instance.findById('minesweeper'), isNotNull);
+      expect(GameRegistry.instance.enabled, hasLength(10));
     });
   });
 }

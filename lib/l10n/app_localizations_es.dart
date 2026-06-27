@@ -514,6 +514,16 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String prepCellsCount(int count) {
+    return '$count celdas';
+  }
+
+  @override
+  String prepGridSize(int size) {
+    return '$size×$size';
+  }
+
+  @override
   String prepPairsCount(int count) {
     return '$count pares';
   }
@@ -523,6 +533,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get prepDrawThree => '3 cartas';
+
+  @override
+  String get prepBoard => 'Tablero';
+
+  @override
+  String get prepDefault => 'estándar';
+
+  @override
+  String get prepChallenge => 'desafío';
 
   @override
   String prepSeconds(int seconds) {
@@ -610,6 +629,22 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String hudCpuTiles(int count) {
     return 'CPU: $count';
+  }
+
+  @override
+  String get hudLines => 'Líneas';
+
+  @override
+  String get hudMines => 'Minas';
+
+  @override
+  String hudMinesRemaining(int count) {
+    return '$count restantes';
+  }
+
+  @override
+  String prepMinesCount(int count) {
+    return '$count minas';
   }
 
   @override
@@ -791,6 +826,86 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get gameSudokuScoring =>
       'Cada acierto vale +12 pts. Error −15 pts. Completa el puzzle para +500 pts, bono de tiempo (hasta 300 pts) y +100 pts si terminas sin errores ni pistas pagadas.';
+
+  @override
+  String get gameCrossSumsTitle => 'Cross Sums';
+
+  @override
+  String get gameCrossSumsDescription =>
+      'Marca los números correctos para igualar las sumas.';
+
+  @override
+  String gameCrossSumsHowToPlay(int hintCost) {
+    return 'Quita o restaura números para que la suma de las celdas activas en cada fila y columna coincida con los objetivos a la izquierda y arriba. Usa BORRADOR para quitar y LÁPIZ para restaurar. PISTA cuesta $hintCost monedas. Termina al acertar todas las celdas o tras 5 errores.';
+  }
+
+  @override
+  String get gameCrossSumsScoring =>
+      'Cada acierto vale +15 pts. Error −18 pts. Completa el puzzle para +450 pts, bono de tiempo (hasta 280 pts) y +120 pts si terminas sin errores ni pistas pagas.';
+
+  @override
+  String gameCrossSumsLevel(int level) {
+    return 'Nivel $level';
+  }
+
+  @override
+  String get gameColorBlocksTitle => 'Color Blocks';
+
+  @override
+  String get gameColorBlocksDescription =>
+      'Encaja bloques de colores y limpia líneas completas.';
+
+  @override
+  String get gameColorBlocksHowToPlay =>
+      'Arrastra piezas de la bandeja al tablero. Las filas o columnas completas desaparecen. La partida termina cuando ninguna pieza cabe en la cuadrícula.';
+
+  @override
+  String get gameColorBlocksScoring =>
+      'Cada celda colocada vale +10 pts. Cada fila o columna limpia vale +80 pts; varias a la vez dan bono de combo.';
+
+  @override
+  String get gameColorBlocksNoFit => 'No encaja';
+
+  @override
+  String get gameColorBlocksOverlap => '¡Superpone bloque!';
+
+  @override
+  String get gameColorBlocksOutOfBounds => '¡Fuera del tablero!';
+
+  @override
+  String gameColorBlocksLinesPreview(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¡$count líneas!',
+      one: '¡1 línea!',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String gameColorBlocksComboPreview(int count) {
+    return 'Combo ×$count';
+  }
+
+  @override
+  String get gameMinesweeperTitle => 'Buscaminas';
+
+  @override
+  String get gameMinesweeperDescription =>
+      'Revela celdas seguras y marca todas las minas.';
+
+  @override
+  String gameMinesweeperHowToPlay(int hintCost) {
+    return 'Toca para revelar una celda. El número indica minas vecinas. Usa BANDERA para marcar sospechas o mantén pulsado para alternar bandera. PISTA cuesta $hintCost monedas y revela una celda segura. La primera jugada nunca cae en una mina. Gana revelando todas las celdas seguras.';
+  }
+
+  @override
+  String get gameMinesweeperScoring =>
+      'Cada celda revelada vale +8 pts. Completa el tablero para +400 pts, bono de tiempo (hasta 250 pts) y +80 pts sin pistas pagadas.';
+
+  @override
+  String get gameMinesweeperMineHit => '¡Boom!';
 
   @override
   String get gameDemoTitle => 'Demo Tap';

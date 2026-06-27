@@ -29,6 +29,9 @@ class GameCardArt extends StatelessWidget {
         'solitaire' => _SolitaireArt(theme, compact: compact),
         'snake' => _SnakeArt(theme, compact: compact),
         'sudoku' => _SudokuArt(theme, compact: compact),
+        'color_blocks' => _ColorBlocksArt(theme, compact: compact),
+        'cross_sums' => _CrossSumsArt(theme, compact: compact),
+        'minesweeper' => _MinesweeperArt(theme, compact: compact),
         _ => _GenericArt(theme, gameId, compact: compact),
       },
       size: Size.infinite,
@@ -672,6 +675,831 @@ class _SudokuArt extends _CardArtPainter {
 
   @override
   bool shouldRepaint(covariant _SudokuArt oldDelegate) => false;
+}
+
+class _CrossSumsArt extends _CardArtPainter {
+  _CrossSumsArt(super.theme, {super.compact});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    drawBackgroundBubbles(canvas, size);
+
+    final gridSize = compact ? size.width * 0.46 : size.width * 0.50;
+    final left = (size.width - gridSize) / 2;
+    final top = size.height * (compact ? 0.50 : 0.52);
+    const extent = 4;
+    final cell = gridSize / extent;
+
+    final boardRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(left, top, gridSize, gridSize),
+      Radius.circular(gridSize * 0.06),
+    );
+    canvas.drawRRect(
+      boardRect.shift(const Offset(0, 3)),
+      Paint()..color = Colors.black.withValues(alpha: 0.12),
+    );
+
+    const headers = ['9', '4', '7'];
+    const rowTargets = ['14', '2', '5'];
+    const cells = [
+      ['8', '5', '6'],
+      ['7', '1', '4'],
+      ['1', '4', '1'],
+    ];
+
+    for (var br = 0; br < extent; br++) {
+      for (var bc = 0; bc < extent; bc++) {
+        final rect = Rect.fromLTWH(
+          left + bc * cell,
+          top + br * cell,
+          cell,
+          cell,
+        );
+        Color bg;
+        String? label;
+
+        if (br == 0 && bc == 0) {
+          bg = const Color(0xFFE6F2F8);
+        } else if (br == 0 && bc > 0) {
+          bg = const Color(0xFFB3D9EE);
+          label = headers[bc - 1];
+        } else if (bc == 0 && br > 0) {
+          bg = const Color(0xFFB3D9EE);
+          label = rowTargets[br - 1];
+        } else {
+          bg = Colors.white;
+          label = cells[br - 1][bc - 1];
+        }
+
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(rect.deflate(1.2), const Radius.circular(4)),
+          Paint()..color = bg,
+        );
+
+        if (label != null) {
+          final painter = TextPainter(
+            text: TextSpan(
+              text: label,
+              style: TextStyle(
+                color: br == 0 || bc == 0
+                    ? const Color(0xFF2D3436)
+                    : theme.cardColor,
+                fontSize: cell * 0.42,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+          )..layout();
+          painter.paint(
+            canvas,
+            Offset(
+              rect.center.dx - painter.width / 2,
+              rect.center.dy - painter.height / 2,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CrossSumsArt oldDelegate) => false;
+}
+
+class _ColorBlocksArt extends _CardArtPainter {
+  _ColorBlocksArt(super.theme, {super.compact});
+
+  static const _blockPalette = [
+    Color(0xFFFF7675),
+    Color(0xFF74B9FF),
+    Color(0xFF55EFC4),
+    Color(0xFFFDCB6E),
+    Color(0xFFE17055),
+    Color(0xFFA29BFE),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    drawBackgroundBubbles(canvas, size);
+
+    final gridCells = compact ? 4 : 5;
+    final gap = size.width * (compact ? 0.014 : 0.012);
+    final cell = size.width * (compact ? 0.105 : 0.092);
+    final gridW = gridCells * cell + (gridCells - 1) * gap;
+    final gridH = gridW;
+    final boardPad = cell * 0.28;
+    final boardW = gridW + boardPad * 2;
+    final boardH = gridH + boardPad * 2;
+    final boardLeft = (size.width - boardW) / 2;
+    final boardTop = size.height * (compact ? 0.34 : 0.30);
+    final gridLeft = boardLeft + boardPad;
+    final gridTop = boardTop + boardPad;
+
+    _drawBoardPanel(canvas, boardLeft, boardTop, boardW, boardH, cell);
+
+    final board = compact
+        ? const [
+            [0, 1, 2, 3],
+            [4, null, 2, null],
+            [null, 0, 1, null],
+            [3, null, null, null],
+          ]
+        : const [
+            [0, 1, 2, 3, 4],
+            [5, null, 2, null, 3],
+            [null, 0, 1, 1, null],
+            [4, null, null, 5, null],
+            [null, null, 3, null, null],
+          ];
+
+    final clearedRow = 0;
+    final clearedCol = compact ? null : 2;
+    _drawLineGlow(
+      canvas,
+      gridLeft,
+      gridTop,
+      cell,
+      gap,
+      gridCells,
+      row: clearedRow,
+      col: clearedCol,
+    );
+
+    for (var row = 0; row < gridCells; row++) {
+      for (var col = 0; col < gridCells; col++) {
+        final x = gridLeft + col * (cell + gap);
+        final y = gridTop + row * (cell + gap);
+        final colorIndex = board[row][col];
+        if (colorIndex == null) {
+          _drawEmptyCell(canvas, x, y, cell);
+        } else {
+          _drawBlock(
+            canvas,
+            x,
+            y,
+            cell,
+            _blockPalette[colorIndex % _blockPalette.length],
+          );
+        }
+      }
+    }
+
+    if (!compact) {
+      _drawGhostPiece(
+        canvas,
+        gridLeft + cell * 0.15,
+        gridTop + clearedRow * (cell + gap) - cell * 0.08,
+        cell * 0.88,
+        const [(0, 0)],
+        _blockPalette[5],
+      );
+    }
+
+    _drawTray(canvas, size, boardTop + boardH + cell * 0.12);
+
+    if (!compact) {
+      _sparkle(
+        canvas,
+        Offset(boardLeft + boardW * 0.88, boardTop + cell * 0.55),
+        6,
+        const Color(0xFFFDCB6E),
+      );
+      _sparkle(
+        canvas,
+        Offset(boardLeft + boardW * 0.08, boardTop + boardH * 0.72),
+        5,
+        Colors.white,
+      );
+    }
+  }
+
+  void _drawBoardPanel(
+    Canvas canvas,
+    double left,
+    double top,
+    double width,
+    double height,
+    double cell,
+  ) {
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(left, top, width, height),
+      Radius.circular(cell * 0.18),
+    );
+    canvas.drawRRect(
+      rect.shift(const Offset(0, 4)),
+      Paint()..color = Colors.black.withValues(alpha: 0.18),
+    );
+    canvas.drawRRect(
+      rect,
+      Paint()..color = Color.lerp(theme.cardColor, Colors.black, 0.22)!,
+    );
+    canvas.drawRRect(
+      rect,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.22)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  void _drawEmptyCell(Canvas canvas, double x, double y, double cell) {
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(x, y, cell, cell),
+      Radius.circular(cell * 0.14),
+    );
+    canvas.drawRRect(
+      rect,
+      Paint()..color = theme.blendColor.withValues(alpha: 0.42),
+    );
+  }
+
+  void _drawBlock(Canvas canvas, double x, double y, double cell, Color color) {
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(x, y, cell, cell),
+      Radius.circular(cell * 0.14),
+    );
+    canvas.drawRRect(
+      rect.shift(const Offset(0, 2)),
+      Paint()..color = Colors.black.withValues(alpha: 0.16),
+    );
+    canvas.drawRRect(rect, Paint()..color = color);
+    canvas.drawRRect(
+      rect,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.48)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          x + cell * 0.12,
+          y + cell * 0.10,
+          cell * 0.52,
+          cell * 0.22,
+        ),
+        Radius.circular(cell * 0.08),
+      ),
+      Paint()..color = Colors.white.withValues(alpha: 0.18),
+    );
+  }
+
+  void _drawLineGlow(
+    Canvas canvas,
+    double gridLeft,
+    double gridTop,
+    double cell,
+    double gap,
+    int gridCells, {
+    required int row,
+    int? col,
+  }) {
+    final stride = cell + gap;
+    final glow = Paint()..color = const Color(0xFFFDCB6E).withValues(alpha: 0.55);
+    final rowRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        gridLeft,
+        gridTop + row * stride,
+        gridCells * cell + (gridCells - 1) * gap,
+        cell,
+      ),
+      Radius.circular(cell * 0.12),
+    );
+    canvas.drawRRect(rowRect, glow);
+    canvas.drawRRect(
+      rowRect,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.55)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+
+    if (col != null) {
+      final colRect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          gridLeft + col * stride,
+          gridTop,
+          cell,
+          gridCells * cell + (gridCells - 1) * gap,
+        ),
+        Radius.circular(cell * 0.12),
+      );
+      canvas.drawRRect(
+        colRect,
+        Paint()..color = const Color(0xFFFDCB6E).withValues(alpha: 0.32),
+      );
+    }
+  }
+
+  void _drawPolyomino(
+    Canvas canvas,
+    Offset origin,
+    double cell,
+    List<(int, int)> cells,
+    Color color, {
+    double alpha = 1,
+  }) {
+    for (final (row, col) in cells) {
+      _drawBlock(
+        canvas,
+        origin.dx + col * cell * 0.94,
+        origin.dy + row * cell * 0.94,
+        cell * 0.88,
+        color.withValues(alpha: alpha),
+      );
+    }
+  }
+
+  void _drawGhostPiece(
+    Canvas canvas,
+    double x,
+    double y,
+    double cell,
+    List<(int, int)> cells,
+    Color color,
+  ) {
+    for (final (row, col) in cells) {
+      final px = x + col * cell * 0.94;
+      final py = y + row * cell * 0.94;
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(px, py, cell * 0.88, cell * 0.88),
+        Radius.circular(cell * 0.12),
+      );
+      canvas.drawRRect(
+        rect,
+        Paint()..color = color.withValues(alpha: 0.38),
+      );
+      canvas.drawRRect(
+        rect,
+        Paint()
+          ..color = const Color(0xFF55EFC4).withValues(alpha: 0.75)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+    }
+  }
+
+  void _drawTray(
+    Canvas canvas,
+    Size size,
+    double trayTop,
+  ) {
+    final trayW = size.width * (compact ? 0.78 : 0.82);
+    final trayH = size.height * (compact ? 0.16 : 0.18);
+    final trayLeft = (size.width - trayW) / 2;
+    final trayRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(trayLeft, trayTop, trayW, trayH),
+      Radius.circular(trayH * 0.22),
+    );
+    canvas.drawRRect(
+      trayRect.shift(const Offset(0, 2)),
+      Paint()..color = Colors.black.withValues(alpha: 0.12),
+    );
+    canvas.drawRRect(
+      trayRect,
+      Paint()..color = Colors.white.withValues(alpha: 0.12),
+    );
+    canvas.drawRRect(
+      trayRect,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.28)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+
+    final slotW = trayW / 3;
+    final pieceCell = trayH * (compact ? 0.24 : 0.22);
+    final specs = compact
+        ? [
+            (
+              const [(0, 0), (0, 1), (1, 0)],
+              _blockPalette[0],
+              trayLeft + slotW * 0.5,
+            ),
+            (
+              const [(0, 0), (0, 1), (0, 2)],
+              _blockPalette[1],
+              trayLeft + slotW * 1.5,
+            ),
+            (
+              const [(0, 0), (0, 1), (1, 0), (1, 1)],
+              _blockPalette[2],
+              trayLeft + slotW * 2.5,
+            ),
+          ]
+        : [
+            (
+              const [(0, 0), (0, 1), (1, 0)],
+              _blockPalette[0],
+              trayLeft + slotW * 0.5,
+            ),
+            (
+              const [(0, 0), (0, 1), (0, 2), (1, 1)],
+              _blockPalette[1],
+              trayLeft + slotW * 1.5,
+            ),
+            (
+              const [(0, 0), (0, 1), (1, 0), (1, 1)],
+              _blockPalette[2],
+              trayLeft + slotW * 2.5,
+            ),
+          ];
+
+    for (var i = 0; i < specs.length; i++) {
+      final (cells, color, cx) = specs[i];
+      final (minR, maxR, minC, maxC) = _bounds(cells);
+      final rows = maxR - minR + 1;
+      final cols = maxC - minC + 1;
+      final pieceW = cols * pieceCell * 0.94;
+      final pieceH = rows * pieceCell * 0.94;
+      final lift = i == 0 && !compact ? -pieceCell * 0.35 : 0.0;
+      final origin = Offset(
+        cx - pieceW / 2 - minC * pieceCell * 0.94,
+        trayTop + (trayH - pieceH) / 2 + lift,
+      );
+      _drawPolyomino(canvas, origin, pieceCell, cells, color);
+    }
+
+    if (!compact) {
+      canvas.drawLine(
+        Offset(trayLeft + slotW, trayTop + trayH * 0.18),
+        Offset(trayLeft + slotW, trayTop + trayH * 0.82),
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.12)
+          ..strokeWidth = 1,
+      );
+      canvas.drawLine(
+        Offset(trayLeft + slotW * 2, trayTop + trayH * 0.18),
+        Offset(trayLeft + slotW * 2, trayTop + trayH * 0.82),
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.12)
+          ..strokeWidth = 1,
+      );
+    }
+  }
+
+  (int minR, int maxR, int minC, int maxC) _bounds(List<(int, int)> cells) {
+    var minR = cells.first.$1;
+    var maxR = cells.first.$1;
+    var minC = cells.first.$2;
+    var maxC = cells.first.$2;
+    for (final (row, col) in cells) {
+      if (row < minR) minR = row;
+      if (row > maxR) maxR = row;
+      if (col < minC) minC = col;
+      if (col > maxC) maxC = col;
+    }
+    return (minR, maxR, minC, maxC);
+  }
+
+  void _sparkle(Canvas canvas, Offset p, double s, Color color) {
+    final paint = Paint()..color = color;
+    canvas.drawCircle(p, s * 0.35, paint);
+    canvas.drawRect(
+      Rect.fromCenter(center: p, width: s * 1.5, height: s * 0.35),
+      paint,
+    );
+    canvas.drawRect(
+      Rect.fromCenter(center: p, width: s * 0.35, height: s * 1.5),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ColorBlocksArt oldDelegate) => false;
+}
+
+class _MinesweeperArt extends _CardArtPainter {
+  _MinesweeperArt(super.theme, {super.compact});
+
+  static const _revealedFill = Color(0xFFECF0F1);
+  static const _numColors = [
+    Color(0xFF0984E3),
+    Color(0xFF00B894),
+    Color(0xFFE17055),
+    Color(0xFF4834D4),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    drawBackgroundBubbles(canvas, size);
+
+    final gridCells = compact ? 4 : 5;
+    final gridSize = size.width * (compact ? 0.54 : 0.50);
+    final left = (size.width - gridSize) / 2;
+    final top = size.height * (compact ? 0.40 : 0.42);
+    final cell = gridSize / gridCells;
+    final gap = cell * 0.07;
+    final tile = cell - gap;
+
+    final boardRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        left - cell * 0.14,
+        top - cell * 0.14,
+        gridSize + cell * 0.28,
+        gridSize + cell * 0.28,
+      ),
+      Radius.circular(cell * 0.22),
+    );
+    canvas.drawRRect(
+      boardRect.shift(const Offset(0, 4)),
+      Paint()..color = Colors.black.withValues(alpha: 0.20),
+    );
+    canvas.drawRRect(
+      boardRect,
+      Paint()..color = Color.lerp(theme.cardColor, Colors.black, 0.18)!,
+    );
+    canvas.drawRRect(
+      boardRect,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.24)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+
+    final pattern = compact ? _compactPattern : _fullPattern;
+    for (var r = 0; r < gridCells; r++) {
+      for (var c = 0; c < gridCells; c++) {
+        final rect = Rect.fromLTWH(
+          left + c * cell + gap * 0.5,
+          top + r * cell + gap * 0.5,
+          tile,
+          tile,
+        );
+        _paintCell(canvas, rect, pattern[r][c], cell);
+      }
+    }
+
+    if (!compact) {
+      _sparkle(
+        canvas,
+        Offset(size.width * 0.14, size.height * 0.28),
+        6,
+        theme.accentSoft,
+      );
+      _sparkle(
+        canvas,
+        Offset(size.width * 0.88, size.height * 0.24),
+        5,
+        Colors.white.withValues(alpha: 0.85),
+      );
+      _drawCounterPill(
+        canvas,
+        Offset(size.width * 0.82, size.height * 0.78),
+        '10',
+        theme.accentColor,
+        cell * 0.55,
+      );
+    }
+  }
+
+  static const _fullPattern = [
+    'Fh...',
+    '.122.',
+    '.1.23',
+    '.222.',
+    '....M',
+  ];
+
+  static const _compactPattern = [
+    'Fh..',
+    '.12f',
+    '.122',
+    '..M.',
+  ];
+
+  void _paintCell(Canvas canvas, Rect rect, String code, double cell) {
+    switch (code) {
+      case 'F':
+      case 'f':
+        _drawHiddenCell(canvas, rect, raised: true);
+        _drawFlag(canvas, rect, cell);
+      case 'M':
+        _drawRevealedCell(canvas, rect, fill: theme.accentColor.withValues(alpha: 0.92));
+        _drawMine(canvas, rect.center, rect.width * 0.22);
+      case '.':
+        _drawHiddenCell(canvas, rect, raised: true);
+      case 'h':
+        _drawHiddenCell(canvas, rect, raised: false);
+      case '0':
+        _drawRevealedCell(canvas, rect);
+      default:
+        if (code.length == 1 && code.codeUnitAt(0) >= 49 && code.codeUnitAt(0) <= 57) {
+          final digit = int.parse(code);
+          _drawRevealedCell(canvas, rect);
+          _drawDigit(
+            canvas,
+            rect.center,
+            code,
+            rect.width * 0.46,
+            _numColors[(digit - 1).clamp(0, _numColors.length - 1)],
+          );
+        }
+    }
+  }
+
+  void _drawHiddenCell(Canvas canvas, Rect rect, {required bool raised}) {
+    final rr = RRect.fromRectAndRadius(
+      rect,
+      Radius.circular(rect.width * 0.16),
+    );
+    canvas.drawRRect(
+      rr.shift(Offset(0, raised ? 2.5 : 1)),
+      Paint()..color = Colors.black.withValues(alpha: raised ? 0.16 : 0.10),
+    );
+    canvas.drawRRect(
+      rr,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: raised
+              ? [
+                  const Color(0xFFD5DBDB),
+                  theme.blendColor.withValues(alpha: 0.95),
+                ]
+              : [
+                  theme.blendColor.withValues(alpha: 0.72),
+                  theme.cardColor.withValues(alpha: 0.88),
+                ],
+        ).createShader(rect),
+    );
+    if (raised) {
+      canvas.drawLine(
+        rect.topLeft + const Offset(2, 2),
+        rect.topRight + const Offset(-2, 2),
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.55)
+          ..strokeWidth = 1.2,
+      );
+      canvas.drawLine(
+        rect.bottomLeft + const Offset(2, -2),
+        rect.bottomRight + const Offset(-2, -2),
+        Paint()
+          ..color = Colors.black.withValues(alpha: 0.12)
+          ..strokeWidth = 1.2,
+      );
+    }
+  }
+
+  void _drawRevealedCell(Canvas canvas, Rect rect, {Color? fill}) {
+    final rr = RRect.fromRectAndRadius(
+      rect,
+      Radius.circular(rect.width * 0.12),
+    );
+    canvas.drawRRect(rr, Paint()..color = fill ?? _revealedFill);
+    if (fill == null) {
+      canvas.drawRRect(
+        rr,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.35)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8,
+      );
+    }
+  }
+
+  void _drawFlag(Canvas canvas, Rect rect, double cell) {
+    final poleX = rect.center.dx - cell * 0.14;
+    final baseY = rect.center.dy + cell * 0.18;
+    final topY = rect.center.dy - cell * 0.20;
+    canvas.drawLine(
+      Offset(poleX, baseY),
+      Offset(poleX, topY),
+      Paint()
+        ..color = theme.cardColor
+        ..strokeWidth = 1.8
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawCircle(
+      Offset(poleX, baseY),
+      cell * 0.05,
+      Paint()..color = theme.cardColor,
+    );
+    final flag = Path()
+      ..moveTo(poleX, topY)
+      ..lineTo(poleX + cell * 0.22, topY + cell * 0.07)
+      ..lineTo(poleX, topY + cell * 0.14)
+      ..close();
+    canvas.drawPath(flag, Paint()..color = theme.accentColor);
+    canvas.drawPath(
+      flag,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.25)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8,
+    );
+  }
+
+  void _drawMine(Canvas canvas, Offset center, double radius) {
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()..color = const Color(0xFF2C3E50),
+    );
+    canvas.drawCircle(
+      center,
+      radius * 0.35,
+      Paint()..color = const Color(0xFF636E72),
+    );
+    for (var i = 0; i < 8; i++) {
+      final angle = i * math.pi / 4;
+      final dx = math.cos(angle) * radius * 1.45;
+      final dy = math.sin(angle) * radius * 1.45;
+      canvas.drawLine(
+        center,
+        Offset(center.dx + dx, center.dy + dy),
+        Paint()
+          ..color = const Color(0xFF2C3E50)
+          ..strokeWidth = 1.6
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+  }
+
+  void _drawDigit(
+    Canvas canvas,
+    Offset center,
+    String text,
+    double fontSize,
+    Color color,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: color,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    painter.paint(
+      canvas,
+      Offset(center.dx - painter.width / 2, center.dy - painter.height / 2),
+    );
+  }
+
+  void _drawCounterPill(
+    Canvas canvas,
+    Offset center,
+    String text,
+    Color color,
+    double fontSize,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final padH = fontSize * 0.45;
+    final padV = fontSize * 0.28;
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: center,
+        width: painter.width + padH * 2,
+        height: painter.height + padV * 2,
+      ),
+      Radius.circular(fontSize * 0.35),
+    );
+    canvas.drawRRect(
+      rect.shift(const Offset(0, 2)),
+      Paint()..color = Colors.black.withValues(alpha: 0.18),
+    );
+    canvas.drawRRect(rect, Paint()..color = color);
+    painter.paint(
+      canvas,
+      Offset(
+        center.dx - painter.width / 2,
+        center.dy - painter.height / 2,
+      ),
+    );
+  }
+
+  void _sparkle(Canvas canvas, Offset p, double s, Color color) {
+    final paint = Paint()..color = color;
+    canvas.drawCircle(p, s * 0.35, paint);
+    canvas.drawRect(
+      Rect.fromCenter(center: p, width: s * 1.5, height: s * 0.35),
+      paint,
+    );
+    canvas.drawRect(
+      Rect.fromCenter(center: p, width: s * 0.35, height: s * 1.5),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _MinesweeperArt oldDelegate) => false;
 }
 
 class _TileSpec {

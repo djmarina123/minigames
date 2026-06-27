@@ -1006,6 +1006,18 @@ abstract class AppLocalizations {
   /// **'{count} pistas'**
   String prepCluesCount(int count);
 
+  /// No description provided for @prepCellsCount.
+  ///
+  /// In pt, this message translates to:
+  /// **'{count} células'**
+  String prepCellsCount(int count);
+
+  /// No description provided for @prepGridSize.
+  ///
+  /// In pt, this message translates to:
+  /// **'{size}×{size}'**
+  String prepGridSize(int size);
+
   /// No description provided for @prepPairsCount.
   ///
   /// In pt, this message translates to:
@@ -1023,6 +1035,24 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'3 cartas'**
   String get prepDrawThree;
+
+  /// No description provided for @prepBoard.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tabuleiro'**
+  String get prepBoard;
+
+  /// No description provided for @prepDefault.
+  ///
+  /// In pt, this message translates to:
+  /// **'padrão'**
+  String get prepDefault;
+
+  /// No description provided for @prepChallenge.
+  ///
+  /// In pt, this message translates to:
+  /// **'desafio'**
+  String get prepChallenge;
 
   /// No description provided for @prepSeconds.
   ///
@@ -1167,6 +1197,30 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'CPU: {count}'**
   String hudCpuTiles(int count);
+
+  /// No description provided for @hudLines.
+  ///
+  /// In pt, this message translates to:
+  /// **'Linhas'**
+  String get hudLines;
+
+  /// No description provided for @hudMines.
+  ///
+  /// In pt, this message translates to:
+  /// **'Minas'**
+  String get hudMines;
+
+  /// No description provided for @hudMinesRemaining.
+  ///
+  /// In pt, this message translates to:
+  /// **'{count} restantes'**
+  String hudMinesRemaining(int count);
+
+  /// No description provided for @prepMinesCount.
+  ///
+  /// In pt, this message translates to:
+  /// **'{count} minas'**
+  String prepMinesCount(int count);
 
   /// No description provided for @hudPointsPerObstacle.
   ///
@@ -1467,6 +1521,120 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts, bônus de tempo (até 300 pts) e +100 pts se terminar sem erros nem dicas pagas.'**
   String get gameSudokuScoring;
+
+  /// No description provided for @gameCrossSumsTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cross Sums'**
+  String get gameCrossSumsTitle;
+
+  /// No description provided for @gameCrossSumsDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'Marque os números certos para bater as soma das linhas e colunas.'**
+  String get gameCrossSumsDescription;
+
+  /// No description provided for @gameCrossSumsHowToPlay.
+  ///
+  /// In pt, this message translates to:
+  /// **'Remova ou marque números na grade para que a soma dos ativos em cada linha e coluna bata com os alvos à esquerda e acima. Use a BORRACHA para remover e o LÁPIS para restaurar. DICA custa {hintCost} moedas. Termine ao acertar todas as células ou após 5 erros.'**
+  String gameCrossSumsHowToPlay(int hintCost);
+
+  /// No description provided for @gameCrossSumsScoring.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cada acerto vale +15 pts. Erro −18 pts. Complete o puzzle para +450 pts, bônus de tempo (até 280 pts) e +120 pts se terminar sem erros nem dicas pagas.'**
+  String get gameCrossSumsScoring;
+
+  /// No description provided for @gameCrossSumsLevel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nível {level}'**
+  String gameCrossSumsLevel(int level);
+
+  /// No description provided for @gameColorBlocksTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Color Blocks'**
+  String get gameColorBlocksTitle;
+
+  /// No description provided for @gameColorBlocksDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'Encaixe blocos coloridos e limpe linhas completas!'**
+  String get gameColorBlocksDescription;
+
+  /// No description provided for @gameColorBlocksHowToPlay.
+  ///
+  /// In pt, this message translates to:
+  /// **'Arraste as peças da bandeja para o tabuleiro. Linhas ou colunas completas desaparecem. A partida termina quando nenhuma peça cabe no grid.'**
+  String get gameColorBlocksHowToPlay;
+
+  /// No description provided for @gameColorBlocksScoring.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cada célula colocada vale +10 pts. Cada linha ou coluna limpa vale +80 pts; várias de uma vez dão bônus de combo.'**
+  String get gameColorBlocksScoring;
+
+  /// No description provided for @gameColorBlocksNoFit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não encaixa'**
+  String get gameColorBlocksNoFit;
+
+  /// No description provided for @gameColorBlocksOverlap.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sobrepõe bloco!'**
+  String get gameColorBlocksOverlap;
+
+  /// No description provided for @gameColorBlocksOutOfBounds.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fora do tabuleiro!'**
+  String get gameColorBlocksOutOfBounds;
+
+  /// No description provided for @gameColorBlocksLinesPreview.
+  ///
+  /// In pt, this message translates to:
+  /// **'{count, plural, =1{1 linha!} other{{count} linhas!}}'**
+  String gameColorBlocksLinesPreview(int count);
+
+  /// No description provided for @gameColorBlocksComboPreview.
+  ///
+  /// In pt, this message translates to:
+  /// **'Combo ×{count}'**
+  String gameColorBlocksComboPreview(int count);
+
+  /// No description provided for @gameMinesweeperTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Campo Minado'**
+  String get gameMinesweeperTitle;
+
+  /// No description provided for @gameMinesweeperDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'Revele células seguras e marque todas as minas.'**
+  String get gameMinesweeperDescription;
+
+  /// No description provided for @gameMinesweeperHowToPlay.
+  ///
+  /// In pt, this message translates to:
+  /// **'Toque para revelar uma célula. O número indica minas vizinhas. Use BANDEIRA para marcar suspeitas ou segure para alternar bandeira. DICA custa {hintCost} moedas e revela uma célula segura. A primeira jogada nunca acerta mina. Vença revelando todas as células seguras.'**
+  String gameMinesweeperHowToPlay(int hintCost);
+
+  /// No description provided for @gameMinesweeperScoring.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cada célula revelada vale +8 pts. Complete o tabuleiro para +400 pts, bônus de tempo (até 250 pts) e +80 pts sem dicas pagas.'**
+  String get gameMinesweeperScoring;
+
+  /// No description provided for @gameMinesweeperMineHit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Boom!'**
+  String get gameMinesweeperMineHit;
 
   /// No description provided for @gameDemoTitle.
   ///

@@ -16,6 +16,9 @@ extension HubL10n on AppLocalizations {
         'solitaire' => gameSolitaireTitle,
         'snake' => gameSnakeTitle,
         'sudoku' => gameSudokuTitle,
+        'cross_sums' => gameCrossSumsTitle,
+        'color_blocks' => gameColorBlocksTitle,
+        'minesweeper' => gameMinesweeperTitle,
         'demo_tap' => gameDemoTitle,
         _ => gameId,
       };
@@ -28,6 +31,9 @@ extension HubL10n on AppLocalizations {
         'solitaire' => gameSolitaireDescription,
         'snake' => gameSnakeDescription,
         'sudoku' => gameSudokuDescription,
+        'cross_sums' => gameCrossSumsDescription,
+        'color_blocks' => gameColorBlocksDescription,
+        'minesweeper' => gameMinesweeperDescription,
         'demo_tap' => gameDemoDescription,
         _ => '',
       };
@@ -78,6 +84,22 @@ extension HubL10n on AppLocalizations {
             howToPlay: gameSudokuHowToPlay(EconomyConfig.hintCoinCostSudoku),
             scoring: gameSudokuScoring,
           ),
+        'cross_sums' => GameHelpContent(
+            howToPlay: gameCrossSumsHowToPlay(
+              EconomyConfig.hintCoinCostCrossSums,
+            ),
+            scoring: gameCrossSumsScoring,
+          ),
+        'color_blocks' => GameHelpContent(
+            howToPlay: gameColorBlocksHowToPlay,
+            scoring: gameColorBlocksScoring,
+          ),
+        'minesweeper' => GameHelpContent(
+            howToPlay: gameMinesweeperHowToPlay(
+              EconomyConfig.hintCoinCostMinesweeper,
+            ),
+            scoring: gameMinesweeperScoring,
+          ),
         _ => const GameHelpContent(howToPlay: '', scoring: ''),
       };
 
@@ -88,6 +110,7 @@ extension HubL10n on AppLocalizations {
         'targetTile' => prepObjective,
         'pairCount' => prepCards,
         'drawCount' => prepDraw,
+        'gridSize' => prepBoard,
         _ => optionKey,
       };
 
@@ -113,6 +136,7 @@ extension HubL10n on AppLocalizations {
         ('drawCount', 3) => prepDrawThree,
         ('pairCount', _) => '$value',
         ('targetTile', _) => '$value',
+        ('gridSize', _) => '${value}×$value',
         _ => '$value',
       };
     }
@@ -124,14 +148,36 @@ extension HubL10n on AppLocalizations {
       return prepPairsCount(value);
     }
     if (optionKey == 'targetTile') return prepTargetTile;
+    if (optionKey == 'gridSize' && value is int) {
+      return value == 8 ? prepDefault : prepChallenge;
+    }
     if (optionKey == 'difficulty' && value is String) {
-      final count = switch (value) {
-        'easy' => 42,
-        'medium' => 32,
-        'hard' => 26,
-        _ => null,
+      if (gameId == 'cross_sums') {
+        return switch (value) {
+          'medium' => prepGridSize(5),
+          'hard' => prepGridSize(6),
+          _ => prepGridSize(4),
+        };
+      }
+      final count = switch (gameId) {
+        'minesweeper' => switch (value) {
+            'medium' => 20,
+            'hard' => 35,
+            _ => 10,
+          },
+        _ => switch (value) {
+            'easy' => 42,
+            'medium' => 32,
+            'hard' => 26,
+            _ => null,
+          },
       };
-      if (count != null) return prepCluesCount(count);
+      if (count != null) {
+        return switch (gameId) {
+          'minesweeper' => prepMinesCount(count),
+          _ => prepCluesCount(count),
+        };
+      }
     }
     return null;
   }

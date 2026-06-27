@@ -33,8 +33,14 @@ abstract final class EconomyConfig {
   /// Dica paga no Sudoku.
   static const hintCoinCostSudoku = 25;
 
+  /// Dica paga no Cross Sums.
+  static const hintCoinCostCrossSums = 25;
+
   /// Dica paga na Paciência (destaca uma jogada válida).
   static const hintCoinCostSolitaire = 20;
+
+  /// Dica paga no Campo Minado (revela célula segura).
+  static const hintCoinCostMinesweeper = 20;
 
   /// Saldo inicial para novos jogadores (cobre algumas dicas).
   static const startingCoins = 50;
