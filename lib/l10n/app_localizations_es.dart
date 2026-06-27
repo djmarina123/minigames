@@ -793,65 +793,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cada acierto vale +12 pts. Error −15 pts. Completa el puzzle para +500 pts, bono de tiempo (hasta 300 pts) y +100 pts si terminas sin errores ni pistas pagadas.';
 
   @override
-  String get gameDominoTitle => 'Dominó';
-
-  @override
-  String get gameDominoDescription =>
-      'Juega fichas contra la CPU y vacía tu mano.';
-
-  @override
-  String get gameDominoHowToPlay =>
-      'Combina los números de los extremos de la fila con una ficha de tu mano. Quien tenga el doble mayor empieza. Si no puedes jugar, compra del montón o pasa el turno. Gana vaciando la mano o quedando con menos puntos si la partida se bloquea.';
-
-  @override
-  String get gameDominoScoring =>
-      'Cada ficha jugada vale 15 pts. Comprar del montón cuesta 3 pts. Al ganar, obtén 3 pts por punto restante en la mano de la CPU. Termina rápido para bono de tiempo (hasta 150 pts).';
-
-  @override
-  String get gameDominoCpuDrew => 'CPU compró';
-
-  @override
-  String get gameDominoCpuPassed => 'CPU pasó';
-
-  @override
-  String get gameDominoDropOnEnd => 'Suelta en el extremo correcto';
-
-  @override
-  String get gameDominoNoFit => 'No encaja';
-
-  @override
-  String gameDominoCpuPlayed(String tile) {
-    return 'CPU: $tile';
-  }
-
-  @override
-  String get gameDominoNoPlayPass => 'Sin jugada — pasa';
-
-  @override
-  String get gameDominoBoneyard => 'Montón';
-
-  @override
-  String get gameDominoDraw => 'Comprar';
-
-  @override
-  String get gameDominoPass => 'Pasar';
-
-  @override
-  String get gameDominoCpuOpening => 'CPU abriendo…';
-
-  @override
-  String get gameDominoDragOpening => 'Arrastra la ficha de apertura';
-
-  @override
-  String get gameDominoDragToTable => 'Arrastra una ficha a la mesa';
-
-  @override
-  String get gameDominoYourTurn => 'Tu turno';
-
-  @override
-  String get gameDominoCpuTurn => 'CPU';
-
-  @override
   String get gameDemoTitle => 'Demo Tap';
 
   @override

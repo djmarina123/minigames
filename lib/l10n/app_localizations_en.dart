@@ -791,65 +791,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Each correct entry is +12 pts. Error −15 pts. Complete the puzzle for +500 pts, time bonus (up to 300 pts), and +100 pts if you finish with no errors or paid hints.';
 
   @override
-  String get gameDominoTitle => 'Dominoes';
-
-  @override
-  String get gameDominoDescription =>
-      'Play tiles against the CPU and empty your hand.';
-
-  @override
-  String get gameDominoHowToPlay =>
-      'Match the numbers on the chain ends with a tile from your hand. Highest double starts. If you can\'t play, draw from the boneyard or pass. Win by emptying your hand or having fewer points if the game blocks.';
-
-  @override
-  String get gameDominoScoring =>
-      'Each tile played is worth 15 pts. Drawing from the boneyard costs 3 pts. When you win, earn 3 pts per point left in the CPU\'s hand. Finish fast for a time bonus (up to 150 pts).';
-
-  @override
-  String get gameDominoCpuDrew => 'CPU drew';
-
-  @override
-  String get gameDominoCpuPassed => 'CPU passed';
-
-  @override
-  String get gameDominoDropOnEnd => 'Drop on the right end';
-
-  @override
-  String get gameDominoNoFit => 'Doesn\'t fit';
-
-  @override
-  String gameDominoCpuPlayed(String tile) {
-    return 'CPU: $tile';
-  }
-
-  @override
-  String get gameDominoNoPlayPass => 'No play — pass';
-
-  @override
-  String get gameDominoBoneyard => 'Boneyard';
-
-  @override
-  String get gameDominoDraw => 'Draw';
-
-  @override
-  String get gameDominoPass => 'Pass';
-
-  @override
-  String get gameDominoCpuOpening => 'CPU opening…';
-
-  @override
-  String get gameDominoDragOpening => 'Drag the opening tile';
-
-  @override
-  String get gameDominoDragToTable => 'Drag a tile to the table';
-
-  @override
-  String get gameDominoYourTurn => 'Your turn';
-
-  @override
-  String get gameDominoCpuTurn => 'CPU';
-
-  @override
   String get gameDemoTitle => 'Demo Tap';
 
   @override

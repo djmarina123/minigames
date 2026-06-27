@@ -15,7 +15,6 @@ extension HubL10n on AppLocalizations {
         'infinite_runner' => gameRunnerTitle,
         'solitaire' => gameSolitaireTitle,
         'snake' => gameSnakeTitle,
-        'domino' => gameDominoTitle,
         'sudoku' => gameSudokuTitle,
         'demo_tap' => gameDemoTitle,
         _ => gameId,
@@ -28,7 +27,6 @@ extension HubL10n on AppLocalizations {
         'infinite_runner' => gameRunnerDescription,
         'solitaire' => gameSolitaireDescription,
         'snake' => gameSnakeDescription,
-        'domino' => gameDominoDescription,
         'sudoku' => gameSudokuDescription,
         'demo_tap' => gameDemoDescription,
         _ => '',
@@ -76,10 +74,6 @@ extension HubL10n on AppLocalizations {
             howToPlay: gameSnakeHowToPlay,
             scoring: gameSnakeScoring,
           ),
-        'domino' => GameHelpContent(
-            howToPlay: gameDominoHowToPlay,
-            scoring: gameDominoScoring,
-          ),
         'sudoku' => GameHelpContent(
             howToPlay: gameSudokuHowToPlay(EconomyConfig.hintCoinCostSudoku),
             scoring: gameSudokuScoring,
@@ -90,7 +84,7 @@ extension HubL10n on AppLocalizations {
   String prepGroupLabel(String gameId, String optionKey) => switch (optionKey) {
         'durationSec' => prepTime,
         'speedMode' => prepSpeed,
-        'difficulty' => gameId == 'domino' ? prepCpu : prepDifficulty,
+        'difficulty' => prepDifficulty,
         'targetTile' => prepObjective,
         'pairCount' => prepCards,
         'drawCount' => prepDraw,

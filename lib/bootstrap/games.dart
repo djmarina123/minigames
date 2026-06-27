@@ -1,5 +1,4 @@
 import '../core/game_sdk/game_registry.dart';
-import '../games/domino/domino_game.dart';
 import '../games/game_2048/game_2048_game.dart';
 import '../games/infinite_runner/infinite_runner_game.dart';
 import '../games/memory/memory_game.dart';
@@ -20,7 +19,6 @@ void registerBundledGames() {
     InfiniteRunnerGame(),
     SolitaireGame(),
     SnakeGame(),
-    DominoGame(),
     SudokuGame(),
   ]);
 }

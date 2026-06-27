@@ -45,7 +45,7 @@ lib/
 │   └── theme/                    # hub_theme, game_card_art
 ├── features/                     # shell, home, leaderboard, profile
 ├── l10n/                         # app_pt/en/es.arb → app_localizations.dart
-└── games/                        # memory ⭐, tap_rush ⭐, 2048, runner, solitaire, snake, domino, sudoku
+└── games/                        # memory ⭐, tap_rush ⭐, 2048, runner, solitaire, snake, sudoku
 
 test/golden/, test/goldens/, test/games/, test/core/, test/helpers/
 ```

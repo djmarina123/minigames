@@ -265,25 +265,6 @@
   "gameSudokuHowToPlay": "Tap an empty cell and pick a number from 1 to 9. Each row, column, and 3×3 block must contain all digits without repetition. HINT costs {hintCost} coins and reveals a cell. Use ERASE to clear. The game ends when the grid is complete or after 5 errors.",
   "gameSudokuScoring": "Each correct entry is +12 pts. Error −15 pts. Complete the puzzle for +500 pts, time bonus (up to 300 pts), and +100 pts if you finish with no errors or paid hints.",
 
-  "gameDominoTitle": "Dominoes",
-  "gameDominoDescription": "Play tiles against the CPU and empty your hand.",
-  "gameDominoHowToPlay": "Match the numbers on the chain ends with a tile from your hand. Highest double starts. If you can't play, draw from the boneyard or pass. Win by emptying your hand or having fewer points if the game blocks.",
-  "gameDominoScoring": "Each tile played is worth 15 pts. Drawing from the boneyard costs 3 pts. When you win, earn 3 pts per point left in the CPU's hand. Finish fast for a time bonus (up to 150 pts).",
-  "gameDominoCpuDrew": "CPU drew",
-  "gameDominoCpuPassed": "CPU passed",
-  "gameDominoDropOnEnd": "Drop on the right end",
-  "gameDominoNoFit": "Doesn't fit",
-  "gameDominoCpuPlayed": "CPU: {tile}",
-  "gameDominoNoPlayPass": "No play — pass",
-  "gameDominoBoneyard": "Boneyard",
-  "gameDominoDraw": "Draw",
-  "gameDominoPass": "Pass",
-  "gameDominoCpuOpening": "CPU opening…",
-  "gameDominoDragOpening": "Drag the opening tile",
-  "gameDominoDragToTable": "Drag a tile to the table",
-  "gameDominoYourTurn": "Your turn",
-  "gameDominoCpuTurn": "CPU",
-
   "gameDemoTitle": "Demo Tap",
   "gameDemoDescription": "Tap the button as many times as you can in 10 seconds."
 }

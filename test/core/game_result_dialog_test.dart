@@ -10,8 +10,8 @@ import 'package:minigames_hub/core/l10n/l10n_scope.dart';
 
 void main() {
   const metadata = GameMetadata(
-    id: 'domino',
-    title: 'Dominó',
+    id: 'memory',
+    title: 'Memória',
     description: 'Teste',
     category: 'Estratégia',
   );

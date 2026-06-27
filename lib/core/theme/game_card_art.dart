@@ -28,7 +28,6 @@ class GameCardArt extends StatelessWidget {
         'infinite_runner' => _InfiniteRunnerArt(theme, compact: compact),
         'solitaire' => _SolitaireArt(theme, compact: compact),
         'snake' => _SnakeArt(theme, compact: compact),
-        'domino' => _DominoArt(theme, compact: compact),
         'sudoku' => _SudokuArt(theme, compact: compact),
         _ => _GenericArt(theme, gameId, compact: compact),
       },
@@ -499,106 +498,6 @@ class _SolitaireArt extends _CardArtPainter {
 
   @override
   bool shouldRepaint(covariant _SolitaireArt oldDelegate) => false;
-}
-
-class _DominoArt extends _CardArtPainter {
-  _DominoArt(super.theme, {super.compact});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    drawBackgroundBubbles(canvas, size);
-
-    final tileW = size.width * (compact ? 0.22 : 0.2);
-    final tileH = tileW / 0.52;
-    final baseX = size.width * 0.5;
-    final baseY = size.height * (compact ? 0.56 : 0.58);
-
-    final specs = compact
-        ? [
-            _DominoTileSpec(3, 5, -0.3, 0.0, -0.1),
-            _DominoTileSpec(6, 6, 0.05, -0.08, 0.04),
-            _DominoTileSpec(2, 4, 0.32, 0.1, 0.12),
-          ]
-        : [
-            _DominoTileSpec(4, 2, -0.34, 0.06, -0.12),
-            _DominoTileSpec(6, 6, -0.02, -0.1, 0.05),
-            _DominoTileSpec(1, 5, 0.3, 0.08, 0.1),
-            _DominoTileSpec(3, 3, 0.08, 0.2, -0.05),
-          ];
-
-    for (final spec in specs) {
-      final cx = baseX + spec.dx * size.width;
-      final cy = baseY + spec.dy * size.height;
-      canvas.save();
-      canvas.translate(cx, cy);
-      canvas.rotate(spec.angle);
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: Offset.zero,
-          width: tileW,
-          height: tileH,
-        ),
-        Radius.circular(tileW * 0.1),
-      );
-      canvas.drawRRect(
-        rect.shift(const Offset(0, 3)),
-        Paint()..color = Colors.black.withValues(alpha: 0.16),
-      );
-      canvas.drawRRect(rect, Paint()..color = const Color(0xFFF5F0E8));
-      canvas.drawRRect(
-        rect,
-        Paint()
-          ..color = Colors.white.withValues(alpha: 0.75)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
-      final half = tileH / 2;
-      canvas.drawLine(
-        Offset(-tileW / 2 + 4, 0),
-        Offset(tileW / 2 - 4, 0),
-        Paint()
-          ..color = theme.cardColor.withValues(alpha: 0.35)
-          ..strokeWidth = 1.5,
-      );
-      _paintDominoPips(canvas, Rect.fromLTWH(-tileW / 2, -tileH / 2, tileW, half - 1), spec.top);
-      _paintDominoPips(canvas, Rect.fromLTWH(-tileW / 2, 1, tileW, half - 1), spec.bottom);
-      canvas.restore();
-    }
-  }
-
-  void _paintDominoPips(Canvas canvas, Rect area, int value) {
-    if (value == 0) return;
-    const patterns = <int, List<Offset>>{
-      1: [Offset(0.5, 0.5)],
-      2: [Offset(0.28, 0.28), Offset(0.72, 0.72)],
-      3: [Offset(0.28, 0.28), Offset(0.5, 0.5), Offset(0.72, 0.72)],
-      4: [Offset(0.28, 0.28), Offset(0.72, 0.28), Offset(0.28, 0.72), Offset(0.72, 0.72)],
-      5: [Offset(0.28, 0.28), Offset(0.72, 0.28), Offset(0.5, 0.5), Offset(0.28, 0.72), Offset(0.72, 0.72)],
-      6: [Offset(0.28, 0.25), Offset(0.72, 0.25), Offset(0.28, 0.5), Offset(0.72, 0.5), Offset(0.28, 0.75), Offset(0.72, 0.75)],
-    };
-    final dots = patterns[value] ?? const [];
-    final radius = area.width * 0.08;
-    final paint = Paint()..color = theme.cardColor;
-    for (final rel in dots) {
-      canvas.drawCircle(
-        Offset(area.left + area.width * rel.dx, area.top + area.height * rel.dy),
-        radius,
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DominoArt oldDelegate) => false;
-}
-
-class _DominoTileSpec {
-  const _DominoTileSpec(this.top, this.bottom, this.dx, this.dy, this.angle);
-  final int top;
-  final int bottom;
-  final double dx;
-  final double dy;
-  final double angle;
 }
 
 class _SnakeArt extends _CardArtPainter {

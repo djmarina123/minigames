@@ -57,10 +57,6 @@ abstract final class HubTheme {
       cardColor: Color(0xFF4834D4),
       accentColor: Color(0xFFF9CA24),
     ),
-    'domino': HubGameTheme(
-      cardColor: Color(0xFF5D4037),
-      accentColor: Color(0xFFE07A7A),
-    ),
     'snake': HubGameTheme(
       cardColor: Color(0xFF16A085),
       accentColor: Color(0xFFF39C12),

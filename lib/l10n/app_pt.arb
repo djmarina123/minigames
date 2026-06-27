@@ -380,28 +380,6 @@
   },
   "gameSudokuScoring": "Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts, bônus de tempo (até 300 pts) e +100 pts se terminar sem erros nem dicas pagas.",
 
-  "gameDominoTitle": "Dominó",
-  "gameDominoDescription": "Jogue peças contra a CPU e esvazie sua mão.",
-  "gameDominoHowToPlay": "Combine os números das pontas da fileira com uma peça da sua mão. Quem tiver o maior duplo começa. Se não puder jogar, compre do monte ou passe a vez. Vença esvaziando a mão ou ficando com menos pontos se a partida travar.",
-  "gameDominoScoring": "Cada peça jogada vale 15 pts. Comprar do monte custa 3 pts. Ao vencer, ganhe 3 pts por ponto restante na mão da CPU. Termine rápido para bônus de tempo (até 150 pts).",
-  "gameDominoCpuDrew": "CPU comprou",
-  "gameDominoCpuPassed": "CPU passou",
-  "gameDominoDropOnEnd": "Solte na ponta certa",
-  "gameDominoNoFit": "Não encaixa",
-  "gameDominoCpuPlayed": "CPU: {tile}",
-  "@gameDominoCpuPlayed": {
-    "placeholders": { "tile": { "type": "String" } }
-  },
-  "gameDominoNoPlayPass": "Sem jogada — passe",
-  "gameDominoBoneyard": "Monte",
-  "gameDominoDraw": "Comprar",
-  "gameDominoPass": "Passar",
-  "gameDominoCpuOpening": "CPU abrindo…",
-  "gameDominoDragOpening": "Arraste a peça de abertura",
-  "gameDominoDragToTable": "Arraste uma peça para a mesa",
-  "gameDominoYourTurn": "Sua vez",
-  "gameDominoCpuTurn": "CPU",
-
   "gameDemoTitle": "Demo Tap",
   "gameDemoDescription": "Toque o botão o máximo que puder em 10 segundos."
 }

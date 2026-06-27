@@ -793,65 +793,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts, bônus de tempo (até 300 pts) e +100 pts se terminar sem erros nem dicas pagas.';
 
   @override
-  String get gameDominoTitle => 'Dominó';
-
-  @override
-  String get gameDominoDescription =>
-      'Jogue peças contra a CPU e esvazie sua mão.';
-
-  @override
-  String get gameDominoHowToPlay =>
-      'Combine os números das pontas da fileira com uma peça da sua mão. Quem tiver o maior duplo começa. Se não puder jogar, compre do monte ou passe a vez. Vença esvaziando a mão ou ficando com menos pontos se a partida travar.';
-
-  @override
-  String get gameDominoScoring =>
-      'Cada peça jogada vale 15 pts. Comprar do monte custa 3 pts. Ao vencer, ganhe 3 pts por ponto restante na mão da CPU. Termine rápido para bônus de tempo (até 150 pts).';
-
-  @override
-  String get gameDominoCpuDrew => 'CPU comprou';
-
-  @override
-  String get gameDominoCpuPassed => 'CPU passou';
-
-  @override
-  String get gameDominoDropOnEnd => 'Solte na ponta certa';
-
-  @override
-  String get gameDominoNoFit => 'Não encaixa';
-
-  @override
-  String gameDominoCpuPlayed(String tile) {
-    return 'CPU: $tile';
-  }
-
-  @override
-  String get gameDominoNoPlayPass => 'Sem jogada — passe';
-
-  @override
-  String get gameDominoBoneyard => 'Monte';
-
-  @override
-  String get gameDominoDraw => 'Comprar';
-
-  @override
-  String get gameDominoPass => 'Passar';
-
-  @override
-  String get gameDominoCpuOpening => 'CPU abrindo…';
-
-  @override
-  String get gameDominoDragOpening => 'Arraste a peça de abertura';
-
-  @override
-  String get gameDominoDragToTable => 'Arraste uma peça para a mesa';
-
-  @override
-  String get gameDominoYourTurn => 'Sua vez';
-
-  @override
-  String get gameDominoCpuTurn => 'CPU';
-
-  @override
   String get gameDemoTitle => 'Demo Tap';
 
   @override
