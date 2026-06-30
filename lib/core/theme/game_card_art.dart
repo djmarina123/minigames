@@ -232,96 +232,275 @@ class _TapRushArt extends _CardArtPainter {
 class _MemoryArt extends _CardArtPainter {
   _MemoryArt(super.theme, {super.compact});
 
+  /// Paleta das cartas viradas — alinhada a [MemoryConfig] / `memory_symbols.dart`.
+  static const _backFill = Color(0xFF5B4BB7);
+  static const _starFace = Color(0xFFF9A825);
+  static const _rocketFace = Color(0xFF1E88E5);
+  static const _matchGlow = Color(0xFFFDCB6E);
+
   @override
   void paint(Canvas canvas, Size size) {
-    final extent = illustrationSize(size, factor: 1.0);
-    final cardW = extent * 0.58;
-    final cardH = cardW * 1.3;
-    final origin = illustrationOrigin(size, extent);
-    final baseX = origin.dx + extent * 0.5;
-    final baseY = origin.dy + extent * 0.56;
+    final gridExtent =
+        math.min(size.width, size.height) * (compact ? 0.80 : 0.72);
+    final origin = illustrationOrigin(size, gridExtent);
 
-    final cards = compact
-        ? [
-            (-0.22, -0.18, -0.2, theme.cardColor, '?', 0.92),
-            (0.18, 0.12, 0.14, theme.accentColor, '★', 1.0),
-          ]
-        : [
-            (-0.28, -0.2, -0.22, theme.cardColor, '?', 0.88),
-            (0.0, -0.04, 0.0, theme.accentSoft, '♣', 1.18),
-            (0.26, 0.18, 0.16, theme.accentColor, '★', 0.94),
-          ];
-
-    for (final (dx, dy, angle, color, label, scale) in cards) {
-      canvas.save();
-      canvas.translate(baseX + dx * extent, baseY + dy * extent);
-      canvas.rotate(angle);
-      final w = cardW * scale;
-      final h = cardH * scale;
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: w, height: h),
-        Radius.circular(w * 0.1),
+    if (!compact) {
+      final glowCenter = Offset(
+        origin.dx + gridExtent * 0.5,
+        origin.dy + gridExtent * 0.5,
       );
-      drawCardFace(canvas, rect, color, label: label);
-
-      // Carta central parcialmente aberta.
-      if (!compact && scale > 1.0) {
-        final flapRect = RRect.fromRectAndRadius(
-          Rect.fromLTWH(-w * 0.48, -h * 0.48, w * 0.96, h * 0.42),
-          Radius.circular(w * 0.08),
-        );
-        canvas.drawRRect(
-          flapRect,
-          Paint()..color = Colors.white.withValues(alpha: 0.22),
-        );
-      }
-      canvas.restore();
+      canvas.drawCircle(
+        glowCenter,
+        gridExtent * 0.42,
+        Paint()
+          ..shader = RadialGradient(
+            colors: [
+              _matchGlow.withValues(alpha: 0.28),
+              _matchGlow.withValues(alpha: 0.0),
+            ],
+          ).createShader(
+            Rect.fromCircle(center: glowCenter, radius: gridExtent * 0.42),
+          ),
+      );
     }
 
-    // Brilhos e partículas discretas.
-    if (!compact) {
-      final sparkle = Paint()..color = Colors.white.withValues(alpha: 0.45);
-      for (final (sx, sy, sr) in [
-        (-0.38, -0.48, 0.018),
-        (0.42, -0.32, 0.016),
-        (0.38, 0.42, 0.014),
-        (-0.25, 0.35, 0.012),
-      ]) {
-        canvas.drawCircle(
-          Offset(baseX + sx * extent, baseY + sy * extent),
-          extent * sr,
-          sparkle,
+    if (compact) {
+      _paintCompact(canvas, origin, gridExtent);
+    } else {
+      _paintGrid(canvas, origin, gridExtent);
+    }
+  }
+
+  void _paintCompact(Canvas canvas, Offset origin, double extent) {
+    final tileW = extent * 0.52;
+    final tileH = tileW * 1.18;
+    final base = Offset(origin.dx + extent * 0.5, origin.dy + extent * 0.54);
+
+    _paintMemoryTile(
+      canvas,
+      base + Offset(-extent * 0.14, extent * 0.02),
+      tileW * 0.92,
+      tileH * 0.92,
+      angle: -0.14,
+      face: _MemoryTileFace.back,
+    );
+    _paintMemoryTile(
+      canvas,
+      base + Offset(extent * 0.12, -extent * 0.04),
+      tileW,
+      tileH,
+      angle: 0.1,
+      face: _MemoryTileFace.star,
+      matched: true,
+    );
+  }
+
+  void _paintGrid(Canvas canvas, Offset origin, double extent) {
+    const cols = 2;
+    const rows = 2;
+    final gap = extent * 0.07;
+    final tileW = (extent - gap * (cols - 1)) / cols;
+    final tileH = tileW * 1.12;
+
+    final faces = [
+      _MemoryTileFace.back,
+      _MemoryTileFace.star,
+      _MemoryTileFace.star,
+      _MemoryTileFace.rocket,
+    ];
+
+    for (var row = 0; row < rows; row++) {
+      for (var col = 0; col < cols; col++) {
+        final idx = row * cols + col;
+        final cx = origin.dx + col * (tileW + gap) + tileW / 2;
+        final cy = origin.dy + row * (tileH + gap) + tileH / 2;
+        final face = faces[idx];
+        _paintMemoryTile(
+          canvas,
+          Offset(cx, cy),
+          tileW,
+          tileH,
+          angle: (col - 0.5) * 0.04 + (row - 0.5) * 0.03,
+          face: face,
+          matched: face == _MemoryTileFace.star,
         );
       }
-      // Estrelas pequenas (4 pontas).
-      final starPaint = Paint()..color = Colors.white.withValues(alpha: 0.35);
-      for (final (sx, sy) in [(0.48, -0.38), (-0.45, 0.15)]) {
-        _drawTinyStar(
-          canvas,
-          Offset(baseX + sx * extent, baseY + sy * extent),
-          extent * 0.022,
-          starPaint,
+    }
+
+    // Brilho de par encontrado entre as duas estrelas.
+    final sparkle = Paint()..color = Colors.white.withValues(alpha: 0.5);
+    for (final (fx, fy, fr) in [
+      (0.28, 0.38, 0.016),
+      (0.72, 0.62, 0.014),
+      (0.5, 0.5, 0.012),
+    ]) {
+      canvas.drawCircle(
+        Offset(origin.dx + extent * fx, origin.dy + extent * fy),
+        extent * fr,
+        sparkle,
+      );
+    }
+  }
+
+  void _paintMemoryTile(
+    Canvas canvas,
+    Offset center,
+    double width,
+    double height, {
+    required double angle,
+    required _MemoryTileFace face,
+    bool matched = false,
+  }) {
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(angle);
+
+    final rect = Rect.fromCenter(
+      center: Offset.zero,
+      width: width,
+      height: height,
+    );
+    final radius = Radius.circular(width * 0.14);
+    final rrect = RRect.fromRectAndRadius(rect, radius);
+
+    canvas.drawRRect(
+      rrect.shift(const Offset(0, 3)),
+      Paint()..color = Colors.black.withValues(alpha: 0.18),
+    );
+
+    if (matched) {
+      canvas.drawRRect(
+        rrect.inflate(2),
+        Paint()
+          ..color = _matchGlow.withValues(alpha: 0.35)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5,
+      );
+    }
+
+    switch (face) {
+      case _MemoryTileFace.back:
+        canvas.drawRRect(rrect, Paint()..color = _backFill);
+        _drawBackDots(canvas, rect);
+      case _MemoryTileFace.star:
+        canvas.drawRRect(rrect, Paint()..color = _starFace);
+        _drawStarIcon(canvas, rect);
+      case _MemoryTileFace.rocket:
+        canvas.drawRRect(rrect, Paint()..color = _rocketFace);
+        _drawRocketIcon(canvas, rect);
+    }
+
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..color = Colors.white.withValues(alpha: matched ? 0.85 : 0.55)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width * 0.05,
+    );
+
+    canvas.restore();
+  }
+
+  void _drawBackDots(Canvas canvas, Rect rect) {
+    const cols = 3;
+    const rows = 3;
+    final dotR = rect.width * 0.045;
+    final gapX = rect.width / (cols + 1);
+    final gapY = rect.height / (rows + 1);
+    final dotPaint = Paint()
+      ..color = theme.accentSoft.withValues(alpha: 0.38);
+    for (var row = 0; row < rows; row++) {
+      for (var col = 0; col < cols; col++) {
+        canvas.drawCircle(
+          Offset(rect.left + gapX * (col + 1), rect.top + gapY * (row + 1)),
+          dotR,
+          dotPaint,
         );
       }
     }
   }
 
-  void _drawTinyStar(Canvas canvas, Offset center, double r, Paint paint) {
+  void _drawStarIcon(Canvas canvas, Rect rect) {
+    final path = _starPath(rect.center, rect.width * 0.22, rect.width * 0.09, 5);
+    canvas.drawPath(path, Paint()..color = Colors.white);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = const Color(0xFFFF6F00).withValues(alpha: 0.55)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = rect.width * 0.025,
+    );
+  }
+
+  void _drawRocketIcon(Canvas canvas, Rect rect) {
+    final cx = rect.center.dx;
+    final top = rect.top + rect.height * 0.14;
+    final bottom = rect.top + rect.height * 0.72;
+    final halfW = rect.width * 0.22;
+
+    final body = Path()
+      ..moveTo(cx, top)
+      ..lineTo(cx + halfW, bottom)
+      ..lineTo(cx - halfW, bottom)
+      ..close();
+    canvas.drawPath(body, Paint()..color = Colors.white);
+
+    canvas.drawCircle(
+      Offset(cx, top + rect.height * 0.28),
+      rect.width * 0.07,
+      Paint()..color = _rocketFace.withValues(alpha: 0.55),
+    );
+
+    for (final wing in [
+      Path()
+        ..moveTo(cx - halfW, bottom)
+        ..lineTo(cx - halfW * 1.35, bottom + rect.height * 0.16)
+        ..lineTo(cx - halfW * 0.55, bottom + rect.height * 0.04)
+        ..close(),
+      Path()
+        ..moveTo(cx + halfW, bottom)
+        ..lineTo(cx + halfW * 1.35, bottom + rect.height * 0.16)
+        ..lineTo(cx + halfW * 0.55, bottom + rect.height * 0.04)
+        ..close(),
+    ]) {
+      canvas.drawPath(wing, Paint()..color = const Color(0xFFFF7043));
+    }
+
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(cx, bottom + rect.height * 0.06),
+        width: rect.width * 0.14,
+        height: rect.height * 0.1,
+      ),
+      Paint()..color = const Color(0xFFFF7043),
+    );
+  }
+
+  Path _starPath(Offset center, double outerR, double innerR, int points) {
     final path = Path();
-    for (var i = 0; i < 4; i++) {
-      final angle = i * math.pi / 2;
-      path.moveTo(center.dx, center.dy);
-      path.lineTo(
+    final step = math.pi / points;
+    for (var i = 0; i < points * 2; i++) {
+      final r = i.isEven ? outerR : innerR;
+      final angle = -math.pi / 2 + i * step;
+      final point = Offset(
         center.dx + math.cos(angle) * r,
         center.dy + math.sin(angle) * r,
       );
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
     }
-    canvas.drawPath(path, paint..style = PaintingStyle.stroke..strokeWidth = 1.2);
+    path.close();
+    return path;
   }
 
   @override
   bool shouldRepaint(covariant _MemoryArt oldDelegate) => false;
 }
+
+enum _MemoryTileFace { back, star, rocket }
 
 class _Game2048Art extends _CardArtPainter {
   _Game2048Art(super.theme, {super.compact});
@@ -685,79 +864,126 @@ class _SolitaireArt extends _CardArtPainter {
 class _SnakeArt extends _CardArtPainter {
   _SnakeArt(super.theme, {super.compact});
 
+  static const _headGreen = Color(0xFF2ECC71);
+  static const _bodyGreen = Color(0xFF27AE60);
+  static const _tailGreen = Color(0xFF1E8449);
+  static const _eyeColor = Color(0xFF2D3436);
+  static const _leafGreen = Color(0xFF2ECC71);
+
   @override
   void paint(Canvas canvas, Size size) {
     final extent = illustrationSize(size, factor: 1.0);
-    final cell = extent / (compact ? 3.0 : 3.2);
     final origin = illustrationOrigin(size, extent);
-    final startX = origin.dx + cell * 0.05;
-    final startY = origin.dy + cell * 0.38;
+    final left = origin.dx;
+    final top = origin.dy;
+    final w = extent;
+    final h = extent;
 
-    final segments = compact
-        ? const [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2), (1, 2), (0, 2)]
-        : const [
-            (0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0),
-            (5, 1), (5, 2), (4, 2), (3, 2), (2, 2), (1, 2), (0, 2), (0, 1),
-          ];
+    final foodCenter = Offset(left + w * 0.82, top + h * (compact ? 0.28 : 0.24));
+    final foodR = w * (compact ? 0.075 : 0.082);
 
-    for (var i = segments.length - 1; i >= 0; i--) {
-      final (dx, dy) = segments[i];
-      final rect = Rect.fromLTWH(
-        startX + dx * cell * 0.92,
-        startY + dy * cell * 0.92,
-        cell * 0.92,
-        cell * 0.92,
-      );
-      final isHead = i == 0;
-      final rr = RRect.fromRectAndRadius(rect, Radius.circular(cell * 0.28));
-      if (!isHead) {
-        canvas.drawRRect(
-          rr.shift(const Offset(0, 2)),
-          Paint()..color = Colors.black.withValues(alpha: 0.08),
-        );
-      }
-      canvas.drawRRect(
-        rr,
-        Paint()..color = isHead ? theme.accentColor : theme.blendColor,
-      );
-      if (isHead) {
-        canvas.drawCircle(
-          rect.center + Offset(cell * 0.18, -cell * 0.12),
-          cell * 0.14,
-          Paint()..color = Colors.white,
-        );
-        canvas.drawCircle(
-          rect.center + Offset(cell * 0.24, -cell * 0.08),
-          cell * 0.06,
-          Paint()..color = const Color(0xFF2D3436),
-        );
-        // Olho expressivo.
-        canvas.drawCircle(
-          rect.center + Offset(cell * 0.08, -cell * 0.1),
-          cell * 0.04,
-          Paint()..color = Colors.white.withValues(alpha: 0.7),
-        );
-      }
+    if (!compact) {
+      final glowPaint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            theme.accentColor.withValues(alpha: 0.32),
+            theme.accentColor.withValues(alpha: 0.0),
+          ],
+        ).createShader(Rect.fromCircle(center: foodCenter, radius: foodR * 2.4));
+      canvas.drawCircle(foodCenter, foodR * 2.4, glowPaint);
     }
 
-    final foodCenter = Offset(
-      startX + (compact ? 5.5 : 6.2) * cell * 0.92,
-      startY + (compact ? 0.1 : 0.05) * cell * 0.92,
+    final segmentCount = compact ? 9 : 13;
+    final points = List<Offset>.generate(segmentCount, (i) {
+      final t = i / (segmentCount - 1);
+      final px = left + w * (0.06 + t * 0.68);
+      final wave = math.sin(t * math.pi * 1.75) * h * 0.17;
+      final py = top + h * (0.62 + wave - t * 0.12);
+      return Offset(px, py);
+    });
+
+    // Corpo — cauda → cabeça, segmentos sobrepostos.
+    for (var i = points.length - 1; i >= 0; i--) {
+      final t = i / (points.length - 1);
+      final center = points[i];
+      final radius = w * (0.048 + (1 - t) * 0.038);
+      final color = Color.lerp(_tailGreen, _bodyGreen, t * 0.85)!;
+      canvas.drawCircle(
+        center + const Offset(0, 2),
+        radius,
+        Paint()..color = Colors.black.withValues(alpha: 0.1),
+      );
+      canvas.drawCircle(center, radius, Paint()..color = color);
+    }
+
+    // Cabeça em destaque.
+    final head = points.first;
+    final headR = w * 0.105;
+    canvas.drawCircle(
+      head + const Offset(0, 3),
+      headR,
+      Paint()..color = Colors.black.withValues(alpha: 0.14),
     );
-    final foodR = cell * 0.38;
+    canvas.drawCircle(head, headR, Paint()..color = _headGreen);
+    canvas.drawCircle(
+      head + Offset(-headR * 0.08, -headR * 0.12),
+      headR * 0.52,
+      Paint()..color = _headGreen.withValues(alpha: 0.85),
+    );
+
+    // Olhos voltados para a fruta.
+    final eyeOffset = Offset(headR * 0.22, -headR * 0.18);
+    for (final dx in [-1.0, 1.0]) {
+      final eyeCenter = head + Offset(eyeOffset.dx * dx, eyeOffset.dy);
+      canvas.drawCircle(eyeCenter, headR * 0.22, Paint()..color = Colors.white);
+      canvas.drawCircle(
+        eyeCenter + Offset(headR * 0.06 * dx, headR * 0.02),
+        headR * 0.11,
+        Paint()..color = _eyeColor,
+      );
+      canvas.drawCircle(
+        eyeCenter + Offset(headR * 0.1 * dx, -headR * 0.04),
+        headR * 0.04,
+        Paint()..color = Colors.white.withValues(alpha: 0.75),
+      );
+    }
+
+    if (!compact) {
+      final tongue = Path()
+        ..moveTo(head.dx + headR * 0.82, head.dy + headR * 0.05)
+        ..lineTo(head.dx + headR * 1.18, head.dy - headR * 0.08)
+        ..lineTo(head.dx + headR * 1.05, head.dy + headR * 0.02)
+        ..moveTo(head.dx + headR * 1.18, head.dy - headR * 0.08)
+        ..lineTo(head.dx + headR * 1.05, head.dy + headR * 0.12);
+      canvas.drawPath(
+        tongue,
+        Paint()
+          ..color = const Color(0xFFFF7675)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = headR * 0.12
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+
+    // Fruta alvo.
     canvas.drawCircle(
       foodCenter + const Offset(0, 2),
       foodR,
-      Paint()..color = Colors.black.withValues(alpha: 0.1),
+      Paint()..color = Colors.black.withValues(alpha: 0.12),
     );
     canvas.drawCircle(foodCenter, foodR, Paint()..color = theme.accentColor);
     canvas.drawOval(
       Rect.fromCenter(
-        center: foodCenter + Offset(foodR * 0.1, -foodR * 0.85),
-        width: foodR * 0.85,
-        height: foodR * 0.45,
+        center: foodCenter + Offset(foodR * 0.12, -foodR * 0.92),
+        width: foodR * 0.9,
+        height: foodR * 0.48,
       ),
-      Paint()..color = theme.accentSoft,
+      Paint()..color = _leafGreen,
+    );
+    canvas.drawCircle(
+      foodCenter + Offset(-foodR * 0.22, -foodR * 0.08),
+      foodR * 0.14,
+      Paint()..color = Colors.white.withValues(alpha: 0.35),
     );
   }
 
