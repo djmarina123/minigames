@@ -864,132 +864,348 @@ class _SolitaireArt extends _CardArtPainter {
 class _SnakeArt extends _CardArtPainter {
   _SnakeArt(super.theme, {super.compact});
 
+  /// Paleta alinhada a [SnakeConfig].
   static const _headGreen = Color(0xFF2ECC71);
   static const _bodyGreen = Color(0xFF27AE60);
   static const _tailGreen = Color(0xFF1E8449);
+  static const _boardFill = Color(0xE6106655);
+  static const _boardBorder = Color(0xAAFFFFFF);
+  static const _gridLine = Color(0x33FFFFFF);
   static const _eyeColor = Color(0xFF2D3436);
+  static const _foodGlow = Color(0xFFE67E22);
   static const _leafGreen = Color(0xFF2ECC71);
+
+  static const _fullPath = <(int, int)>[
+    (0, 3),
+    (0, 2),
+    (0, 1),
+    (1, 1),
+    (2, 1),
+    (3, 1),
+    (3, 2),
+    (3, 3),
+    (2, 3),
+    (2, 4),
+    (3, 4),
+    (4, 4),
+    (4, 3),
+    (4, 2),
+    (4, 1),
+  ];
+  static const _fullFood = (4, 0);
+  static const _fullCols = 6;
+  static const _fullRows = 5;
+
+  static const _compactPath = <(int, int)>[
+    (0, 2),
+    (0, 1),
+    (1, 1),
+    (2, 1),
+    (2, 2),
+    (3, 2),
+    (3, 1),
+  ];
+  static const _compactFood = (3, 0);
+  static const _compactCols = 4;
+  static const _compactRows = 3;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final extent = illustrationSize(size, factor: 1.0);
+    final extent = illustrationSize(size, factor: compact ? 0.96 : 1.0);
     final origin = illustrationOrigin(size, extent);
-    final left = origin.dx;
-    final top = origin.dy;
-    final w = extent;
-    final h = extent;
 
-    final foodCenter = Offset(left + w * 0.82, top + h * (compact ? 0.28 : 0.24));
-    final foodR = w * (compact ? 0.075 : 0.082);
+    final cols = compact ? _compactCols : _fullCols;
+    final rows = compact ? _compactRows : _fullRows;
+    final path = compact ? _compactPath : _fullPath;
+    final food = compact ? _compactFood : _fullFood;
+
+    final gridW = extent * (compact ? 0.98 : 1.0);
+    final gridH = gridW * (rows / cols);
+    final gridLeft = origin.dx + (extent - gridW) / 2;
+    final gridTop = origin.dy + (extent - gridH) / 2;
+    final cellW = gridW / cols;
+    final cellH = gridH / rows;
 
     if (!compact) {
-      final glowPaint = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            theme.accentColor.withValues(alpha: 0.32),
-            theme.accentColor.withValues(alpha: 0.0),
-          ],
-        ).createShader(Rect.fromCircle(center: foodCenter, radius: foodR * 2.4));
-      canvas.drawCircle(foodCenter, foodR * 2.4, glowPaint);
-    }
-
-    final segmentCount = compact ? 9 : 13;
-    final points = List<Offset>.generate(segmentCount, (i) {
-      final t = i / (segmentCount - 1);
-      final px = left + w * (0.06 + t * 0.68);
-      final wave = math.sin(t * math.pi * 1.75) * h * 0.17;
-      final py = top + h * (0.62 + wave - t * 0.12);
-      return Offset(px, py);
-    });
-
-    // Corpo — cauda → cabeça, segmentos sobrepostos.
-    for (var i = points.length - 1; i >= 0; i--) {
-      final t = i / (points.length - 1);
-      final center = points[i];
-      final radius = w * (0.048 + (1 - t) * 0.038);
-      final color = Color.lerp(_tailGreen, _bodyGreen, t * 0.85)!;
+      final glowCenter = Offset(gridLeft + gridW * 0.72, gridTop + cellH * 0.5);
       canvas.drawCircle(
-        center + const Offset(0, 2),
-        radius,
-        Paint()..color = Colors.black.withValues(alpha: 0.1),
+        glowCenter,
+        cellW * 2.2,
+        Paint()
+          ..shader = RadialGradient(
+            colors: [
+              theme.accentColor.withValues(alpha: 0.28),
+              theme.accentColor.withValues(alpha: 0.0),
+            ],
+          ).createShader(
+            Rect.fromCircle(center: glowCenter, radius: cellW * 2.2),
+          ),
       );
-      canvas.drawCircle(center, radius, Paint()..color = color);
     }
 
-    // Cabeça em destaque.
-    final head = points.first;
-    final headR = w * 0.105;
-    canvas.drawCircle(
-      head + const Offset(0, 3),
-      headR,
+    _paintBoard(canvas, gridLeft, gridTop, gridW, gridH, cols, rows, cellW, cellH);
+
+    for (var i = 0; i < path.length - 1; i++) {
+      final t = i / (path.length - 1);
+      final color = Color.lerp(_tailGreen, _bodyGreen, t * 0.92)!;
+      _paintSegment(
+        canvas,
+        _cellRect(gridLeft, gridTop, path[i], cellW, cellH),
+        color,
+        cellW,
+      );
+    }
+
+    _paintFood(
+      canvas,
+      _cellRect(gridLeft, gridTop, food, cellW, cellH),
+      cellW,
+    );
+
+    final headCell = path.last;
+    final prevCell = path[path.length - 2];
+    _paintHead(
+      canvas,
+      _cellRect(gridLeft, gridTop, headCell, cellW, cellH),
+      cellW,
+      _direction(prevCell, headCell),
+    );
+  }
+
+  Rect _cellRect(
+    double gridLeft,
+    double gridTop,
+    (int col, int row) cell,
+    double cellW,
+    double cellH,
+  ) =>
+      Rect.fromLTWH(
+        gridLeft + cell.$1 * cellW,
+        gridTop + cell.$2 * cellH,
+        cellW,
+        cellH,
+      );
+
+  void _paintBoard(
+    Canvas canvas,
+    double left,
+    double top,
+    double w,
+    double h,
+    int cols,
+    int rows,
+    double cellW,
+    double cellH,
+  ) {
+    final board = RRect.fromRectAndRadius(
+      Rect.fromLTWH(left, top, w, h),
+      Radius.circular(cellW * 0.18),
+    );
+    canvas.drawRRect(
+      board.shift(const Offset(0, 4)),
       Paint()..color = Colors.black.withValues(alpha: 0.14),
     );
-    canvas.drawCircle(head, headR, Paint()..color = _headGreen);
-    canvas.drawCircle(
-      head + Offset(-headR * 0.08, -headR * 0.12),
-      headR * 0.52,
-      Paint()..color = _headGreen.withValues(alpha: 0.85),
+    canvas.drawRRect(board, Paint()..color = _boardFill);
+    canvas.drawRRect(
+      board,
+      Paint()
+        ..color = _boardBorder
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
     );
 
-    // Olhos voltados para a fruta.
-    final eyeOffset = Offset(headR * 0.22, -headR * 0.18);
-    for (final dx in [-1.0, 1.0]) {
-      final eyeCenter = head + Offset(eyeOffset.dx * dx, eyeOffset.dy);
-      canvas.drawCircle(eyeCenter, headR * 0.22, Paint()..color = Colors.white);
+    final linePaint = Paint()..color = _gridLine;
+    for (var c = 1; c < cols; c++) {
+      final x = left + c * cellW;
+      canvas.drawLine(Offset(x, top), Offset(x, top + h), linePaint);
+    }
+    for (var r = 1; r < rows; r++) {
+      final y = top + r * cellH;
+      canvas.drawLine(Offset(left, y), Offset(left + w, y), linePaint);
+    }
+  }
+
+  void _paintSegment(Canvas canvas, Rect cell, Color color, double cellW) {
+    final body = RRect.fromRectAndRadius(
+      cell.deflate(cellW * 0.05),
+      Radius.circular(cellW * 0.26),
+    );
+    canvas.drawRRect(
+      body.shift(const Offset(0, 2)),
+      Paint()..color = Colors.black.withValues(alpha: 0.18),
+    );
+    canvas.drawRRect(body, Paint()..color = color);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        body.outerRect.deflate(cellW * 0.14),
+        Radius.circular(cellW * 0.18),
+      ),
+      Paint()..color = Colors.white.withValues(alpha: 0.12),
+    );
+  }
+
+  void _paintHead(
+    Canvas canvas,
+    Rect cell,
+    double cellW,
+    _SnakeFacing facing,
+  ) {
+    final head = RRect.fromRectAndRadius(
+      cell.deflate(cellW * 0.04),
+      Radius.circular(cellW * 0.28),
+    );
+    canvas.drawRRect(
+      head.shift(const Offset(0, 3)),
+      Paint()..color = Colors.black.withValues(alpha: 0.16),
+    );
+    canvas.drawRRect(head, Paint()..color = _headGreen);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        head.outerRect.deflate(cellW * 0.12),
+        Radius.circular(cellW * 0.2),
+      ),
+      Paint()..color = _headGreen.withValues(alpha: 0.82),
+    );
+
+    final center = head.outerRect.center;
+    final eyeR = cellW * 0.11;
+    final (eyeA, eyeB) = switch (facing) {
+      _SnakeFacing.up => (
+          Offset(center.dx - cellW * 0.16, center.dy - cellW * 0.14),
+          Offset(center.dx + cellW * 0.16, center.dy - cellW * 0.14),
+        ),
+      _SnakeFacing.down => (
+          Offset(center.dx - cellW * 0.16, center.dy + cellW * 0.14),
+          Offset(center.dx + cellW * 0.16, center.dy + cellW * 0.14),
+        ),
+      _SnakeFacing.left => (
+          Offset(center.dx - cellW * 0.14, center.dy - cellW * 0.16),
+          Offset(center.dx - cellW * 0.14, center.dy + cellW * 0.16),
+        ),
+      _SnakeFacing.right => (
+          Offset(center.dx + cellW * 0.14, center.dy - cellW * 0.16),
+          Offset(center.dx + cellW * 0.14, center.dy + cellW * 0.16),
+        ),
+    };
+
+    for (final eyeCenter in [eyeA, eyeB]) {
+      canvas.drawCircle(eyeCenter, eyeR, Paint()..color = Colors.white);
+      final pupilShift = switch (facing) {
+        _SnakeFacing.up => Offset(0, -eyeR * 0.22),
+        _SnakeFacing.down => Offset(0, eyeR * 0.22),
+        _SnakeFacing.left => Offset(-eyeR * 0.22, 0),
+        _SnakeFacing.right => Offset(eyeR * 0.22, 0),
+      };
       canvas.drawCircle(
-        eyeCenter + Offset(headR * 0.06 * dx, headR * 0.02),
-        headR * 0.11,
+        eyeCenter + pupilShift,
+        eyeR * 0.48,
         Paint()..color = _eyeColor,
       );
       canvas.drawCircle(
-        eyeCenter + Offset(headR * 0.1 * dx, -headR * 0.04),
-        headR * 0.04,
-        Paint()..color = Colors.white.withValues(alpha: 0.75),
+        eyeCenter + pupilShift * 0.55 + Offset(-eyeR * 0.12, -eyeR * 0.12),
+        eyeR * 0.16,
+        Paint()..color = Colors.white.withValues(alpha: 0.8),
       );
     }
 
     if (!compact) {
+      final tongueBase = switch (facing) {
+        _SnakeFacing.up => Offset(center.dx, head.top + cellW * 0.08),
+        _SnakeFacing.down => Offset(center.dx, head.bottom - cellW * 0.08),
+        _SnakeFacing.left => Offset(head.left + cellW * 0.08, center.dy),
+        _SnakeFacing.right => Offset(head.right - cellW * 0.08, center.dy),
+      };
+      final tongueTip = switch (facing) {
+        _SnakeFacing.up => tongueBase + Offset(0, -cellW * 0.28),
+        _SnakeFacing.down => tongueBase + Offset(0, cellW * 0.28),
+        _SnakeFacing.left => tongueBase + Offset(-cellW * 0.28, 0),
+        _SnakeFacing.right => tongueBase + Offset(cellW * 0.28, 0),
+      };
+      final fork = cellW * 0.1;
+      final (forkA, forkB) = switch (facing) {
+        _SnakeFacing.up => (
+            Offset(tongueTip.dx - fork, tongueTip.dy + fork * 0.55),
+            Offset(tongueTip.dx + fork, tongueTip.dy + fork * 0.55),
+          ),
+        _SnakeFacing.down => (
+            Offset(tongueTip.dx - fork, tongueTip.dy - fork * 0.55),
+            Offset(tongueTip.dx + fork, tongueTip.dy - fork * 0.55),
+          ),
+        _SnakeFacing.left => (
+            Offset(tongueTip.dx + fork * 0.55, tongueTip.dy - fork),
+            Offset(tongueTip.dx + fork * 0.55, tongueTip.dy + fork),
+          ),
+        _SnakeFacing.right => (
+            Offset(tongueTip.dx - fork * 0.55, tongueTip.dy - fork),
+            Offset(tongueTip.dx - fork * 0.55, tongueTip.dy + fork),
+          ),
+      };
       final tongue = Path()
-        ..moveTo(head.dx + headR * 0.82, head.dy + headR * 0.05)
-        ..lineTo(head.dx + headR * 1.18, head.dy - headR * 0.08)
-        ..lineTo(head.dx + headR * 1.05, head.dy + headR * 0.02)
-        ..moveTo(head.dx + headR * 1.18, head.dy - headR * 0.08)
-        ..lineTo(head.dx + headR * 1.05, head.dy + headR * 0.12);
+        ..moveTo(tongueBase.dx, tongueBase.dy)
+        ..lineTo(tongueTip.dx, tongueTip.dy)
+        ..moveTo(tongueTip.dx, tongueTip.dy)
+        ..lineTo(forkA.dx, forkA.dy)
+        ..moveTo(tongueTip.dx, tongueTip.dy)
+        ..lineTo(forkB.dx, forkB.dy);
       canvas.drawPath(
         tongue,
         Paint()
           ..color = const Color(0xFFFF7675)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = headR * 0.12
+          ..strokeWidth = cellW * 0.07
           ..strokeCap = StrokeCap.round,
       );
     }
+  }
 
-    // Fruta alvo.
+  void _paintFood(Canvas canvas, Rect cell, double cellW) {
+    final center = cell.center;
+    final foodR = cellW * 0.28;
+
     canvas.drawCircle(
-      foodCenter + const Offset(0, 2),
+      center,
+      foodR * 1.55,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            _foodGlow.withValues(alpha: 0.38),
+            _foodGlow.withValues(alpha: 0.0),
+          ],
+        ).createShader(Rect.fromCircle(center: center, radius: foodR * 1.55)),
+    );
+    canvas.drawCircle(
+      center + const Offset(0, 2),
       foodR,
       Paint()..color = Colors.black.withValues(alpha: 0.12),
     );
-    canvas.drawCircle(foodCenter, foodR, Paint()..color = theme.accentColor);
+    canvas.drawCircle(center, foodR, Paint()..color = theme.accentColor);
     canvas.drawOval(
       Rect.fromCenter(
-        center: foodCenter + Offset(foodR * 0.12, -foodR * 0.92),
-        width: foodR * 0.9,
-        height: foodR * 0.48,
+        center: center + Offset(foodR * 0.1, -foodR * 0.95),
+        width: foodR * 0.85,
+        height: foodR * 0.45,
       ),
       Paint()..color = _leafGreen,
     );
     canvas.drawCircle(
-      foodCenter + Offset(-foodR * 0.22, -foodR * 0.08),
+      center + Offset(-foodR * 0.22, -foodR * 0.08),
       foodR * 0.14,
-      Paint()..color = Colors.white.withValues(alpha: 0.35),
+      Paint()..color = Colors.white.withValues(alpha: 0.38),
     );
+  }
+
+  _SnakeFacing _direction((int col, int row) from, (int col, int row) to) {
+    if (to.$1 > from.$1) return _SnakeFacing.right;
+    if (to.$1 < from.$1) return _SnakeFacing.left;
+    if (to.$2 > from.$2) return _SnakeFacing.down;
+    return _SnakeFacing.up;
   }
 
   @override
   bool shouldRepaint(covariant _SnakeArt oldDelegate) => false;
 }
+
+enum _SnakeFacing { up, down, left, right }
 
 class _SudokuArt extends _CardArtPainter {
   _SudokuArt(super.theme, {super.compact});
