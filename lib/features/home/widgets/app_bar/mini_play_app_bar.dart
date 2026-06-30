@@ -7,6 +7,8 @@ import 'goals_button.dart';
 import 'player_stats_row.dart';
 import 'remove_ads_button.dart';
 
+const _kAppIconAsset = 'assets/branding/miniplay_icon_512.png';
+
 /// Top app bar do hub — 3 linhas com colapso suave da linha de ações.
 class MiniPlayAppBar extends StatelessWidget {
   const MiniPlayAppBar({
@@ -105,22 +107,13 @@ class _TitleRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      HubTheme.removeAdsPurple,
-                      HubTheme.removeAdsPurple.withValues(alpha: 0.75),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.sports_esports_rounded,
-                  color: Colors.white,
-                  size: 18,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  _kAppIconAsset,
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.cover,
                 ),
               ),
               const SizedBox(width: 8),
