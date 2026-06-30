@@ -26,6 +26,11 @@
     "placeholders": { "amount": { "type": "int" } }
   },
   "hubMissionsTooltip": "Today's missions",
+  "hubStatLevel": "Level",
+  "hubStatCoins": "Coins",
+  "hubActionDaily": "Daily",
+  "hubActionGoals": "Missions",
+  "hubActionNoAds": "No Ads",
 
   "missionsTodayTitle": "Today's missions",
   "missionsProgressSummary": "{done} of {total} complete",

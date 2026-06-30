@@ -42,28 +42,60 @@ class _MainShellState extends State<MainShell> {
           Navigator.of(context).pop();
         },
       ),
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.white,
-        indicatorColor: HubTheme.removeAdsPurple.withValues(alpha: 0.15),
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.sports_esports_outlined),
-            selectedIcon: const Icon(Icons.sports_esports),
-            label: l10n.navGames,
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          navigationBarTheme: NavigationBarThemeData(
+            backgroundColor: HubTheme.appBarBackground,
+            indicatorColor: HubTheme.removeAdsPurple.withValues(alpha: 0.22),
+            elevation: 0,
+            height: 68,
+            labelTextStyle: WidgetStateProperty.resolveWith((states) {
+              final selected = states.contains(WidgetState.selected);
+              return TextStyle(
+                fontSize: selected ? 12 : 11,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                color: selected
+                    ? HubTheme.removeAdsPurple
+                    : HubTheme.textSecondary,
+              );
+            }),
+            iconTheme: WidgetStateProperty.resolveWith((states) {
+              final selected = states.contains(WidgetState.selected);
+              return IconThemeData(
+                size: selected ? 26 : 24,
+                color: selected
+                    ? HubTheme.removeAdsPurple
+                    : HubTheme.textSecondary,
+              );
+            }),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.leaderboard_outlined),
-            selectedIcon: const Icon(Icons.leaderboard),
-            label: l10n.navRanking,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.person_outline),
-            selectedIcon: const Icon(Icons.person),
-            label: l10n.navProfile,
-          ),
-        ],
+        ),
+        child: NavigationBar(
+          backgroundColor: HubTheme.appBarBackground,
+          indicatorColor: HubTheme.removeAdsPurple.withValues(alpha: 0.22),
+          elevation: 0,
+          height: 68,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          selectedIndex: _index,
+          onDestinationSelected: (i) => setState(() => _index = i),
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.sports_esports_outlined),
+              selectedIcon: const Icon(Icons.sports_esports),
+              label: l10n.navGames,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.leaderboard_outlined),
+              selectedIcon: const Icon(Icons.leaderboard),
+              label: l10n.navRanking,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.person_outline),
+              selectedIcon: const Icon(Icons.person),
+              label: l10n.navProfile,
+            ),
+          ],
+        ),
       ),
     );
   }

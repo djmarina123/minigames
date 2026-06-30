@@ -79,6 +79,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get hubMissionsTooltip => 'Missões de hoje';
 
   @override
+  String get hubStatLevel => 'Nível';
+
+  @override
+  String get hubStatCoins => 'Moedas';
+
+  @override
+  String get hubActionDaily => 'Diário';
+
+  @override
+  String get hubActionGoals => 'Missões';
+
+  @override
+  String get hubActionNoAds => 'Sem Ads';
+
+  @override
   String get missionsTodayTitle => 'Missões de hoje';
 
   @override

@@ -79,6 +79,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hubMissionsTooltip => 'Today\'s missions';
 
   @override
+  String get hubStatLevel => 'Level';
+
+  @override
+  String get hubStatCoins => 'Coins';
+
+  @override
+  String get hubActionDaily => 'Daily';
+
+  @override
+  String get hubActionGoals => 'Missions';
+
+  @override
+  String get hubActionNoAds => 'No Ads';
+
+  @override
   String get missionsTodayTitle => 'Today\'s missions';
 
   @override

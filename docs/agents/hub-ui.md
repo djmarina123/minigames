@@ -1,59 +1,133 @@
 # Design do Hub
 
-Grid **2 colunas**, fundo creme, header minimalista.
+Grid **2 colunas**, fundo creme, app bar colapsável. Visual **moderno, premium, casual** — foco na ilustração de cada jogo.
 
 ## Layout
 
 | Zona | Regra |
 |---|---|
-| Fundo | `#F5F0E8` (`HubTheme.background`) |
-| Header | Drawer · pill nível · pill moedas · ícone remover ads |
-| Grid | 2 cols, `childAspectRatio: 0.92`, spacing 14, padding 16; favoritos no topo |
-| Nav | Bottom nav + drawer — labels via `AppLocalizations` |
+| Fundo grid | `#F5F0E8` (`HubTheme.background`) |
+| App bar | `#FAF8FF` (`HubTheme.appBarBackground`) — lavanda suave |
+| Header | `MiniPlayAppBar` (menu · logo · chips · ações) |
+| Grid | 2 cols, `childAspectRatio: 0.85`, spacing 16, padding 16 |
+| Nav | Bottom nav com indicador pill roxo + labels sempre visíveis |
 
-Textos user-facing: [`i18n.md`](i18n.md). Títulos no card com `localizedMetadata()`.
+### Futuro (fora do escopo atual)
 
-## Favoritos
+Hero Card · categorias (chips) · busca.
 
-Estrela no card → jogo sobe ao **topo** na ordem marcada. Demais: `GameRegistry.enabledInCatalogOrder`.
+## App bar (`MiniPlayAppBar`)
 
-- Persistência: `PlayerProfile.favoriteGameIds`
-- API: `PlayerRepository.toggleFavorite`, `sortGamesByFavorites()`
-- Toque na estrela **não** abre o jogo
-- Independente da badge "NOVO!"
+| Linha | Conteúdo |
+|---|---|
+| 1 | Menu (48×48, margem esq. 12) · logo · MiniPlay |
+| 2 | Chips **nível** e **moedas** — valor em destaque, rótulo secundário UPPERCASE |
+| 3 | Daily · **Missions** · Remove Ads (colapsa ao rolar) |
+
+### Chips do jogador (`PlayerStatChip`)
+
+- Radius `HubTheme.chipRadius` (22 px), `HubTheme.chipShadow()`
+- Hierarquia: ícone + rótulo pequeno → **valor grande** (22 px bold)
+- Animação de bump ao atualizar nível/moedas
+
+### Botões de ação (`TopActionButton`)
+
+| Botão | Tratamento |
+|---|---|
+| Daily | Simples; badge vermelho se recompensa disponível |
+| Missions | Label `hubActionGoals` → "Missions" / "Missões" |
+| Remove Ads | Fundo `removeAdsGoldBg`, borda dourada, ícone 28 px, brilho suave |
 
 ## Card (`GameCard`)
 
-1. Cantos 22 px, borda branca 4 px, `cardColor` por jogo.
-2. Título CAIXA ALTA, bold, branco; vinheta ~64 px.
-3. Linha decorativa (`accentColor`, largura `hubUnderlineWidth`).
-4. Ilustração **vetorial** full-bleed (`GameCardArt` / `GameCatalogHero`) — não PNG pequeno em `contain`.
-5. Badge "NOVO!" — últimos `HubCatalogConfig.featuredNewGameCount` (3) jogos habilitados (`L10nScope.of.featuredBadgeNew`).
-6. Estrela favorito (`HubTheme.coinGold` quando ativo).
-7. `AnimatedScale(0.96)` no toque.
+### Forma (v2 — sem alterar tamanho do grid)
 
-**Evitar:** PNG com checkerboard falso, emoji como capa, hex solto na pintura.
+- Gradiente diagonal + **fundo exclusivo por jogo** (`_GameCardBackdropPainter`)
+- Radius 24 px · sombra `cardShadow()` (~40% mais leve que v1)
+- Padding `cardPadding` = 20 px
 
-## Widgets compartilhados (`game_card_art.dart`)
+### Hierarquia
 
-| Widget | Uso |
+1. Ilustração (protagonista)
+2. Nome do jogo (secundário, 16 px)
+3. Favorito discreto (26 px, fundo 12% opacidade)
+
+### Fundos por jogo (baixa opacidade)
+
+| `gameId` | Padrão |
 |---|---|
-| `GameCatalogHero` | Catálogo + prep |
-| `GameCatalogThumbnail` | Ranking, AppBar, placar, ajuda **?** |
+| `memory` | Retângulos arredondados |
+| `tap_rush` | Círculos |
+| `game_2048` / `color_blocks` | Quadrados |
+| `snake` | Ondas orgânicas |
+| `infinite_runner` | Linhas horizontais |
+| `sudoku` / `cross_sums` / `minesweeper` | Grade fina |
+| `solitaire` | Losangos |
+
+### Favorito (`FavoriteButton`)
+
+- 26 px · translúcido · animação scale + fade ao favoritar
+- Não competir com título nem ilustração
+
+### Microinterações
+
+- Card: `AnimatedScale(0.98)` + ripple
+- Entrada: fade + slide
+- Favorito: scale elástico leve
+
+**Evitar:** sombras pesadas, emoji como capa, ruído no fundo.
+
+### Ilustração por jogo (`GameCardArt`)
+
+Cada jogo = pôster reconhecível — elemento principal **grande**, sem sparkles no painter:
+
+| `gameId` | Foco |
+|---|---|
+| `memory` | Cartas grandes sobrepostas |
+| `tap_rush` | Círculos concêntricos + toque |
+| `game_2048` | Blocos 2×2 grandes |
+| `infinite_runner` | Corredor + chão + obstáculos |
+| `solitaire` | Cartas inclinadas |
+| `snake` | Cobra expandida |
+| `sudoku` | Grade 3×3 protagonista |
+| `cross_sums` | Números grandes em grade |
+| `color_blocks` | Blocos coloridos |
+| `minesweeper` | Grade de células |
+
+## Componentes
+
+| Widget | Arquivo | Uso |
+|---|---|---|
+| `GameCard` | `features/home/widgets/game_card.dart` | Grid do catálogo |
+| `FavoriteButton` | `features/home/widgets/favorite_button.dart` | Estrela 26 px (discreta) |
+| `GameCardProgressBar` | `core/theme/hub_card_widgets.dart` | Barra 4 px |
+| `GameBadge` | `core/theme/hub_card_widgets.dart` | NEW, Popular, … |
+| `GameCatalogHero` | `core/theme/game_card_art.dart` | Layout do card |
+| `GameCardArt` | `core/theme/game_card_art.dart` | Ilustração vetorial |
+| `GameCatalogThumbnail` | `core/theme/game_card_art.dart` | Ranking, AppBar, placar, ajuda **?** |
 
 **Regra:** UI visível usa `gameId` + `HubTheme.themeFor()` — nunca `metadata.icon`.
 
+Parâmetro opcional `GameCard.progress` (0–1) para ligar barra ao melhor score (`LeaderboardRepository`).
+
+## Favoritos
+
+Estrela no card → jogo sobe ao **topo**. API: `PlayerRepository.toggleFavorite`. Toque na estrela **não** abre o jogo.
+
 ## Tokens (`hub_theme.dart`)
 
-`background`, `textPrimary`/`textSecondary`, `featuredBadge`, `coinGold`, `coinIcon`, `levelIcon`, `levelPillBg`, `cardColor`/`accentColor` por jogo, `blendColor`/`accentSoft`.
+`appBarBackground` (`#FAF8FF`), `chipRadius`, `chipShadow()`, `removeAdsGoldBg`, `cardShadow()` (elevação mínima), `cardPadding`, demais tokens por jogo.
 
-## Header
+## Bottom navigation
 
-- Nível: anel XP → toque abre Perfil.
-- Moedas: `PlayerRepository.profile.coins`.
-- Remover ads: stub (não bloquear navegação).
-- `DailyRewardBanner` compacto abaixo do header.
+`NavigationBar` com indicador pill roxo (`removeAdsPurple` 22%), ícone/label **bold** no item ativo, fundo alinhado à app bar.
 
 ## Arquivos principais
 
-`hub_theme.dart`, `game_card_art.dart`, `hub_header.dart`, `game_card.dart`, `daily_reward_banner.dart`, `home_screen.dart`, `leaderboard_screen.dart`, `profile_screen.dart`, `settings_panel.dart`.
+`hub_theme.dart`, `hub_card_widgets.dart`, `game_card_art.dart`, `mini_play_app_bar.dart`, `game_card.dart`, `favorite_button.dart`, `home_screen.dart`, `leaderboard_screen.dart`, `profile_screen.dart`, `settings_panel.dart`.
+
+## Novo jogo no catálogo
+
+1. Entrada em `HubTheme._themes` com `cardColor` + `accentColor` únicos.
+2. Case em `GameCardArt` + painter em `game_card_art.dart` — ilustração grande, sem ruído de fundo.
+3. Registrar em `registerBundledGames()`.

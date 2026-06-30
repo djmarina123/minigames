@@ -41,6 +41,11 @@
     "placeholders": { "amount": { "type": "int" } }
   },
   "hubMissionsTooltip": "Missões de hoje",
+  "hubStatLevel": "Nível",
+  "hubStatCoins": "Moedas",
+  "hubActionDaily": "Diário",
+  "hubActionGoals": "Missões",
+  "hubActionNoAds": "Sem Ads",
 
   "missionsTodayTitle": "Missões de hoje",
   "missionsProgressSummary": "{done} de {total} concluídas",

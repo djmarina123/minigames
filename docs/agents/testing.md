@@ -24,7 +24,7 @@ Agentes não veem o browser do usuário — use goldens para revisar layout da H
 
 | Arquivo | Conteúdo |
 |---|---|
-| `test/golden/home_screen_golden_test.dart` | Captura `MainShell` |
+| `test/golden/home_screen_golden_test.dart` | Captura `MainShell` (app bar + grid + bottom nav) |
 | `test/goldens/home_mobile.png` | 390×844 |
 | `test/goldens/home_tablet.png` | 768×1024 |
 
@@ -32,4 +32,4 @@ Fluxo: `flutter test test/golden/` → ler PNGs → se mudança intencional, `--
 
 Limitações: renderer de teste (não pixel-perfect Chrome); emojis podem variar OS — CI roda Ubuntu.
 
-Adicionar golden após mudanças visuais na Home/shell/cards — não obrigatório por jogo individual.
+Atualizar goldens após mudanças visuais na Home (cards, `MiniPlayAppBar`, bottom nav). Design atual: [`hub-ui.md`](hub-ui.md).

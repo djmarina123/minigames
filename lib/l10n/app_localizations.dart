@@ -214,6 +214,36 @@ abstract class AppLocalizations {
   /// **'Missões de hoje'**
   String get hubMissionsTooltip;
 
+  /// No description provided for @hubStatLevel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nível'**
+  String get hubStatLevel;
+
+  /// No description provided for @hubStatCoins.
+  ///
+  /// In pt, this message translates to:
+  /// **'Moedas'**
+  String get hubStatCoins;
+
+  /// No description provided for @hubActionDaily.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diário'**
+  String get hubActionDaily;
+
+  /// No description provided for @hubActionGoals.
+  ///
+  /// In pt, this message translates to:
+  /// **'Missões'**
+  String get hubActionGoals;
+
+  /// No description provided for @hubActionNoAds.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem Ads'**
+  String get hubActionNoAds;
+
   /// No description provided for @missionsTodayTitle.
   ///
   /// In pt, this message translates to:

@@ -42,10 +42,18 @@ lib/
 │   ├── l10n/                     # HubL10n, L10nScope
 │   ├── storage/                  # PlayerRepository, favorite_games
 │   ├── leaderboard/
-│   └── theme/                    # hub_theme, game_card_art
-├── features/                     # shell, home, leaderboard, profile
+│   └── theme/                    # hub_theme, hub_card_widgets, game_card_art
+├── features/
+│   ├── home/
+│   │   ├── home_screen.dart    # SliverAppBar + grid de cards
+│   │   └── widgets/
+│   │       ├── app_bar/          # MiniPlayAppBar, chips, Daily/Missions/NoAds
+│   │       ├── game_card.dart
+│   │       └── favorite_button.dart
+│   ├── shell/main_shell.dart     # bottom nav + drawer
+│   ├── leaderboard/, profile/
 ├── l10n/                         # app_pt/en/es.arb → app_localizations.dart
-└── games/                        # memory ⭐, tap_rush ⭐, 2048, runner, solitaire, snake, sudoku
+└── games/                        # memory ⭐, tap_rush ⭐, 2048, runner, …
 
 test/golden/, test/goldens/, test/games/, test/core/, test/helpers/
 ```

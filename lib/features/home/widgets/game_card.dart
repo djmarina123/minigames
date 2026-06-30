@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../core/game_sdk/game_metadata.dart';
 import '../../../core/game_sdk/game_registry.dart';
-import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/game_card_art.dart';
 import '../../../core/theme/hub_theme.dart';
+import 'favorite_button.dart';
 
-/// Card de jogo no grid 2 colunas — ilustração grande integrada ao fundo.
+/// Card de jogo no grid 2 colunas — ilustração grande, layout minimalista.
 class GameCard extends StatefulWidget {
   const GameCard({
     super.key,
@@ -14,6 +14,7 @@ class GameCard extends StatefulWidget {
     required this.onTap,
     required this.isFavorite,
     required this.onFavoriteToggle,
+    this.progress,
   });
 
   final GameMetadata metadata;
@@ -21,96 +22,106 @@ class GameCard extends StatefulWidget {
   final bool isFavorite;
   final VoidCallback onFavoriteToggle;
 
+  /// Progresso opcional (0–1) para a barra do card; `null` = placeholder.
+  final double? progress;
+
   @override
   State<GameCard> createState() => _GameCardState();
 }
 
-class _GameCardState extends State<GameCard> {
+class _GameCardState extends State<GameCard>
+    with SingleTickerProviderStateMixin {
   bool _pressed = false;
+  late final AnimationController _entryController;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _entryController,
+      curve: Curves.easeOut,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _entryController,
+      curve: Curves.easeOutCubic,
+    ));
+    _entryController.forward();
+  }
+
+  @override
+  void dispose() {
+    _entryController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = HubTheme.themeFor(widget.metadata);
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        GestureDetector(
-          onTapDown: (_) => setState(() => _pressed = true),
-          onTapUp: (_) => setState(() => _pressed = false),
-          onTapCancel: () => setState(() => _pressed = false),
-          onTap: widget.onTap,
-          child: AnimatedScale(
-            scale: _pressed ? 0.96 : 1,
-            duration: const Duration(milliseconds: 100),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 100),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(HubTheme.cardRadius),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.cardColor.withValues(alpha: 0.35),
-                    blurRadius: _pressed ? 4 : 12,
-                    offset: Offset(0, _pressed ? 2 : 6),
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            GestureDetector(
+              onTapDown: (_) => setState(() => _pressed = true),
+              onTapUp: (_) => setState(() => _pressed = false),
+              onTapCancel: () => setState(() => _pressed = false),
+              child: AnimatedScale(
+                scale: _pressed ? 0.98 : 1,
+                duration: const Duration(milliseconds: 120),
+                curve: Curves.easeOut,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  curve: Curves.easeOut,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(HubTheme.cardRadius),
+                    boxShadow: HubTheme.cardShadow(
+                      theme.cardColor,
+                      pressed: _pressed,
+                    ),
                   ),
-                ],
-              ),
-              child: GameCatalogHero(
-                gameId: widget.metadata.id,
-                title: widget.metadata.title,
-                theme: theme,
-                showFeaturedBadge:
-                    GameRegistry.instance.isFeatured(widget.metadata.id),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(HubTheme.cardRadius),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: widget.onTap,
+                      borderRadius:
+                          BorderRadius.circular(HubTheme.cardRadius),
+                      child: GameCatalogHero(
+                        gameId: widget.metadata.id,
+                        title: widget.metadata.title,
+                        theme: theme,
+                        showFeaturedBadge: GameRegistry.instance
+                            .isFeatured(widget.metadata.id),
+                        progress: widget.progress,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        Positioned(
-          bottom: 10,
-          right: 10,
-          child: _FavoriteButton(
-            isFavorite: widget.isFavorite,
-            onTap: widget.onFavoriteToggle,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FavoriteButton extends StatelessWidget {
-  const _FavoriteButton({
-    required this.isFavorite,
-    required this.onTap,
-  });
-
-  final bool isFavorite;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = isFavorite
-        ? AppLocalizations.of(context).favoriteRemove
-        : AppLocalizations.of(context).favoriteAdd;
-
-    return Semantics(
-      button: true,
-      label: label,
-      child: Material(
-        color: Colors.black.withValues(alpha: 0.35),
-        shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: Icon(
-              isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-              size: 22,
-              color: isFavorite ? HubTheme.coinGold : Colors.white,
+            Positioned(
+              top: HubTheme.cardPadding - 2,
+              right: HubTheme.cardPadding - 2,
+              child: FavoriteButton(
+                isFavorite: widget.isFavorite,
+                onTap: widget.onFavoriteToggle,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

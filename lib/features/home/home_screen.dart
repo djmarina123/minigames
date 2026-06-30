@@ -12,8 +12,8 @@ import '../../core/storage/player_repository.dart';
 import '../../core/l10n/l10n_extensions.dart';
 import '../../core/theme/hub_theme.dart';
 import '../../l10n/app_localizations.dart';
+import 'widgets/app_bar/mini_play_app_bar.dart';
 import 'widgets/game_card.dart';
-import 'widgets/hub_header.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
@@ -36,40 +36,53 @@ class HomeScreen extends StatelessWidget {
 
     return ColoredBox(
       color: HubTheme.background,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            HubHeader(
+      child: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            floating: false,
+            automaticallyImplyLeading: false,
+            backgroundColor: HubTheme.appBarBackground,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            expandedHeight: MiniPlayAppBar.expandedHeight,
+            collapsedHeight: MiniPlayAppBar.collapsedHeight,
+            flexibleSpace: MiniPlayAppBar(
               onMenuTap: onMenuTap,
               onProfileTap: onProfileTap,
             ),
-            Expanded(
-              child: games.isEmpty
-                  ? Center(child: Text(l10n.homeNoGames))
-                  : GridView.builder(
-                      padding: const EdgeInsets.all(HubTheme.gridPadding),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: HubTheme.gridSpacing,
-                        crossAxisSpacing: HubTheme.gridSpacing,
-                        childAspectRatio: HubTheme.cardAspectRatio,
-                      ),
-                      itemCount: games.length,
-                      itemBuilder: (context, index) {
-                        final game = games[index];
-                        return GameCard(
-                          metadata: l10n.localizedMetadata(game.metadata),
-                          isFavorite: playerRepo.isFavorite(game.metadata.id),
-                          onFavoriteToggle: () =>
-                              playerRepo.toggleFavorite(game.metadata.id),
-                          onTap: () => _openGame(context, game),
-                        );
-                      },
-                    ),
+          ),
+          if (games.isEmpty)
+            SliverFillRemaining(
+              child: Center(child: Text(l10n.homeNoGames)),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.all(HubTheme.gridPadding),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: HubTheme.gridSpacing,
+                  crossAxisSpacing: HubTheme.gridSpacing,
+                  childAspectRatio: HubTheme.cardAspectRatio,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final game = games[index];
+                    return GameCard(
+                      metadata: l10n.localizedMetadata(game.metadata),
+                      isFavorite: playerRepo.isFavorite(game.metadata.id),
+                      onFavoriteToggle: () =>
+                          playerRepo.toggleFavorite(game.metadata.id),
+                      onTap: () => _openGame(context, game),
+                    );
+                  },
+                  childCount: games.length,
+                ),
+              ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
