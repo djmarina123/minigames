@@ -196,6 +196,16 @@ class GameSessionHudActionBar {
     );
   }
 
+  static void paintIcon(
+    Canvas canvas,
+    Rect rect,
+    IconData icon,
+    Color color, {
+    double? size,
+  }) {
+    _paintIcon(canvas, rect, icon, color, size ?? rect.height * 0.52);
+  }
+
   static void _paintIcon(
     Canvas canvas,
     Rect rect,

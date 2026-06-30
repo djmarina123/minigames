@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../../core/economy/economy_config.dart';
 import '../../core/game_sdk/game_metadata.dart';
 import '../../core/game_sdk/game_session_hud.dart';
+import '../../core/game_sdk/game_session_hud_actions.dart';
 import '../../core/game_sdk/game_prep.dart';
 import '../../core/game_sdk/game_result.dart';
 import '../../core/game_sdk/game_session_callbacks.dart';
@@ -95,6 +96,7 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
   CrossSumsTool _tool = CrossSumsTool.eraser;
   int? _selectedRow;
   int? _selectedCol;
+  GameSessionHudActionBar? _actionBar;
   double _shakeT = 0;
   double _flashT = 0;
   final Set<String> _pulseKeys = {};
@@ -150,17 +152,36 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
   void onTapDown(TapDownEvent event) {
     if (_phase != _Phase.playing || !_sessionStarted) return;
     final pos = Offset(event.localPosition.x, event.localPosition.y);
+    if (_handleHudTap(pos)) return;
     if (_handleToolTap(pos)) return;
     _handleBoardTap(pos);
   }
 
+  bool _handleHudTap(Offset pos) {
+    final actionId = _actionBar?.hitTest(pos);
+    if (actionId == null) return false;
+    if (actionId == 'hint') {
+      _useHint();
+    }
+    return true;
+  }
+
+  List<GameSessionHudAction> _hudActions() {
+    final coins = callbacks.currentCoins?.call() ?? 0;
+    final canAffordHint = coins >= EconomyConfig.hintCoinCostCrossSums;
+    return [
+      GameSessionHudAction(
+        id: 'hint',
+        icon: GameSessionHudActionIcons.hint,
+        enabled: _hasHintTarget() && canAffordHint,
+        accent: CrossSumsConfig.successGlow,
+        coinCost: EconomyConfig.hintCoinCostCrossSums,
+      ),
+    ];
+  }
+
   bool _handleToolTap(Offset pos) {
     final layout = _layout();
-
-    if (layout.hintRect.contains(pos)) {
-      _useHint();
-      return true;
-    }
 
     if (layout.eraserKnobRect.contains(pos)) {
       _tool = CrossSumsTool.eraser;
@@ -386,7 +407,7 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
     final badgeH = 22.0;
     final badgeRect = RRect.fromRectAndRadius(
       Rect.fromCenter(
-        center: Offset(centerX, CrossSumsConfig.layoutStatsHeight + 10),
+        center: Offset(centerX, CrossSumsConfig.layoutHudHeight + 10),
         width: badgeW,
         height: badgeH,
       ),
@@ -397,7 +418,7 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
       canvas,
       Offset(
         centerX - badgePainter.width / 2,
-        CrossSumsConfig.layoutStatsHeight + 10 - badgePainter.height / 2,
+        CrossSumsConfig.layoutHudHeight + 10 - badgePainter.height / 2,
       ),
     );
 
@@ -417,7 +438,7 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
       canvas,
       Offset(
         centerX - levelPainter.width / 2,
-        CrossSumsConfig.layoutStatsHeight + 24,
+        CrossSumsConfig.layoutHudHeight + 24,
       ),
     );
 
@@ -430,7 +451,7 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
       for (var i = 0; i < heartsLeft; i++) {
         _paintHeart(
           canvas,
-          Offset(heartX + heartSize / 2, CrossSumsConfig.layoutStatsHeight + 52),
+          Offset(heartX + heartSize / 2, CrossSumsConfig.layoutHudHeight + 52),
           heartSize,
         );
         heartX += heartSize + 4;
@@ -623,67 +644,31 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
 
     _paintToolIcon(
       canvas,
-      layout.eraserKnobRect.center,
-      CrossSumsTool.eraser,
+      layout.eraserKnobRect,
+      CrossSumsToolIcons.eraser,
       eraserActive,
     );
     _paintToolIcon(
       canvas,
-      layout.pencilKnobRect.center,
-      CrossSumsTool.pencil,
+      layout.pencilKnobRect,
+      CrossSumsToolIcons.pencil,
       !eraserActive,
-    );
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        layout.hintRect,
-        Radius.circular(layout.hintRect.width / 2),
-      ),
-      Paint()..color = CrossSumsConfig.hintPink,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        layout.hintRect.deflate(1.5),
-        Radius.circular(layout.hintRect.width / 2),
-      ),
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.18)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-    CrossSumsToolIcons.paintHintBulb(
-      canvas,
-      layout.hintRect.center,
-      size: layout.hintRect.width * 0.62,
     );
   }
 
   void _paintToolIcon(
     Canvas canvas,
-    Offset center,
-    CrossSumsTool tool,
+    Rect rect,
+    IconData icon,
     bool active,
   ) {
-    final color = active ? CrossSumsConfig.cellText : CrossSumsConfig.hudMuted;
-    final iconSize = 22.0;
-    switch (tool) {
-      case CrossSumsTool.eraser:
-        CrossSumsToolIcons.paintEraser(
-          canvas,
-          center,
-          size: iconSize,
-          color: color,
-          muted: !active,
-        );
-      case CrossSumsTool.pencil:
-        CrossSumsToolIcons.paintPencil(
-          canvas,
-          center,
-          size: iconSize,
-          color: color,
-          muted: !active,
-        );
-    }
+    GameSessionHudActionBar.paintIcon(
+      canvas,
+      rect,
+      icon,
+      active ? CrossSumsConfig.cellText : CrossSumsConfig.hudMuted,
+      size: rect.height * 0.52,
+    );
   }
 
   void _paintStats(Canvas canvas) {
@@ -703,7 +688,6 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
       canvas,
       Size(size.x, size.y),
       palette,
-      top: 0,
       columns: [
         GameSessionHudStat(
           caption: L10nScope.of.hudPoints,
@@ -734,6 +718,15 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
         lowColor: CrossSumsConfig.missRed.withValues(alpha: 0.85),
       ),
     );
+
+    final canvasSize = Size(size.x, size.y);
+    final actions = _hudActions();
+    _actionBar = GameSessionHudActionBar.layout(
+      canvasSize,
+      actions: actions,
+      withProgressBar: true,
+    );
+    GameSessionHudActionBar.paint(canvas, palette, _actionBar!, actions);
   }
 
   void _paintDigit(
@@ -759,5 +752,14 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
       canvas,
       Offset(center.dx - painter.width / 2, center.dy - painter.height / 2),
     );
+  }
+
+  bool _hasHintTarget() {
+    for (var r = 0; r < _state.size; r++) {
+      for (var c = 0; c < _state.size; c++) {
+        if (_state.kept[r][c] != _state.solution[r][c]) return true;
+      }
+    }
+    return false;
   }
 }

@@ -190,7 +190,7 @@ void main() {
         greaterThanOrEqualTo(CrossSumsConfig.layoutHeaderHeight),
       );
       expect(layout.toolTop, greaterThan(layout.boardTop + layout.boardExtent));
-      expect(layout.hintRect.width, CrossSumsConfig.layoutHintSize);
+      expect(layout.toolToggleRect.width, greaterThan(0));
     });
   });
 }

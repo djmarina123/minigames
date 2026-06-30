@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/economy/economy_config.dart';
 import '../../core/economy/performance_tier.dart';
+import '../../core/game_sdk/game_session_hud_actions.dart';
 import '../../core/l10n/l10n_scope.dart';
 
 /// Constantes, paleta e regras puras do Cross Sums.
@@ -50,15 +51,14 @@ abstract final class CrossSumsConfig {
   static const missRed = Color(0xFFE74C3C);
   static const heartColor = Color(0xFFE74C3C);
   static const successGlow = Color(0xFF1ABC9C);
-  static const hintPink = Color(0xFFE91E63);
   static const toolTrack = Color(0xFFB3D9EE);
   static const toolActive = Colors.white;
 
   static const layoutMarginH = 16.0;
   static const layoutBottomMargin = 12.0;
-  static const layoutStatsHeight = 50.0;
+  static const layoutHudHeight = GameSessionHudActionBar.reservedHeight;
   static const layoutTitleHeight = 54.0;
-  static const layoutHeaderHeight = layoutStatsHeight + layoutTitleHeight;
+  static const layoutHeaderHeight = layoutHudHeight + layoutTitleHeight;
   static const layoutHudGap = 10.0;
   static const layoutToolGap = 14.0;
   static const layoutToolHeight = 52.0;
@@ -99,7 +99,6 @@ class CrossSumsBoardLayout {
     required this.toolToggleRect,
     required this.eraserKnobRect,
     required this.pencilKnobRect,
-    required this.hintRect,
   });
 
   final int gridSize;
@@ -110,7 +109,6 @@ class CrossSumsBoardLayout {
   final Rect toolToggleRect;
   final Rect eraserKnobRect;
   final Rect pencilKnobRect;
-  final Rect hintRect;
 
   double get boardExtent => cellSize * (gridSize + 1);
 
@@ -141,7 +139,6 @@ CrossSumsBoardLayout crossSumsBoardLayout({
   const hudGap = CrossSumsConfig.layoutHudGap;
   const toolGap = CrossSumsConfig.layoutToolGap;
   const toolH = CrossSumsConfig.layoutToolHeight;
-  const hintSize = CrossSumsConfig.layoutHintSize;
   const bottomMargin = CrossSumsConfig.layoutBottomMargin;
 
   final availW = screenW - marginH * 2;
@@ -160,7 +157,7 @@ CrossSumsBoardLayout crossSumsBoardLayout({
   final toolTop = boardTop + boardExtent + toolGap;
 
   final toggleW = min(boardExtent * 0.55, 180.0);
-  final toggleLeft = boardLeft + (boardExtent - toggleW - hintSize - 12) / 2;
+  final toggleLeft = boardLeft + (boardExtent - toggleW) / 2;
   final toolToggleRect = Rect.fromLTWH(toggleLeft, toolTop, toggleW, toolH);
   final knobSize = toolH - 8;
   final eraserKnobRect = Rect.fromLTWH(
@@ -175,13 +172,6 @@ CrossSumsBoardLayout crossSumsBoardLayout({
     knobSize,
     knobSize,
   );
-  final hintRect = Rect.fromLTWH(
-    toolToggleRect.right + 12,
-    toolTop,
-    hintSize,
-    hintSize,
-  );
-
   return CrossSumsBoardLayout(
     gridSize: gridSize,
     boardLeft: boardLeft,
@@ -191,7 +181,6 @@ CrossSumsBoardLayout crossSumsBoardLayout({
     toolToggleRect: toolToggleRect,
     eraserKnobRect: eraserKnobRect,
     pencilKnobRect: pencilKnobRect,
-    hintRect: hintRect,
   );
 }
 
