@@ -1149,10 +1149,6 @@ class ColorBlocksFlameGame extends FlameGame with DragCallbacks, TapCallbacks {
   }
 
   void _paintHud(Canvas canvas) {
-    final comboPreview = _bestCombo > 1
-        ? L10nScope.of.gameColorBlocksComboPreview(_bestCombo)
-        : null;
-
     GameSessionHud.paintStatsBar(
       canvas,
       Size(size.x, size.y),
@@ -1171,12 +1167,11 @@ class ColorBlocksFlameGame extends FlameGame with DragCallbacks, TapCallbacks {
           value: '$_moves',
         ),
         GameSessionHudStat(
-          caption: L10nScope.of.hudPoints,
-          value: '$_score',
-          footnote: comboPreview,
-          footnoteColor: _bestCombo > 1
+          caption: L10nScope.of.hudCombo,
+          value: _bestCombo > 0 ? '×$_bestCombo' : '—',
+          valueColor: _bestCombo > 1
               ? ColorBlocksConfig.lineGlow
-              : ColorBlocksConfig.hudMuted.withValues(alpha: 0.85),
+              : ColorBlocksConfig.hudText,
         ),
       ],
     );

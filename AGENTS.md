@@ -35,6 +35,7 @@ Copiar estrutura de **Tap Rush** + **Memória**. Checklist completo em [`games-f
 - **UI user-facing → i18n** — sem strings fixas; ver [`i18n.md`](docs/agents/i18n.md).
 - Score (ranking) ≠ moedas/XP (`core/economy/`).
 - Label flutuante = delta real do placar.
+- HUD: stats de jogo sem cronômetro; placar só na AppBar — ver [`games-flame.md`](docs/agents/games-flame.md).
 - UI visível: `GameCatalogHero`/`Thumbnail` — não emoji.
 - Paleta in-game espelha `HubTheme._themes[gameId]`.
 - Nunca `setState` no pai que recria `GameWidget`.

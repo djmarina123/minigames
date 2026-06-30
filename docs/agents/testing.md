@@ -12,7 +12,7 @@ i18n em testes: [`i18n.md`](i18n.md) (`L10nScope.installForTest`, delegates no `
 
 | Área | Onde |
 |---|---|
-| Scoring/tier/HUD helpers | `test/games/<jogo>_config_test.dart` |
+| Scoring/tier/HUD helpers | `test/games/<jogo>_config_test.dart` — incluir `*CompletionRatio` e labels do HUD |
 | Economia | `test/core/session_rewards_test.dart`, `level_curve_test.dart` |
 | SDK / placar | `test/core/game_result_dialog_test.dart` |
 | Favoritos | `test/core/favorite_games_test.dart`, widget em `test/widget_test.dart` |

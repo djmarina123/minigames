@@ -16,9 +16,6 @@ abstract final class CrossSumsConfig {
   static const winBonus = 450;
   static const perfectBonus = 120;
 
-  static const timeBonusMax = 280;
-  static const timeBonusPerSecond = 2;
-
   static const maxScore = 99999;
   static const maxMistakes = 5;
 
@@ -482,16 +479,8 @@ bool crossSumsIsGameOver(CrossSumsState state) =>
 int crossSumsProgressScore(CrossSumsState state) =>
     state.score.clamp(0, CrossSumsConfig.maxScore);
 
-int crossSumsTimeBonusRemaining(Duration elapsed) {
-  final sec = elapsed.inSeconds;
-  return (CrossSumsConfig.timeBonusMax -
-          sec * CrossSumsConfig.timeBonusPerSecond)
-      .clamp(0, CrossSumsConfig.timeBonusMax);
-}
-
 int crossSumsFinalScore({
   required CrossSumsState state,
-  required Duration duration,
   required bool won,
 }) {
   var total = state.score;
@@ -500,24 +489,18 @@ int crossSumsFinalScore({
     if (state.mistakes == 0 && state.hintsUsed == 0) {
       total += CrossSumsConfig.perfectBonus;
     }
-    total += crossSumsTimeBonusRemaining(duration);
   }
   return total.clamp(0, CrossSumsConfig.maxScore);
 }
 
-String crossSumsHudTimeBonusLabel(int bonus) =>
-    bonus > 0
-        ? L10nScope.of.hudTimeBonus(bonus)
-        : L10nScope.of.hudNoTimeBonus;
-
-String crossSumsHudElapsedLabel(Duration elapsed) {
-  final m = elapsed.inMinutes;
-  final s = elapsed.inSeconds.remainder(60);
-  return '$m:${s.toString().padLeft(2, '0')}';
-}
-
 String crossSumsHudProgressLabel(CrossSumsState state) =>
     '${state.correctCount()}/${state.totalCells}';
+
+/// Razão `0..1` de células corretas (barra de progresso do HUD).
+double crossSumsCompletionRatio(CrossSumsState state) =>
+    state.totalCells > 0
+        ? (state.correctCount() / state.totalCells).clamp(0.0, 1.0)
+        : 0.0;
 
 double crossSumsCellFontSize(double cellSize) => cellSize * 0.42;
 

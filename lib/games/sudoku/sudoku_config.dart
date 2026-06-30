@@ -19,9 +19,6 @@ abstract final class SudokuConfig {
   static const winBonus = 500;
   static const perfectBonus = 100;
 
-  static const timeBonusMax = 300;
-  static const timeBonusPerSecond = 2;
-
   static const maxScore = 99999;
   static const maxMistakes = 5;
 
@@ -564,15 +561,8 @@ bool sudokuIsGameOver(SudokuState state) =>
 int sudokuProgressScore(SudokuState state) =>
     state.score.clamp(0, SudokuConfig.maxScore);
 
-int sudokuTimeBonusRemaining(Duration elapsed) {
-  final sec = elapsed.inSeconds;
-  return (SudokuConfig.timeBonusMax - sec * SudokuConfig.timeBonusPerSecond)
-      .clamp(0, SudokuConfig.timeBonusMax);
-}
-
 int sudokuFinalScore({
   required SudokuState state,
-  required Duration duration,
   required bool won,
 }) {
   var total = state.score;
@@ -581,24 +571,18 @@ int sudokuFinalScore({
     if (state.mistakes == 0 && state.hintsUsed == 0) {
       total += SudokuConfig.perfectBonus;
     }
-    total += sudokuTimeBonusRemaining(duration);
   }
   return total.clamp(0, SudokuConfig.maxScore);
 }
 
-String sudokuHudTimeBonusLabel(int bonus) =>
-    bonus > 0
-        ? L10nScope.of.hudTimeBonus(bonus)
-        : L10nScope.of.hudNoTimeBonus;
-
-String sudokuHudElapsedLabel(Duration elapsed) {
-  final m = elapsed.inMinutes;
-  final s = elapsed.inSeconds.remainder(60);
-  return '$m:${s.toString().padLeft(2, '0')}';
-}
-
 String sudokuHudProgressLabel(SudokuState state) =>
     '${state.filledCount()}/${state.totalCells}';
+
+/// Razão `0..1` de células preenchidas (barra de progresso do HUD).
+double sudokuCompletionRatio(SudokuState state) =>
+    state.totalCells > 0
+        ? (state.filledCount() / state.totalCells).clamp(0.0, 1.0)
+        : 0.0;
 
 double sudokuCellFontSize(double cellSize) => cellSize * 0.46;
 

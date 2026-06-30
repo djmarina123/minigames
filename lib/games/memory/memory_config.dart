@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import '../../core/economy/performance_tier.dart';
-import '../../core/l10n/l10n_scope.dart';
 import 'memory_symbols.dart';
 
 /// Constantes e regras de pontuação do Jogo da Memória.
@@ -13,12 +12,6 @@ abstract final class MemoryConfig {
 
   /// Penalidade por jogada (cada tentativa de par).
   static const penaltyPerMove = 10;
-
-  /// Bônus máximo por terminar rápido.
-  static const timeBonusMax = 200;
-
-  /// Perde bônus a cada segundo decorrido.
-  static const timeBonusPerSecond = 4;
 
   /// Partida perfeita: todos os pares no mínimo de jogadas.
   static const perfectGameBonus = 100;
@@ -72,14 +65,12 @@ class MemoryScoreBreakdown {
     required this.score,
     required this.basePoints,
     required this.movePenalty,
-    required this.timeBonus,
     required this.perfectBonus,
   });
 
   final int score;
   final int basePoints;
   final int movePenalty;
-  final int timeBonus;
   final int perfectBonus;
 }
 
@@ -103,56 +94,31 @@ int memoryProgressScoreDelta({
       previousScore;
 }
 
-/// Bônus de tempo restante no momento da partida (preview no HUD).
-int memoryTimeBonusRemaining(Duration elapsed) {
-  final elapsedSec = elapsed.inSeconds;
-  return (MemoryConfig.timeBonusMax -
-          elapsedSec * MemoryConfig.timeBonusPerSecond)
-      .clamp(0, MemoryConfig.timeBonusMax);
-}
-
-/// Razão `0..1` do bônus de tempo ainda disponível.
-double memoryTimeBonusRatio(Duration elapsed) =>
-    memoryTimeBonusRemaining(elapsed) / MemoryConfig.timeBonusMax;
-
-/// Timer do HUD (`m:ss`).
-String memoryFormatDuration(Duration duration) {
-  final minutes = duration.inMinutes;
-  final seconds = duration.inSeconds % 60;
-  return '$minutes:${seconds.toString().padLeft(2, '0')}';
-}
-
-/// Nota do HUD para a coluna de tempo (`+160 tempo` ou vazio).
-String? memoryHudTimeBonusFootnote(Duration elapsed) {
-  final bonus = memoryTimeBonusRemaining(elapsed);
-  if (bonus <= 0) return null;
-  return L10nScope.of.hudTimeBonus(bonus);
-}
+/// Razão `0..1` de pares encontrados (barra de progresso do HUD).
+double memoryCompletionRatio({
+  required int pairsFound,
+  required int pairCount,
+}) =>
+    pairCount > 0 ? (pairsFound / pairCount).clamp(0.0, 1.0) : 0.0;
 
 /// Pontuação final ao completar o tabuleiro.
 MemoryScoreBreakdown memoryFinalScore({
   required int pairCount,
   required int pairsFound,
   required int moves,
-  required Duration duration,
 }) {
   final base = pairsFound * MemoryConfig.pointsPerPair;
   final penalty = moves * MemoryConfig.penaltyPerMove;
-  final elapsedSec = duration.inSeconds;
-  final timeBonus = (MemoryConfig.timeBonusMax -
-          elapsedSec * MemoryConfig.timeBonusPerSecond)
-      .clamp(0, MemoryConfig.timeBonusMax);
   final perfectBonus = pairsFound == pairCount && moves == pairCount
       ? MemoryConfig.perfectGameBonus
       : 0;
-  final score = (base - penalty + timeBonus + perfectBonus)
+  final score = (base - penalty + perfectBonus)
       .clamp(0, MemoryConfig.maxScore);
 
   return MemoryScoreBreakdown(
     score: score,
     basePoints: base,
     movePenalty: penalty,
-    timeBonus: timeBonus,
     perfectBonus: perfectBonus,
   );
 }

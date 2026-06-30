@@ -408,9 +408,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get resultStatMoves => 'Jogadas';
 
   @override
-  String get resultStatTimeBonus => 'Bônus tempo';
-
-  @override
   String get resultStatPerfect => 'Perfeito';
 
   @override
@@ -561,6 +558,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get hudPoints => 'Pontos';
 
   @override
+  String get hudCombo => 'Combo';
+
+  @override
   String get hudProgress => 'Progresso';
 
   @override
@@ -597,14 +597,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String hudPenaltyPerMove(int penalty) {
     return '−$penalty/jogada';
   }
-
-  @override
-  String hudTimeBonus(int bonus) {
-    return '+$bonus tempo';
-  }
-
-  @override
-  String get hudNoTimeBonus => 'Sem bônus tempo';
 
   @override
   String hudBonusPreview(int bonus) {
@@ -716,7 +708,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gameMemoryScoring =>
-      'Cada par vale 150 pts. Cada jogada (tentativa de par) tira 10 pts. Termine rápido para ganhar até 200 pts de bônus de tempo. Acertar todos os pares no mínimo de jogadas dá +100 pts extra.';
+      'Cada par vale 150 pts. Cada jogada (tentativa de par) tira 10 pts. Acertar todos os pares no mínimo de jogadas dá +100 pts extra.';
 
   @override
   String get gameMemoryTryAgain => 'Tente de novo';
@@ -799,7 +791,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String gameSolitaireScoring(int hintCost) {
-    return 'Mover para fundação vale pontos. Termine rápido para bônus de tempo. DICA custa $hintCost moedas e revela uma carta jogável.';
+    return 'Mover para fundação vale pontos. DICA custa $hintCost moedas e revela uma carta jogável.';
   }
 
   @override
@@ -825,7 +817,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gameSudokuScoring =>
-      'Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts, bônus de tempo (até 300 pts) e +100 pts se terminar sem erros nem dicas pagas.';
+      'Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts e +100 pts se terminar sem erros nem dicas pagas.';
 
   @override
   String get gameCrossSumsTitle => 'Cross Sums';
@@ -841,7 +833,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gameCrossSumsScoring =>
-      'Cada acerto vale +15 pts. Erro −18 pts. Complete o puzzle para +450 pts, bônus de tempo (até 280 pts) e +120 pts se terminar sem erros nem dicas pagas.';
+      'Cada acerto vale +15 pts. Erro −18 pts. Complete o puzzle para +450 pts e +120 pts se terminar sem erros nem dicas pagas.';
 
   @override
   String gameCrossSumsLevel(int level) {
@@ -902,7 +894,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gameMinesweeperScoring =>
-      'Cada célula revelada vale +8 pts. Complete o tabuleiro para +400 pts, bônus de tempo (até 250 pts) e +80 pts sem dicas pagas.';
+      'Cada célula revelada vale +8 pts. Complete o tabuleiro para +400 pts e +80 pts sem dicas pagas.';
 
   @override
   String get gameMinesweeperMineHit => 'Boom!';

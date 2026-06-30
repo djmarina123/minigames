@@ -15,9 +15,6 @@ abstract final class MinesweeperConfig {
   static const winBonus = 400;
   static const perfectBonus = 80;
 
-  static const timeBonusMax = 250;
-  static const timeBonusPerSecond = 2;
-
   static const maxScore = 99999;
 
   static const shakeSec = 0.32;
@@ -548,16 +545,8 @@ MinesweeperActionResult? minesweeperHintSafe(
 int minesweeperProgressScore(MinesweeperState state) =>
     state.score.clamp(0, MinesweeperConfig.maxScore);
 
-int minesweeperTimeBonusRemaining(Duration elapsed) {
-  final sec = elapsed.inSeconds;
-  return (MinesweeperConfig.timeBonusMax -
-          sec * MinesweeperConfig.timeBonusPerSecond)
-      .clamp(0, MinesweeperConfig.timeBonusMax);
-}
-
 int minesweeperFinalScore({
   required MinesweeperState state,
-  required Duration duration,
   required bool won,
 }) {
   var total = state.score;
@@ -566,26 +555,21 @@ int minesweeperFinalScore({
     if (state.hintsUsed == 0) {
       total += MinesweeperConfig.perfectBonus;
     }
-    total += minesweeperTimeBonusRemaining(duration);
   }
   return total.clamp(0, MinesweeperConfig.maxScore);
-}
-
-String minesweeperHudElapsedLabel(Duration elapsed) {
-  final m = elapsed.inMinutes;
-  final s = elapsed.inSeconds.remainder(60);
-  return '$m:${s.toString().padLeft(2, '0')}';
 }
 
 String minesweeperHudProgressLabel(MinesweeperState state) =>
     '${state.revealedCount}/${state.safeCells}';
 
+/// Razão `0..1` de células seguras reveladas (barra de progresso do HUD).
+double minesweeperCompletionRatio(MinesweeperState state) =>
+    state.safeCells > 0
+        ? (state.revealedCount / state.safeCells).clamp(0.0, 1.0)
+        : 0.0;
+
 String minesweeperHudMinesLabel(MinesweeperState state) =>
     L10nScope.of.hudMinesRemaining(state.flagsRemaining);
-
-String minesweeperHudTimeBonusLabel(int bonus) => bonus > 0
-    ? L10nScope.of.hudTimeBonus(bonus)
-    : L10nScope.of.hudNoTimeBonus;
 
 double minesweeperCellFontSize(double cellSize) =>
     (cellSize * 0.52).clamp(10.0, 22.0);

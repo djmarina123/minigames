@@ -407,9 +407,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resultStatMoves => 'Moves';
 
   @override
-  String get resultStatTimeBonus => 'Time bonus';
-
-  @override
   String get resultStatPerfect => 'Perfect';
 
   @override
@@ -560,6 +557,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hudPoints => 'Points';
 
   @override
+  String get hudCombo => 'Combo';
+
+  @override
   String get hudProgress => 'Progress';
 
   @override
@@ -596,14 +596,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String hudPenaltyPerMove(int penalty) {
     return '−$penalty/move';
   }
-
-  @override
-  String hudTimeBonus(int bonus) {
-    return '+$bonus time';
-  }
-
-  @override
-  String get hudNoTimeBonus => 'No time bonus';
 
   @override
   String hudBonusPreview(int bonus) {
@@ -715,7 +707,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gameMemoryScoring =>
-      'Each pair is worth 150 pts. Each move (pair attempt) costs 10 pts. Finish fast for up to 200 pts time bonus. Finding all pairs in minimum moves gives +100 pts extra.';
+      'Each pair is worth 150 pts. Each move (pair attempt) costs 10 pts. Finding all pairs in minimum moves gives +100 pts extra.';
 
   @override
   String get gameMemoryTryAgain => 'Try again';
@@ -797,7 +789,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String gameSolitaireScoring(int hintCost) {
-    return 'Moving to foundation scores points. Finish fast for a time bonus. HINT costs $hintCost coins and reveals a playable card.';
+    return 'Moving to foundation scores points. HINT costs $hintCost coins and reveals a playable card.';
   }
 
   @override
@@ -823,7 +815,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gameSudokuScoring =>
-      'Each correct entry is +12 pts. Error −15 pts. Complete the puzzle for +500 pts, time bonus (up to 300 pts), and +100 pts if you finish with no errors or paid hints.';
+      'Each correct entry is +12 pts. Error −15 pts. Complete the puzzle for +500 pts and +100 pts if you finish with no errors or paid hints.';
 
   @override
   String get gameCrossSumsTitle => 'Cross Sums';
@@ -839,7 +831,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gameCrossSumsScoring =>
-      'Each correct toggle is +15 pts. Mistake −18 pts. Complete the puzzle for +450 pts, time bonus (up to 280 pts) and +120 pts if you finish with no mistakes or paid hints.';
+      'Each correct toggle is +15 pts. Mistake −18 pts. Complete the puzzle for +450 pts and +120 pts if you finish with no mistakes or paid hints.';
 
   @override
   String gameCrossSumsLevel(int level) {
@@ -900,7 +892,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gameMinesweeperScoring =>
-      'Each revealed cell is +8 pts. Clear the board for +400 pts, time bonus (up to 250 pts), and +80 pts with no paid hints.';
+      'Each revealed cell is +8 pts. Clear the board for +400 pts and +80 pts with no paid hints.';
 
   @override
   String get gameMinesweeperMineHit => 'Boom!';

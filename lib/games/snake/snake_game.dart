@@ -525,13 +525,9 @@ class SnakeFlameGame extends FlameGame with DragCallbacks, KeyboardEvents {
           caption: L10nScope.of.hudSpeed,
           value: L10nScope.of.resultStatSpeedLevel(snakeSpeedLevel(_elapsed)),
         ),
-        GameSessionHudStat(
-          caption: L10nScope.of.hudTime,
-          value: snakeHudElapsedLabel(Duration(seconds: _elapsed.floor())),
-        ),
       ],
       progress: GameSessionHudProgress(
-        ratio: 1 - snakeProgress(_elapsed),
+        ratio: snakeProgress(_elapsed),
         color: SnakeConfig.speedBar,
         lowColor: SnakeConfig.speedBarLow,
         lowThreshold: 0.35,

@@ -184,7 +184,7 @@ void main() {
       expect(hint.state.player[hint.row][hint.col], hint.value);
     });
 
-    test('placar final inclui bônus de vitória e tempo', () {
+    test('placar final inclui bônus de vitória', () {
       final state = SudokuState(
         solution: sudokuGenerateSolution(Random(3)),
         givens: sudokuEmptyGivens(),
@@ -194,18 +194,13 @@ void main() {
         mistakes: 0,
         hintsUsed: 0,
       );
-      const duration = Duration(seconds: 30);
       final score = sudokuFinalScore(
         state: state,
-        duration: duration,
         won: true,
       );
       expect(
         score,
-        200 +
-            SudokuConfig.winBonus +
-            SudokuConfig.perfectBonus +
-            sudokuTimeBonusRemaining(duration),
+        200 + SudokuConfig.winBonus + SudokuConfig.perfectBonus,
       );
     });
 
@@ -236,12 +231,9 @@ void main() {
       expect(layout.boardSize, closeTo(availW, 1.0));
     });
 
-    test('helpers do HUD formatam tempo e progresso', () {
-      expect(sudokuHudElapsedLabel(const Duration(minutes: 2, seconds: 5)),
-          '2:05');
+    test('helpers do HUD formatam progresso', () {
       final state = sudokuNewGame(Random(0));
       expect(sudokuHudProgressLabel(state), '${state.filledCount()}/81');
-      expect(sudokuHudTimeBonusLabel(120), '+120 tempo');
     });
 
     test('dica paga não penaliza score', () {

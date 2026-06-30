@@ -408,9 +408,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get resultStatMoves => 'Jugadas';
 
   @override
-  String get resultStatTimeBonus => 'Bono tiempo';
-
-  @override
   String get resultStatPerfect => 'Perfecto';
 
   @override
@@ -561,6 +558,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get hudPoints => 'Puntos';
 
   @override
+  String get hudCombo => 'Combo';
+
+  @override
   String get hudProgress => 'Progreso';
 
   @override
@@ -597,14 +597,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String hudPenaltyPerMove(int penalty) {
     return '−$penalty/jugada';
   }
-
-  @override
-  String hudTimeBonus(int bonus) {
-    return '+$bonus tiempo';
-  }
-
-  @override
-  String get hudNoTimeBonus => 'Sin bono tiempo';
 
   @override
   String hudBonusPreview(int bonus) {
@@ -716,7 +708,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gameMemoryScoring =>
-      'Cada par vale 150 pts. Cada jugada (intento de par) resta 10 pts. Termina rápido para ganar hasta 200 pts de bono de tiempo. Acertar todos los pares en el mínimo de jugadas da +100 pts extra.';
+      'Cada par vale 150 pts. Cada jugada (intento de par) resta 10 pts. Acertar todos los pares en el mínimo de jugadas da +100 pts extra.';
 
   @override
   String get gameMemoryTryAgain => 'Inténtalo de nuevo';
@@ -799,7 +791,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String gameSolitaireScoring(int hintCost) {
-    return 'Mover a fundación da puntos. Termina rápido para bono de tiempo. PISTA cuesta $hintCost monedas y revela una carta jugable.';
+    return 'Mover a fundación da puntos. PISTA cuesta $hintCost monedas y revela una carta jugable.';
   }
 
   @override
@@ -825,7 +817,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gameSudokuScoring =>
-      'Cada acierto vale +12 pts. Error −15 pts. Completa el puzzle para +500 pts, bono de tiempo (hasta 300 pts) y +100 pts si terminas sin errores ni pistas pagadas.';
+      'Cada acierto vale +12 pts. Error −15 pts. Completa el puzzle para +500 pts y +100 pts si terminas sin errores ni pistas pagadas.';
 
   @override
   String get gameCrossSumsTitle => 'Cross Sums';
@@ -841,7 +833,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gameCrossSumsScoring =>
-      'Cada acierto vale +15 pts. Error −18 pts. Completa el puzzle para +450 pts, bono de tiempo (hasta 280 pts) y +120 pts si terminas sin errores ni pistas pagas.';
+      'Cada acierto vale +15 pts. Error −18 pts. Completa el puzzle para +450 pts y +120 pts si terminas sin errores ni pistas pagas.';
 
   @override
   String gameCrossSumsLevel(int level) {
@@ -902,7 +894,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gameMinesweeperScoring =>
-      'Cada celda revelada vale +8 pts. Completa el tablero para +400 pts, bono de tiempo (hasta 250 pts) y +80 pts sin pistas pagadas.';
+      'Cada celda revelada vale +8 pts. Completa el tablero para +400 pts y +80 pts sin pistas pagadas.';
 
   @override
   String get gameMinesweeperMineHit => '¡Boom!';

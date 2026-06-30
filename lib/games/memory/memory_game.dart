@@ -36,7 +36,6 @@ class MemoryGame implements HubGame {
               'a fechar. Encontre todos os pares para vencer.',
           scoring:
               'Cada par vale 150 pts. Cada jogada (tentativa de par) tira 10 pts. '
-              'Termine rápido para ganhar até 200 pts de bônus de tempo. '
               'Acertar todos os pares no mínimo de jogadas dá +100 pts extra.',
         ),
         optionGroups: [
@@ -89,7 +88,6 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   int _pairsFound = 0;
   int _moves = 0;
   int _displayScore = 0;
-  double _elapsedSec = 0;
   MemoryCard? _firstPick;
   MemoryCard? _secondPick;
   bool _lockInput = false;
@@ -117,9 +115,6 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   @override
   void update(double dt) {
     super.update(dt);
-    if (!_finished) {
-      _elapsedSec += dt;
-    }
     if (_missFlash > 0) {
       _missFlash = (_missFlash - dt * 3).clamp(0.0, 1.0);
     }
@@ -330,7 +325,6 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
       pairCount: pairCount,
       pairsFound: _pairsFound,
       moves: _moves,
-      duration: duration,
     );
     callbacks.onGameOver(
       GameResult(
@@ -339,7 +333,6 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
         metadata: {
           'pairCount': pairCount,
           'moves': _moves,
-          'timeBonus': breakdown.timeBonus,
           'perfectBonus': breakdown.perfectBonus,
           'performanceTier': memoryPerformanceTier(
             pairCount: pairCount,
@@ -399,9 +392,10 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
   void _paintHud(Canvas canvas) {
     if (_finished) return;
 
-    final elapsed = Duration(milliseconds: (_elapsedSec * 1000).round());
-    final timeBonusFootnote = memoryHudTimeBonusFootnote(elapsed);
-    final timeBonusRatio = memoryTimeBonusRatio(elapsed);
+    final completionRatio = memoryCompletionRatio(
+      pairsFound: _pairsFound,
+      pairCount: pairCount,
+    );
 
     GameSessionHud.paintStatsBar(
       canvas,
@@ -417,27 +411,17 @@ class _MemoryFlameGame extends FlameGame with TapCallbacks {
           value: '$_pairsFound/$pairCount',
         ),
         GameSessionHudStat(
-          caption: L10nScope.of.hudTime,
-          value: memoryFormatDuration(elapsed),
-          footnote: timeBonusFootnote,
-          footnoteColor: timeBonusFootnote != null
-              ? MemoryConfig.matchGlow
-              : MemoryConfig.hudMuted.withValues(alpha: 0.85),
-        ),
-        GameSessionHudStat(
           caption: L10nScope.of.hudMoves,
           value: '$_moves',
           footnote: L10nScope.of.hudPenaltyPerMove(MemoryConfig.penaltyPerMove),
           footnoteColor: MemoryConfig.hudMuted.withValues(alpha: 0.85),
         ),
       ],
-      progress: timeBonusFootnote != null
-          ? GameSessionHudProgress(
-              ratio: timeBonusRatio,
-              color: MemoryConfig.matchGlow,
-              lowColor: MemoryConfig.accentColor,
-            )
-          : null,
+      progress: GameSessionHudProgress(
+        ratio: completionRatio,
+        color: MemoryConfig.matchGlow,
+        lowColor: MemoryConfig.accentColor,
+      ),
     );
   }
 }

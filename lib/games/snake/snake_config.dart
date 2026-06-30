@@ -206,14 +206,6 @@ SnakeBoardLayout snakeBoardLayout({
   );
 }
 
-/// Label de tempo para o HUD.
-String snakeHudElapsedLabel(Duration elapsed) {
-  final s = elapsed.inSeconds;
-  final m = s ~/ 60;
-  final r = s % 60;
-  return '$m:${r.toString().padLeft(2, '0')}';
-}
-
 /// Comprimento da cobra considerado "partida excelente" (desempenho `1.0`).
 const snakeGoldLength = 21;
 

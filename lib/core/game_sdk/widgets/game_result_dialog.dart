@@ -41,7 +41,6 @@ class GameResultDialog extends StatelessWidget {
     final hits = _metaInt(result.metadata['hits']);
     final misses = _metaInt(result.metadata['misses']);
     final moves = _metaInt(result.metadata['moves']);
-    final timeBonus = _metaInt(result.metadata['timeBonus']);
     final perfectBonus = _metaInt(result.metadata['perfectBonus']);
     final highestTile = _metaInt(result.metadata['highestTile']);
     final tileBonus = _metaInt(result.metadata['tileBonus']);
@@ -122,7 +121,6 @@ class GameResultDialog extends StatelessWidget {
                             hits != null ||
                             (misses != null && misses > 0) ||
                             moves != null ||
-                            (timeBonus != null && timeBonus > 0) ||
                             (perfectBonus != null && perfectBonus > 0) ||
                             (highestTile != null && highestTile > 0) ||
                             (tileBonus != null && tileBonus > 0) ||
@@ -143,7 +141,6 @@ class GameResultDialog extends StatelessWidget {
                             hits: hits,
                             misses: misses,
                             moves: moves,
-                            timeBonus: timeBonus,
                             perfectBonus: perfectBonus,
                             highestTile: highestTile,
                             tileBonus: tileBonus,
@@ -729,7 +726,6 @@ class _StatsChips extends StatelessWidget {
     this.hits,
     this.misses,
     this.moves,
-    this.timeBonus,
     this.perfectBonus,
     this.highestTile,
     this.tileBonus,
@@ -750,7 +746,6 @@ class _StatsChips extends StatelessWidget {
   final int? hits;
   final int? misses;
   final int? moves;
-  final int? timeBonus;
   final int? perfectBonus;
   final int? highestTile;
   final int? tileBonus;
@@ -781,8 +776,6 @@ class _StatsChips extends StatelessWidget {
           _Chip(label: l10n.resultStatMistakes, value: '$misses', color: cardColor),
         if (moves != null)
           _Chip(label: l10n.resultStatMoves, value: '$moves', color: cardColor),
-        if (timeBonus != null && timeBonus! > 0)
-          _Chip(label: l10n.resultStatTimeBonus, value: '+$timeBonus', color: accentColor),
         if (perfectBonus != null && perfectBonus! > 0)
           _Chip(label: l10n.resultStatPerfect, value: '+$perfectBonus', color: HubTheme.coinGold),
         if (highestTile != null && highestTile! > 0)

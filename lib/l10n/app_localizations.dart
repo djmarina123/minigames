@@ -802,12 +802,6 @@ abstract class AppLocalizations {
   /// **'Jogadas'**
   String get resultStatMoves;
 
-  /// No description provided for @resultStatTimeBonus.
-  ///
-  /// In pt, this message translates to:
-  /// **'Bônus tempo'**
-  String get resultStatTimeBonus;
-
   /// No description provided for @resultStatPerfect.
   ///
   /// In pt, this message translates to:
@@ -1084,6 +1078,12 @@ abstract class AppLocalizations {
   /// **'Pontos'**
   String get hudPoints;
 
+  /// No description provided for @hudCombo.
+  ///
+  /// In pt, this message translates to:
+  /// **'Combo'**
+  String get hudCombo;
+
   /// No description provided for @hudProgress.
   ///
   /// In pt, this message translates to:
@@ -1155,18 +1155,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'−{penalty}/jogada'**
   String hudPenaltyPerMove(int penalty);
-
-  /// No description provided for @hudTimeBonus.
-  ///
-  /// In pt, this message translates to:
-  /// **'+{bonus} tempo'**
-  String hudTimeBonus(int bonus);
-
-  /// No description provided for @hudNoTimeBonus.
-  ///
-  /// In pt, this message translates to:
-  /// **'Sem bônus tempo'**
-  String get hudNoTimeBonus;
 
   /// No description provided for @hudBonusPreview.
   ///
@@ -1339,7 +1327,7 @@ abstract class AppLocalizations {
   /// No description provided for @gameMemoryScoring.
   ///
   /// In pt, this message translates to:
-  /// **'Cada par vale 150 pts. Cada jogada (tentativa de par) tira 10 pts. Termine rápido para ganhar até 200 pts de bônus de tempo. Acertar todos os pares no mínimo de jogadas dá +100 pts extra.'**
+  /// **'Cada par vale 150 pts. Cada jogada (tentativa de par) tira 10 pts. Acertar todos os pares no mínimo de jogadas dá +100 pts extra.'**
   String get gameMemoryScoring;
 
   /// No description provided for @gameMemoryTryAgain.
@@ -1477,7 +1465,7 @@ abstract class AppLocalizations {
   /// No description provided for @gameSolitaireScoring.
   ///
   /// In pt, this message translates to:
-  /// **'Mover para fundação vale pontos. Termine rápido para bônus de tempo. DICA custa {hintCost} moedas e revela uma carta jogável.'**
+  /// **'Mover para fundação vale pontos. DICA custa {hintCost} moedas e revela uma carta jogável.'**
   String gameSolitaireScoring(int hintCost);
 
   /// No description provided for @gameSolitaireDropOnColumn.
@@ -1519,7 +1507,7 @@ abstract class AppLocalizations {
   /// No description provided for @gameSudokuScoring.
   ///
   /// In pt, this message translates to:
-  /// **'Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts, bônus de tempo (até 300 pts) e +100 pts se terminar sem erros nem dicas pagas.'**
+  /// **'Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts e +100 pts se terminar sem erros nem dicas pagas.'**
   String get gameSudokuScoring;
 
   /// No description provided for @gameCrossSumsTitle.
@@ -1543,7 +1531,7 @@ abstract class AppLocalizations {
   /// No description provided for @gameCrossSumsScoring.
   ///
   /// In pt, this message translates to:
-  /// **'Cada acerto vale +15 pts. Erro −18 pts. Complete o puzzle para +450 pts, bônus de tempo (até 280 pts) e +120 pts se terminar sem erros nem dicas pagas.'**
+  /// **'Cada acerto vale +15 pts. Erro −18 pts. Complete o puzzle para +450 pts e +120 pts se terminar sem erros nem dicas pagas.'**
   String get gameCrossSumsScoring;
 
   /// No description provided for @gameCrossSumsLevel.
@@ -1627,7 +1615,7 @@ abstract class AppLocalizations {
   /// No description provided for @gameMinesweeperScoring.
   ///
   /// In pt, this message translates to:
-  /// **'Cada célula revelada vale +8 pts. Complete o tabuleiro para +400 pts, bônus de tempo (até 250 pts) e +80 pts sem dicas pagas.'**
+  /// **'Cada célula revelada vale +8 pts. Complete o tabuleiro para +400 pts e +80 pts sem dicas pagas.'**
   String get gameMinesweeperScoring;
 
   /// No description provided for @gameMinesweeperMineHit.

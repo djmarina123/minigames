@@ -141,7 +141,6 @@
   "resultStatHits": "Hits",
   "resultStatMistakes": "Mistakes",
   "resultStatMoves": "Moves",
-  "resultStatTimeBonus": "Time bonus",
   "resultStatPerfect": "Perfect",
   "resultStatHighestTile": "Highest tile",
   "resultStatTileBonus": "Tile bonus",
@@ -200,6 +199,7 @@
   "hudTime": "Time",
   "hudMoves": "Moves",
   "hudPoints": "Points",
+  "hudCombo": "Combo",
   "hudProgress": "Progress",
   "hudObjective": "Goal",
   "hudMax": "Max",
@@ -212,8 +212,6 @@
   "hudYourTiles": "Your tiles",
   "hudTurn": "Turn",
   "hudPenaltyPerMove": "−{penalty}/move",
-  "hudTimeBonus": "+{bonus} time",
-  "hudNoTimeBonus": "No time bonus",
   "hudBonusPreview": "+{bonus} bonus",
   "hudNextPoints": "+{pts} next",
   "hudMovesCount": "{moves} moves",
@@ -251,7 +249,7 @@
   "gameMemoryTitle": "Memory Game",
   "gameMemoryDescription": "Find all matching icon pairs.",
   "gameMemoryHowToPlay": "Tap a card to flip it. Tap another to try making a pair. Matching cards stay open; mismatches flip back. Find all pairs to win.",
-  "gameMemoryScoring": "Each pair is worth 150 pts. Each move (pair attempt) costs 10 pts. Finish fast for up to 200 pts time bonus. Finding all pairs in minimum moves gives +100 pts extra.",
+  "gameMemoryScoring": "Each pair is worth 150 pts. Each move (pair attempt) costs 10 pts. Finding all pairs in minimum moves gives +100 pts extra.",
   "gameMemoryTryAgain": "Try again",
 
   "gameSnakeTitle": "Snake",
@@ -278,7 +276,7 @@
   "gameSolitaireTitle": "Solitaire",
   "gameSolitaireDescription": "Organize cards on foundations from Ace to King.",
   "gameSolitaireHowToPlay": "Drag cards between columns (alternating colors, descending values). Move to foundations from Ace to King. Recycling the stock flips cards again.",
-  "gameSolitaireScoring": "Moving to foundation scores points. Finish fast for a time bonus. HINT costs {hintCost} coins and reveals a playable card.",
+  "gameSolitaireScoring": "Moving to foundation scores points. HINT costs {hintCost} coins and reveals a playable card.",
   "gameSolitaireDropOnColumn": "Drop on column",
   "gameSolitaireRecycle": "Recycle",
   "gameSolitaireFlip": "Flip",
@@ -286,7 +284,7 @@
   "gameSudokuTitle": "Sudoku",
   "gameSudokuDescription": "Fill the 9×9 grid without repeating numbers.",
   "gameSudokuHowToPlay": "Tap an empty cell and pick a number from 1 to 9. Each row, column, and 3×3 block must contain all digits without repetition. HINT costs {hintCost} coins and reveals a cell. Use ERASE to clear. The game ends when the grid is complete or after 5 errors.",
-  "gameSudokuScoring": "Each correct entry is +12 pts. Error −15 pts. Complete the puzzle for +500 pts, time bonus (up to 300 pts), and +100 pts if you finish with no errors or paid hints.",
+  "gameSudokuScoring": "Each correct entry is +12 pts. Error −15 pts. Complete the puzzle for +500 pts and +100 pts if you finish with no errors or paid hints.",
 
   "gameCrossSumsTitle": "Cross Sums",
   "gameCrossSumsDescription": "Mark the right numbers so row and column sums match.",
@@ -294,7 +292,7 @@
   "@gameCrossSumsHowToPlay": {
     "placeholders": { "hintCost": { "type": "int" } }
   },
-  "gameCrossSumsScoring": "Each correct toggle is +15 pts. Mistake −18 pts. Complete the puzzle for +450 pts, time bonus (up to 280 pts) and +120 pts if you finish with no mistakes or paid hints.",
+  "gameCrossSumsScoring": "Each correct toggle is +15 pts. Mistake −18 pts. Complete the puzzle for +450 pts and +120 pts if you finish with no mistakes or paid hints.",
   "gameCrossSumsLevel": "Level {level}",
   "@gameCrossSumsLevel": {
     "placeholders": { "level": { "type": "int" } }
@@ -322,7 +320,7 @@
   "@gameMinesweeperHowToPlay": {
     "placeholders": { "hintCost": { "type": "int" } }
   },
-  "gameMinesweeperScoring": "Each revealed cell is +8 pts. Clear the board for +400 pts, time bonus (up to 250 pts), and +80 pts with no paid hints.",
+  "gameMinesweeperScoring": "Each revealed cell is +8 pts. Clear the board for +400 pts and +80 pts with no paid hints.",
   "gameMinesweeperMineHit": "Boom!",
 
   "gameDemoTitle": "Demo Tap",

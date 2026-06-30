@@ -128,12 +128,10 @@ void main() {
       expect(restored.state.kept[row][col], isTrue);
     });
 
-    test('score final inclui bônus de vitória e tempo', () {
+    test('score final inclui bônus de vitória', () {
       final state = crossSumsNewGame(Random(3));
-      const duration = Duration(seconds: 30);
       final score = crossSumsFinalScore(
         state: state,
-        duration: duration,
         won: true,
       );
       expect(
@@ -169,9 +167,6 @@ void main() {
     });
 
     test('helpers de HUD retornam texto localizado', () {
-      expect(crossSumsHudTimeBonusLabel(120), isNotEmpty);
-      expect(crossSumsHudElapsedLabel(const Duration(minutes: 1, seconds: 5)),
-          '1:05');
       final state = crossSumsNewGame(Random(1));
       expect(
         crossSumsHudProgressLabel(state),

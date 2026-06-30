@@ -1,26 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minigames_hub/core/economy/performance_tier.dart';
-import 'package:minigames_hub/core/l10n/l10n_scope.dart';
 import 'package:minigames_hub/games/memory/memory_config.dart';
 
 void main() {
-  setUpAll(() async {
-    await L10nScope.installForTest();
-  });
   group('memoryFinalScore', () {
-    test('partida perfeita rápida atinge score alto', () {
+    test('partida perfeita atinge score alto', () {
       final result = memoryFinalScore(
         pairCount: 4,
         pairsFound: 4,
         moves: 4,
-        duration: const Duration(seconds: 10),
       );
 
       expect(result.basePoints, 600);
       expect(result.movePenalty, 40);
       expect(result.perfectBonus, 100);
-      expect(result.timeBonus, 160);
-      expect(result.score, 820);
+      expect(result.score, 660);
     });
 
     test('muitas jogadas reduzem a pontuação', () {
@@ -28,11 +22,9 @@ void main() {
         pairCount: 4,
         pairsFound: 4,
         moves: 12,
-        duration: const Duration(seconds: 60),
       );
 
       expect(result.movePenalty, 120);
-      expect(result.timeBonus, 0);
       expect(result.perfectBonus, 0);
       expect(result.score, 480);
     });
@@ -79,24 +71,6 @@ void main() {
         ),
         -10,
       );
-    });
-  });
-
-  group('memoryTimeBonusRemaining', () {
-    test('decai 4 pts por segundo', () {
-      expect(memoryTimeBonusRemaining(Duration.zero), 200);
-      expect(memoryTimeBonusRemaining(const Duration(seconds: 10)), 160);
-      expect(memoryTimeBonusRemaining(const Duration(seconds: 50)), 0);
-    });
-  });
-
-  group('memoryHudTimeBonusFootnote', () {
-    test('formata preview do bônus de tempo', () {
-      expect(
-        memoryHudTimeBonusFootnote(const Duration(seconds: 10)),
-        '+160 tempo',
-      );
-      expect(memoryHudTimeBonusFootnote(const Duration(seconds: 60)), isNull);
     });
   });
 

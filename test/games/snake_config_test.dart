@@ -73,12 +73,5 @@ void main() {
       expect(layout.boardRect.right, lessThan(390));
       expect(layout.cellSize, greaterThan(0));
     });
-
-    test('label de tempo no HUD', () {
-      expect(
-        snakeHudElapsedLabel(const Duration(minutes: 1, seconds: 8)),
-        '1:08',
-      );
-    });
   });
 }

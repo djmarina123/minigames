@@ -331,7 +331,6 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
     final duration = DateTime.now().difference(_startedAt);
     final score = crossSumsFinalScore(
       state: _state,
-      duration: duration,
       won: won,
     );
 
@@ -344,7 +343,6 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
           'mistakes': _state.mistakes,
           'hintsUsed': _state.hintsUsed,
           'cellsCorrect': _state.correctCount(),
-          'timeBonus': won ? crossSumsTimeBonusRemaining(duration) : 0,
           'won': won,
           'performanceTier': crossSumsPerformanceTier(
             won: won,
@@ -674,10 +672,6 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
   void _paintStats(Canvas canvas) {
     if (_phase == _Phase.finished) return;
 
-    final elapsed = DateTime.now().difference(_startedAt);
-    final timeBonus = crossSumsTimeBonusRemaining(elapsed);
-    final progress = crossSumsProgressScore(_state);
-
     const palette = GameSessionHudPalette(
       text: CrossSumsConfig.hudText,
       muted: CrossSumsConfig.hudMuted,
@@ -690,17 +684,6 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
       palette,
       columns: [
         GameSessionHudStat(
-          caption: L10nScope.of.hudPoints,
-          value: '$progress',
-          footnote: crossSumsHudTimeBonusLabel(timeBonus),
-          footnoteColor: CrossSumsConfig.successGlow,
-        ),
-        GameSessionHudStat(
-          caption: L10nScope.of.hudTime,
-          value: crossSumsHudElapsedLabel(elapsed),
-          footnote: L10nScope.of.hudMovesCount(_state.moves),
-        ),
-        GameSessionHudStat(
           caption: L10nScope.of.hudProgress,
           value: crossSumsHudProgressLabel(_state),
           footnote: L10nScope.of.hudMistakesCount(
@@ -711,11 +694,14 @@ class CrossSumsFlameGame extends FlameGame with TapCallbacks {
               ? CrossSumsConfig.missRed
               : CrossSumsConfig.hudMuted,
         ),
+        GameSessionHudStat(
+          caption: L10nScope.of.hudMoves,
+          value: '${_state.moves}',
+        ),
       ],
       progress: GameSessionHudProgress(
-        ratio: timeBonus / CrossSumsConfig.timeBonusMax,
+        ratio: crossSumsCompletionRatio(_state),
         color: CrossSumsConfig.successGlow.withValues(alpha: 0.85),
-        lowColor: CrossSumsConfig.missRed.withValues(alpha: 0.85),
       ),
     );
 

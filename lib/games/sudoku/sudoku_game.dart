@@ -350,7 +350,6 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
     final duration = DateTime.now().difference(_startedAt);
     final score = sudokuFinalScore(
       state: _state,
-      duration: duration,
       won: won,
     );
 
@@ -363,7 +362,6 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
           'mistakes': _state.mistakes,
           'hintsUsed': _state.hintsUsed,
           'cellsFilled': _state.filledCount(),
-          'timeBonus': won ? sudokuTimeBonusRemaining(duration) : 0,
           'won': won,
           'performanceTier': sudokuPerformanceTier(
             won: won,
@@ -638,10 +636,6 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
   void _paintHud(Canvas canvas) {
     if (_phase == _Phase.finished) return;
 
-    final elapsed = DateTime.now().difference(_startedAt);
-    final timeBonus = sudokuTimeBonusRemaining(elapsed);
-    final progress = sudokuProgressScore(_state);
-
     const palette = GameSessionHudPalette(
       text: SudokuConfig.hudText,
       muted: SudokuConfig.hudMuted,
@@ -654,18 +648,6 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
       palette,
       columns: [
         GameSessionHudStat(
-          caption: L10nScope.of.hudPoints,
-          value: '$progress',
-          footnote: sudokuHudTimeBonusLabel(timeBonus),
-          footnoteColor: SudokuConfig.accentSoft,
-        ),
-        GameSessionHudStat(
-          caption: L10nScope.of.hudTime,
-          value: sudokuHudElapsedLabel(elapsed),
-          footnote: L10nScope.of.hudMovesCount(_state.moves),
-          captionColor: SudokuConfig.hudMuted,
-        ),
-        GameSessionHudStat(
           caption: L10nScope.of.hudProgress,
           value: sudokuHudProgressLabel(_state),
           footnote: L10nScope.of.hudMistakesCount(_state.mistakes, SudokuConfig.maxMistakes),
@@ -673,11 +655,14 @@ class SudokuFlameGame extends FlameGame with TapCallbacks {
               ? SudokuConfig.missRed
               : SudokuConfig.hudMuted,
         ),
+        GameSessionHudStat(
+          caption: L10nScope.of.hudMoves,
+          value: '${_state.moves}',
+        ),
       ],
       progress: GameSessionHudProgress(
-        ratio: timeBonus / SudokuConfig.timeBonusMax,
+        ratio: sudokuCompletionRatio(_state),
         color: SudokuConfig.successGlow.withValues(alpha: 0.85),
-        lowColor: SudokuConfig.missRed.withValues(alpha: 0.85),
       ),
     );
 

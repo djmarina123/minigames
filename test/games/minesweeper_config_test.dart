@@ -80,7 +80,7 @@ void main() {
       expect(hit.scoreDelta, 0);
     });
 
-    test('score final inclui bônus de vitória e tempo', () {
+    test('score final inclui bônus de vitória', () {
       final state = MinesweeperState(
         rows: 8,
         cols: 8,
@@ -98,16 +98,12 @@ void main() {
 
       final total = minesweeperFinalScore(
         state: state,
-        duration: const Duration(seconds: 10),
         won: true,
       );
 
       expect(
         total,
-        120 +
-            MinesweeperConfig.winBonus +
-            MinesweeperConfig.perfectBonus +
-            minesweeperTimeBonusRemaining(const Duration(seconds: 10)),
+        120 + MinesweeperConfig.winBonus + MinesweeperConfig.perfectBonus,
       );
     });
 
@@ -144,10 +140,6 @@ void main() {
     test('labels do HUD usam l10n', () {
       final state = minesweeperNewGame(MinesweeperDifficulty.easy);
       expect(minesweeperHudMinesLabel(state), contains('10'));
-      expect(
-        minesweeperHudTimeBonusLabel(MinesweeperConfig.timeBonusMax),
-        isNotEmpty,
-      );
     });
   });
 }

@@ -361,7 +361,6 @@ class MinesweeperFlameGame extends FlameGame with TapCallbacks {
     final duration = DateTime.now().difference(_startedAt);
     final score = minesweeperFinalScore(
       state: _state,
-      duration: duration,
       won: won,
     );
 
@@ -374,7 +373,6 @@ class MinesweeperFlameGame extends FlameGame with TapCallbacks {
           'revealed': _state.revealedCount,
           'flagsPlaced': _state.flagsPlaced,
           'hintsUsed': _state.hintsUsed,
-          'timeBonus': won ? minesweeperTimeBonusRemaining(duration) : 0,
           'won': won,
           'performanceTier': minesweeperPerformanceTier(
             won: won,
@@ -590,10 +588,6 @@ class MinesweeperFlameGame extends FlameGame with TapCallbacks {
   void _paintHud(Canvas canvas) {
     if (_phase == _Phase.finished) return;
 
-    final elapsed = DateTime.now().difference(_startedAt);
-    final timeBonus = minesweeperTimeBonusRemaining(elapsed);
-    final progress = minesweeperProgressScore(_state);
-
     const palette = GameSessionHudPalette(
       text: MinesweeperConfig.hudText,
       muted: MinesweeperConfig.hudMuted,
@@ -606,28 +600,19 @@ class MinesweeperFlameGame extends FlameGame with TapCallbacks {
       palette,
       columns: [
         GameSessionHudStat(
-          caption: L10nScope.of.hudPoints,
-          value: '$progress',
-          footnote: minesweeperHudTimeBonusLabel(timeBonus),
-          footnoteColor: MinesweeperConfig.accentSoft,
-        ),
-        GameSessionHudStat(
-          caption: L10nScope.of.hudTime,
-          value: minesweeperHudElapsedLabel(elapsed),
-          footnote: L10nScope.of.hudMovesCount(_state.moves),
-          captionColor: MinesweeperConfig.hudMuted,
-        ),
-        GameSessionHudStat(
           caption: L10nScope.of.hudProgress,
           value: minesweeperHudProgressLabel(_state),
           footnote: minesweeperHudMinesLabel(_state),
           footnoteColor: MinesweeperConfig.hudMuted,
         ),
+        GameSessionHudStat(
+          caption: L10nScope.of.hudMoves,
+          value: '${_state.moves}',
+        ),
       ],
       progress: GameSessionHudProgress(
-        ratio: timeBonus / MinesweeperConfig.timeBonusMax,
+        ratio: minesweeperCompletionRatio(_state),
         color: MinesweeperConfig.successGlow.withValues(alpha: 0.85),
-        lowColor: MinesweeperConfig.missRed.withValues(alpha: 0.85),
       ),
     );
 

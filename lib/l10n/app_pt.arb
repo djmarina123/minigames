@@ -202,7 +202,6 @@
   "resultStatHits": "Acertos",
   "resultStatMistakes": "Erros",
   "resultStatMoves": "Jogadas",
-  "resultStatTimeBonus": "Bônus tempo",
   "resultStatPerfect": "Perfeito",
   "resultStatHighestTile": "Maior peça",
   "resultStatTileBonus": "Bônus peça",
@@ -273,6 +272,7 @@
   "hudTime": "Tempo",
   "hudMoves": "Jogadas",
   "hudPoints": "Pontos",
+  "hudCombo": "Combo",
   "hudProgress": "Progresso",
   "hudObjective": "Objetivo",
   "hudMax": "Máx.",
@@ -288,11 +288,6 @@
   "@hudPenaltyPerMove": {
     "placeholders": { "penalty": { "type": "int" } }
   },
-  "hudTimeBonus": "+{bonus} tempo",
-  "@hudTimeBonus": {
-    "placeholders": { "bonus": { "type": "int" } }
-  },
-  "hudNoTimeBonus": "Sem bônus tempo",
   "hudBonusPreview": "+{bonus} bônus",
   "@hudBonusPreview": {
     "placeholders": { "bonus": { "type": "int" } }
@@ -357,7 +352,7 @@
   "gameMemoryTitle": "Jogo da Memória",
   "gameMemoryDescription": "Encontre todos os pares de ícones.",
   "gameMemoryHowToPlay": "Toque em uma carta para virá-la. Toque em outra para tentar formar um par. Cartas iguais ficam abertas; diferentes voltam a fechar. Encontre todos os pares para vencer.",
-  "gameMemoryScoring": "Cada par vale 150 pts. Cada jogada (tentativa de par) tira 10 pts. Termine rápido para ganhar até 200 pts de bônus de tempo. Acertar todos os pares no mínimo de jogadas dá +100 pts extra.",
+  "gameMemoryScoring": "Cada par vale 150 pts. Cada jogada (tentativa de par) tira 10 pts. Acertar todos os pares no mínimo de jogadas dá +100 pts extra.",
   "gameMemoryTryAgain": "Tente de novo",
 
   "gameSnakeTitle": "Cobra",
@@ -387,7 +382,7 @@
   "gameSolitaireTitle": "Paciência",
   "gameSolitaireDescription": "Organize as cartas nas fundações do Ás ao Rei.",
   "gameSolitaireHowToPlay": "Arraste cartas entre colunas (cor alternada, valor decrescente). Mova para as fundações do Ás ao Rei. Virar do monte recicla as cartas.",
-  "gameSolitaireScoring": "Mover para fundação vale pontos. Termine rápido para bônus de tempo. DICA custa {hintCost} moedas e revela uma carta jogável.",
+  "gameSolitaireScoring": "Mover para fundação vale pontos. DICA custa {hintCost} moedas e revela uma carta jogável.",
   "@gameSolitaireScoring": {
     "placeholders": { "hintCost": { "type": "int" } }
   },
@@ -401,7 +396,7 @@
   "@gameSudokuHowToPlay": {
     "placeholders": { "hintCost": { "type": "int" } }
   },
-  "gameSudokuScoring": "Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts, bônus de tempo (até 300 pts) e +100 pts se terminar sem erros nem dicas pagas.",
+  "gameSudokuScoring": "Cada acerto vale +12 pts. Erro −15 pts. Complete o puzzle para +500 pts e +100 pts se terminar sem erros nem dicas pagas.",
 
   "gameCrossSumsTitle": "Cross Sums",
   "gameCrossSumsDescription": "Marque os números certos para bater as soma das linhas e colunas.",
@@ -409,7 +404,7 @@
   "@gameCrossSumsHowToPlay": {
     "placeholders": { "hintCost": { "type": "int" } }
   },
-  "gameCrossSumsScoring": "Cada acerto vale +15 pts. Erro −18 pts. Complete o puzzle para +450 pts, bônus de tempo (até 280 pts) e +120 pts se terminar sem erros nem dicas pagas.",
+  "gameCrossSumsScoring": "Cada acerto vale +15 pts. Erro −18 pts. Complete o puzzle para +450 pts e +120 pts se terminar sem erros nem dicas pagas.",
   "gameCrossSumsLevel": "Nível {level}",
   "@gameCrossSumsLevel": {
     "placeholders": { "level": { "type": "int" } }
@@ -437,7 +432,7 @@
   "@gameMinesweeperHowToPlay": {
     "placeholders": { "hintCost": { "type": "int" } }
   },
-  "gameMinesweeperScoring": "Cada célula revelada vale +8 pts. Complete o tabuleiro para +400 pts, bônus de tempo (até 250 pts) e +80 pts sem dicas pagas.",
+  "gameMinesweeperScoring": "Cada célula revelada vale +8 pts. Complete o tabuleiro para +400 pts e +80 pts sem dicas pagas.",
   "gameMinesweeperMineHit": "Boom!",
 
   "gameDemoTitle": "Demo Tap",

@@ -170,30 +170,10 @@ void main() {
       expect(solitaireIsWon(state), isTrue);
     });
 
-    test('placar final inclui bônus de tempo só ao vencer', () {
+    test('placar final é o moveScore', () {
       expect(
-        solitaireFinalScore(
-          moveScore: 400,
-          duration: const Duration(seconds: 30),
-          won: true,
-        ),
-        400 + solitaireTimeBonusRemaining(const Duration(seconds: 30)),
-      );
-      expect(
-        solitaireFinalScore(
-          moveScore: 400,
-          duration: const Duration(seconds: 30),
-          won: false,
-        ),
+        solitaireFinalScore(moveScore: 400),
         400,
-      );
-    });
-
-    test('bônus de tempo decai com o relógio', () {
-      expect(solitaireTimeBonusRemaining(Duration.zero), SolitaireConfig.timeBonusMax);
-      expect(
-        solitaireTimeBonusRemaining(const Duration(seconds: 50)),
-        lessThan(SolitaireConfig.timeBonusMax),
       );
     });
 
@@ -231,13 +211,6 @@ void main() {
       expect(solitaireWasteVisibleCount(2, 3), 2);
       expect(solitaireWasteVisibleCount(5, 3), 3);
       expect(solitaireWasteVisibleCount(0, 3), 0);
-    });
-
-    test('label de tempo formatado', () {
-      expect(
-        solitaireHudElapsedLabel(const Duration(minutes: 2, seconds: 5)),
-        '2:05',
-      );
     });
   });
 

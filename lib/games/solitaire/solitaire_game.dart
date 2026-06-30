@@ -512,8 +512,6 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
     final duration = DateTime.now().difference(_startedAt);
     final score = solitaireFinalScore(
       moveScore: _state.moveScore,
-      duration: duration,
-      won: won,
     );
     callbacks.onGameOver(
       GameResult(
@@ -522,7 +520,6 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
         metadata: {
           'moves': _state.moves,
           'foundationCards': solitaireFoundationCount(_state),
-          'timeBonus': won ? solitaireTimeBonusRemaining(duration) : 0,
           'won': won,
           'performanceTier': solitairePerformanceTier(
             won: won,
@@ -1170,9 +1167,6 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
   void _paintHud(Canvas canvas) {
     if (_phase == _Phase.finished) return;
 
-    final elapsed = DateTime.now().difference(_startedAt);
-    final timeBonus = solitaireTimeBonusRemaining(elapsed);
-    final progress = solitaireProgressScore(_state);
     final foundation = solitaireFoundationCount(_state);
 
     const palette = GameSessionHudPalette(
@@ -1187,24 +1181,14 @@ class SolitaireFlameGame extends FlameGame with TapCallbacks, DragCallbacks {
       palette,
       columns: [
         GameSessionHudStat(
-          caption: L10nScope.of.hudPoints,
-          value: '$progress',
-          footnote: solitaireHudTimeBonusLabel(timeBonus),
-          footnoteColor: SolitaireConfig.accentSoft,
-        ),
-        GameSessionHudStat(
-          caption: L10nScope.of.hudTime,
-          value: solitaireHudElapsedLabel(elapsed),
-          footnote: L10nScope.of.hudMovesCount(_state.moves),
-          captionColor: SolitaireConfig.hudMuted,
-        ),
-        GameSessionHudStat(
           caption: L10nScope.of.hudFoundation,
           value: '$foundation/52',
+          footnote: L10nScope.of.hudMovesCount(_state.moves),
+          footnoteColor: SolitaireConfig.hudMuted.withValues(alpha: 0.85),
         ),
       ],
       progress: GameSessionHudProgress(
-        ratio: timeBonus / SolitaireConfig.timeBonusMax,
+        ratio: solitaireCompletionRatio(_state),
         color: SolitaireConfig.successGlow.withValues(alpha: 0.85),
         position: GameSessionHudProgressPosition.top,
       ),

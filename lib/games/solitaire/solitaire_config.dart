@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../core/economy/performance_tier.dart';
 import '../../core/game_sdk/game_session_hud_actions.dart';
-import '../../core/l10n/l10n_scope.dart';
 
 /// Constantes, paleta e regras puras da Paciência (Klondike).
 abstract final class SolitaireConfig {
@@ -15,9 +14,6 @@ abstract final class SolitaireConfig {
   static const pointsFlipTableau = 5;
   static const pointsFoundationToTableau = -15;
   static const winBonus = 500;
-
-  static const timeBonusMax = 300;
-  static const timeBonusPerSecond = 2;
 
   static const maxScore = 99999;
 
@@ -299,6 +295,10 @@ bool solitaireIsWon(SolitaireState state) =>
 int solitaireFoundationCount(SolitaireState state) =>
     state.foundations.fold<int>(0, (sum, pile) => sum + pile.length);
 
+/// Razão `0..1` de cartas na fundação (barra de progresso do HUD).
+double solitaireCompletionRatio(SolitaireState state) =>
+    solitaireFoundationCount(state) / 52.0;
+
 List<SolitaireCard> solitaireSelectedCards(
   SolitaireState state,
   SolitairePileRef from,
@@ -528,19 +528,10 @@ void _removeFromSource(
 int solitaireProgressScore(SolitaireState state) =>
     state.moveScore.clamp(0, SolitaireConfig.maxScore);
 
-int solitaireTimeBonusRemaining(Duration elapsed) {
-  final sec = elapsed.inSeconds;
-  return (SolitaireConfig.timeBonusMax - sec * SolitaireConfig.timeBonusPerSecond)
-      .clamp(0, SolitaireConfig.timeBonusMax);
-}
-
 int solitaireFinalScore({
   required int moveScore,
-  required Duration duration,
-  required bool won,
 }) {
-  final timeBonus = won ? solitaireTimeBonusRemaining(duration) : 0;
-  return (moveScore + timeBonus).clamp(0, SolitaireConfig.maxScore);
+  return moveScore.clamp(0, SolitaireConfig.maxScore);
 }
 
 String solitaireRankLabel(int rank) => switch (rank) {
@@ -562,17 +553,6 @@ Color solitaireSuitColor(SolitaireSuit suit) =>
     suit == SolitaireSuit.hearts || suit == SolitaireSuit.diamonds
         ? SolitaireConfig.suitRed
         : SolitaireConfig.suitBlack;
-
-String solitaireHudTimeBonusLabel(int bonus) =>
-    bonus > 0
-        ? L10nScope.of.hudTimeBonus(bonus)
-        : L10nScope.of.hudNoTimeBonus;
-
-String solitaireHudElapsedLabel(Duration elapsed) {
-  final m = elapsed.inMinutes;
-  final s = elapsed.inSeconds.remainder(60);
-  return '$m:${s.toString().padLeft(2, '0')}';
-}
 
 /// Cartas na fundação numa derrota "quase lá" (referência do desempenho).
 const solitaireLossFoundationRef = 47;
