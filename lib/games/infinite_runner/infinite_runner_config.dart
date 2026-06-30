@@ -34,9 +34,15 @@ abstract final class InfiniteRunnerConfig {
   static const highObstacleHeightFactor = 0.88;
   static const highObstacleHeightFactorLate = 0.94;
   static const highObstacleBeamTopRatio = 0.18;
-  static const highObstacleBeamTopRatioLate = 0.28;
+  static const highObstacleBeamTopRatioLate = 0.22;
   static const highObstacleBeamHeightRatio = 0.30;
-  static const highObstacleBeamHeightRatioLate = 0.36;
+  static const highObstacleBeamHeightRatioLate = 0.32;
+
+  /// Fração de [playerH] do hitbox agachado (espelha `RunnerPlayer.hitRect`).
+  static const duckHitHeightRatio = 0.42 * 0.9;
+
+  /// Folga mínima sob a viga para caber o agachamento (fração de [playerH]).
+  static const highObstacleMinClearanceRatio = 0.42;
 
   static const pointsPerObstacle = 30;
 
@@ -227,6 +233,47 @@ double infiniteRunnerDoubleObstacleFollowGapSec(double progress) {
 
 double _lerpConfig(double from, double to, double t) => from + (to - from) * t;
 
+/// Espaço livre sob a viga em fração de [playerH].
+double infiniteRunnerBeamClearanceRatio({
+  required double heightFactor,
+  required double beamTopRatio,
+  required double beamHeightRatio,
+}) =>
+    heightFactor * (1 - beamTopRatio - beamHeightRatio);
+
+/// Garante folga mínima para o hitbox agachado passar sob a viga.
+({double beamTopRatio, double beamHeightRatio}) infiniteRunnerClampedBeamRatios({
+  required double heightFactor,
+  required double beamTopRatio,
+  required double beamHeightRatio,
+}) {
+  final minGap = InfiniteRunnerConfig.highObstacleMinClearanceRatio;
+  var top = beamTopRatio;
+  var height = beamHeightRatio;
+
+  if (infiniteRunnerBeamClearanceRatio(
+        heightFactor: heightFactor,
+        beamTopRatio: top,
+        beamHeightRatio: height,
+      ) >=
+      minGap) {
+    return (beamTopRatio: top, beamHeightRatio: height);
+  }
+
+  height = (1 - top - minGap / heightFactor).clamp(0.24, height);
+  if (infiniteRunnerBeamClearanceRatio(
+        heightFactor: heightFactor,
+        beamTopRatio: top,
+        beamHeightRatio: height,
+      ) >=
+      minGap) {
+    return (beamTopRatio: top, beamHeightRatio: height);
+  }
+
+  top = (1 - height - minGap / heightFactor).clamp(0.12, top);
+  return (beamTopRatio: top, beamHeightRatio: height);
+}
+
 /// Largura/altura de obstáculo baixo para um jogador com [playerW] × [playerH].
 (double width, double height) infiniteRunnerLowObstacleSize({
   required double playerW,
@@ -281,19 +328,26 @@ double _lerpConfig(double from, double to, double t) => from + (to - from) * t;
     InfiniteRunnerConfig.highObstacleHeightFactorLate,
     p,
   );
+  final rawTop = _lerpConfig(
+    InfiniteRunnerConfig.highObstacleBeamTopRatio,
+    InfiniteRunnerConfig.highObstacleBeamTopRatioLate,
+    p,
+  );
+  final rawHeight = _lerpConfig(
+    InfiniteRunnerConfig.highObstacleBeamHeightRatio,
+    InfiniteRunnerConfig.highObstacleBeamHeightRatioLate,
+    p,
+  );
+  final clamped = infiniteRunnerClampedBeamRatios(
+    heightFactor: heightFactor,
+    beamTopRatio: rawTop,
+    beamHeightRatio: rawHeight,
+  );
   return (
     width: width,
     height: playerH * heightFactor,
-    beamTopRatio: _lerpConfig(
-      InfiniteRunnerConfig.highObstacleBeamTopRatio,
-      InfiniteRunnerConfig.highObstacleBeamTopRatioLate,
-      p,
-    ),
-    beamHeightRatio: _lerpConfig(
-      InfiniteRunnerConfig.highObstacleBeamHeightRatio,
-      InfiniteRunnerConfig.highObstacleBeamHeightRatioLate,
-      p,
-    ),
+    beamTopRatio: clamped.beamTopRatio,
+    beamHeightRatio: clamped.beamHeightRatio,
   );
 }
 

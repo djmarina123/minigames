@@ -54,17 +54,7 @@ class RunnerPlayer extends PositionComponent {
 
   Rect get hitRect {
     final bottom = position.y;
-    final duck = _duckBlend;
 
-    if (duck > 0.55) {
-      final h = _height * 0.42;
-      return Rect.fromLTWH(
-        position.x + _width * 0.08,
-        bottom - h,
-        _width * 0.84,
-        h * 0.9,
-      );
-    }
     if (!_grounded) {
       return Rect.fromLTWH(
         position.x + _width * 0.14,
@@ -73,12 +63,24 @@ class RunnerPlayer extends PositionComponent {
         _height * 0.68,
       );
     }
-    return Rect.fromLTWH(
+
+    final standing = Rect.fromLTWH(
       position.x + _width * 0.12,
       bottom - _height * 0.9,
       _width * 0.76,
       _height * 0.86,
     );
+    final ducked = Rect.fromLTWH(
+      position.x + _width * 0.08,
+      bottom - _height * InfiniteRunnerConfig.duckHitHeightRatio,
+      _width * 0.84,
+      _height * InfiniteRunnerConfig.duckHitHeightRatio,
+    );
+
+    // Com dedo na tela, trata como agachado cedo — evita hit falso na animação.
+    final duckT = _ducking ? math.max(_duckBlend, 0.75) : _duckBlend;
+    if (duckT <= 0.001) return standing;
+    return Rect.lerp(standing, ducked, duckT.clamp(0.0, 1.0)) ?? standing;
   }
 
   void updatePhysics(double dt) {

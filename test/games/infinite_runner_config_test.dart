@@ -237,5 +237,33 @@ void main() {
       expect(late.beamTopRatio, greaterThan(early.beamTopRatio));
       expect(late.beamHeightRatio, greaterThan(early.beamHeightRatio));
     });
+
+    test('viga alta sempre deixa folga para agachar', () {
+      const ph = 143.0;
+      for (final progress in [0.0, 0.5, 1.0]) {
+        final spec = infiniteRunnerHighObstacleSpec(
+          playerW: 58.0,
+          playerH: ph,
+          randomUnit: 0.5,
+          progress: progress,
+        );
+        final heightFactor = spec.height / ph;
+        final clearance = infiniteRunnerBeamClearanceRatio(
+          heightFactor: heightFactor,
+          beamTopRatio: spec.beamTopRatio,
+          beamHeightRatio: spec.beamHeightRatio,
+        );
+        expect(
+          clearance,
+          greaterThanOrEqualTo(InfiniteRunnerConfig.highObstacleMinClearanceRatio),
+          reason: 'progress=$progress clearance=$clearance',
+        );
+        expect(
+          clearance,
+          greaterThan(InfiniteRunnerConfig.duckHitHeightRatio),
+          reason: 'progress=$progress',
+        );
+      }
+    });
   });
 }
