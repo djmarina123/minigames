@@ -80,22 +80,84 @@ class _MainShellState extends State<MainShell> {
           onDestinationSelected: (i) => setState(() => _index = i),
           destinations: [
             NavigationDestination(
-              icon: const Icon(Icons.sports_esports_outlined),
-              selectedIcon: const Icon(Icons.sports_esports),
+              icon: _NavBarIcon(
+                icon: Icons.sports_esports_outlined,
+                selectedIcon: Icons.sports_esports,
+                isSelected: _index == 0,
+              ),
+              selectedIcon: _NavBarIcon(
+                icon: Icons.sports_esports_outlined,
+                selectedIcon: Icons.sports_esports,
+                isSelected: true,
+              ),
               label: l10n.navGames,
             ),
             NavigationDestination(
-              icon: const Icon(Icons.leaderboard_outlined),
-              selectedIcon: const Icon(Icons.leaderboard),
+              icon: _NavBarIcon(
+                icon: Icons.leaderboard_outlined,
+                selectedIcon: Icons.leaderboard,
+                isSelected: _index == 1,
+              ),
+              selectedIcon: _NavBarIcon(
+                icon: Icons.leaderboard_outlined,
+                selectedIcon: Icons.leaderboard,
+                isSelected: true,
+              ),
               label: l10n.navRanking,
             ),
             NavigationDestination(
-              icon: const Icon(Icons.person_outline),
-              selectedIcon: const Icon(Icons.person),
+              icon: _NavBarIcon(
+                icon: Icons.person_outline,
+                selectedIcon: Icons.person,
+                isSelected: _index == 2,
+              ),
+              selectedIcon: _NavBarIcon(
+                icon: Icons.person_outline,
+                selectedIcon: Icons.person,
+                isSelected: true,
+              ),
               label: l10n.navProfile,
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Ícone da bottom nav — escala 110% e leve elevação quando ativo.
+class _NavBarIcon extends StatelessWidget {
+  const _NavBarIcon({
+    required this.icon,
+    required this.selectedIcon,
+    required this.isSelected,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedScale(
+      scale: isSelected ? HubTheme.navIconSelectedScale : 1.0,
+      duration: HubTheme.interactionDuration,
+      curve: Curves.easeOut,
+      child: AnimatedContainer(
+        duration: HubTheme.interactionDuration,
+        curve: Curves.easeOut,
+        decoration: isSelected
+            ? BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: HubTheme.removeAdsPurple.withValues(alpha: 0.18),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              )
+            : null,
+        child: Icon(isSelected ? selectedIcon : icon),
       ),
     );
   }

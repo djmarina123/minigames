@@ -68,14 +68,9 @@ class _TopActionButtonState extends State<TopActionButton> {
               boxShadow: widget.highlighted
                   ? [
                       BoxShadow(
-                        color: HubTheme.coinGold.withValues(alpha: 0.28),
-                        blurRadius: 12,
-                        offset: const Offset(0, 2),
-                      ),
-                      BoxShadow(
-                        color: HubTheme.coinGold.withValues(alpha: 0.12),
-                        blurRadius: 20,
-                        spreadRadius: 1,
+                        color: const Color(0xFFE8A820).withValues(alpha: 0.22),
+                        blurRadius: 8,
+                        offset: const Offset(0, 1.5),
                       ),
                     ]
                   : HubTheme.chipShadow(),
@@ -84,6 +79,23 @@ class _TopActionButtonState extends State<TopActionButton> {
               clipBehavior: Clip.none,
               alignment: Alignment.center,
               children: [
+                if (widget.highlighted)
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.circular(HubTheme.chipRadius),
+                        gradient: RadialGradient(
+                          center: const Alignment(0, -0.35),
+                          radius: 1.1,
+                          colors: [
+                            const Color(0xFFFFE9A8).withValues(alpha: 0.55),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

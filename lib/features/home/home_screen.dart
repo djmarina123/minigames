@@ -70,12 +70,14 @@ class HomeScreen extends StatelessWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final game = games[index];
-                    return GameCard(
-                      metadata: l10n.localizedMetadata(game.metadata),
-                      isFavorite: playerRepo.isFavorite(game.metadata.id),
-                      onFavoriteToggle: () =>
-                          playerRepo.toggleFavorite(game.metadata.id),
-                      onTap: () => _openGame(context, game),
+                    return RepaintBoundary(
+                      child: GameCard(
+                        metadata: l10n.localizedMetadata(game.metadata),
+                        isFavorite: playerRepo.isFavorite(game.metadata.id),
+                        onFavoriteToggle: () =>
+                            playerRepo.toggleFavorite(game.metadata.id),
+                        onTap: () => _openGame(context, game),
+                      ),
                     );
                   },
                   childCount: games.length,

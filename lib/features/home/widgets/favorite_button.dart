@@ -1,15 +1,17 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/hub_theme.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Botão circular de favorito — discreto, canto superior direito do card.
+/// Botão circular de favorito — glass discreto, canto superior direito do card.
 class FavoriteButton extends StatefulWidget {
   const FavoriteButton({
     super.key,
     required this.isFavorite,
     required this.onTap,
-    this.size = 26,
+    this.size = HubTheme.favoriteButtonSize,
   });
 
   final bool isFavorite;
@@ -33,7 +35,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
       label: label,
       child: TweenAnimationBuilder<double>(
         key: ValueKey(widget.isFavorite),
-        tween: Tween(begin: 1.0, end: widget.isFavorite ? 1.18 : 1.0),
+        tween: Tween(begin: 1.0, end: widget.isFavorite ? 1.15 : 1.0),
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutBack,
         builder: (context, scale, child) {
@@ -41,25 +43,41 @@ class _FavoriteButtonState extends State<FavoriteButton> {
         },
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 180),
-          opacity: widget.isFavorite ? 1.0 : 0.88,
-          child: Material(
-            color: Colors.black.withValues(alpha: 0.12),
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: widget.onTap,
-              customBorder: const CircleBorder(),
-              child: SizedBox(
-                width: widget.size,
-                height: widget.size,
-                child: Icon(
-                  widget.isFavorite
-                      ? Icons.star_rounded
-                      : Icons.star_outline_rounded,
-                  size: iconSize,
-                  color: widget.isFavorite
-                      ? HubTheme.coinGold
-                      : Colors.white.withValues(alpha: 0.78),
+          opacity: widget.isFavorite ? 1.0 : 0.9,
+          child: ClipOval(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+              child: Material(
+                color: Colors.white.withValues(alpha: 0.14),
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: widget.onTap,
+                  customBorder: const CircleBorder(),
+                  splashColor: Colors.white.withValues(alpha: 0.18),
+                  highlightColor: Colors.white.withValues(alpha: 0.08),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.22),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: SizedBox(
+                      width: widget.size,
+                      height: widget.size,
+                      child: Icon(
+                        widget.isFavorite
+                            ? Icons.star_rounded
+                            : Icons.star_outline_rounded,
+                        size: iconSize,
+                        color: widget.isFavorite
+                            ? HubTheme.coinGold
+                            : Colors.white.withValues(alpha: 0.82),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

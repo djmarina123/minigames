@@ -79,11 +79,11 @@ class _GameCardState extends State<GameCard>
               onTapUp: (_) => setState(() => _pressed = false),
               onTapCancel: () => setState(() => _pressed = false),
               child: AnimatedScale(
-                scale: _pressed ? 0.98 : 1,
-                duration: const Duration(milliseconds: 120),
+                scale: _pressed ? 0.97 : 1,
+                duration: HubTheme.interactionDuration,
                 curve: Curves.easeOut,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 120),
+                  duration: HubTheme.interactionDuration,
                   curve: Curves.easeOut,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(HubTheme.cardRadius),
@@ -119,6 +119,7 @@ class _GameCardState extends State<GameCard>
               child: FavoriteButton(
                 isFavorite: widget.isFavorite,
                 onTap: widget.onFavoriteToggle,
+                size: HubTheme.favoriteButtonSize,
               ),
             ),
           ],

@@ -27,8 +27,14 @@ abstract final class HubTheme {
   static const missionIcon = Icons.emoji_events_rounded;
   static const featuredBadge = Color(0xFFFF4757);
   static const cardBorder = Colors.white;
-  static const cardRadius = 24.0;
+  static const cardRadius = 30.0;
   static const appBarRadius = 22.0;
+  /// Duração padrão de microinterações (cards, nav, botões).
+  static const interactionDuration = Duration(milliseconds: 120);
+  /// Botão de favorito no card — discreto (~20% menor que v2).
+  static const favoriteButtonSize = 21.0;
+  /// Ícone ativo na bottom nav — escala relativa ao inativo.
+  static const navIconSelectedScale = 1.10;
   static const appBarHPadding = 20.0;
   static const appBarHPaddingLeft = 12.0;
   static const appBarVPadding = 16.0;
@@ -38,7 +44,7 @@ abstract final class HubTheme {
   static const appBarLineSpacing = 12.0;
   static const appBarChipSpacing = 12.0;
   static const appBarButtonSpacing = 16.0;
-  static const cardPadding = 20.0;
+  static const cardPadding = 22.0;
   static const gridSpacing = 16.0;
   static const gridPadding = 16.0;
 
@@ -63,12 +69,12 @@ abstract final class HubTheme {
         ),
       ];
 
-  /// Sombra suave — elevação mínima (~40% mais leve que v1).
+  /// Sombra suave — elevação mínima (~35% mais leve que v2).
   static List<BoxShadow> cardShadow(Color tint, {bool pressed = false}) => [
         BoxShadow(
-          color: tint.withValues(alpha: pressed ? 0.14 : 0.09),
-          blurRadius: pressed ? 8 : 6,
-          offset: Offset(0, pressed ? 3 : 2),
+          color: tint.withValues(alpha: pressed ? 0.10 : 0.06),
+          blurRadius: pressed ? 5 : 4,
+          offset: Offset(0, pressed ? 2 : 1.5),
         ),
       ];
 

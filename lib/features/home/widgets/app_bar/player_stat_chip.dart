@@ -79,7 +79,7 @@ class _PlayerStatChipState extends State<PlayerStatChip>
           onTap: widget.onTap,
           borderRadius: BorderRadius.circular(HubTheme.chipRadius),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(HubTheme.chipRadius),
               boxShadow: HubTheme.chipShadow(),
@@ -117,7 +117,7 @@ class _PlayerStatChipState extends State<PlayerStatChip>
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 4),
                 Text(
                   widget.value,
                   style: theme.textTheme.titleLarge?.copyWith(

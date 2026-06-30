@@ -99,10 +99,10 @@ sealed class _CardArtPainter extends CustomPainter {
   final HubGameTheme theme;
   final bool compact;
 
-  /// Escala padrão da ilustração (~88% da área útil).
-  double illustrationSize(Size size, {double factor = 0.88}) =>
+  /// Escala da ilustração (~65–70% da área útil do card).
+  double illustrationSize(Size size, {double factor = 0.96}) =>
       math.min(size.width, size.height) *
-      (compact ? factor - 0.10 : factor);
+      (compact ? factor - 0.12 : factor);
 
   Offset illustrationOrigin(Size size, double extent) =>
       Offset((size.width - extent) / 2, (size.height - extent) / 2);
@@ -149,38 +149,80 @@ class _TapRushArt extends _CardArtPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final extent = illustrationSize(size);
+    final extent = illustrationSize(size, factor: 1.0);
     final cx = size.width / 2;
     final cy = size.height / 2;
-    final r = extent * 0.42;
+    final r = extent * 0.48;
+
+    // Brilho radial de fundo.
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          theme.accentColor.withValues(alpha: 0.35),
+          theme.accentColor.withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: r * 1.35));
+    canvas.drawCircle(Offset(cx, cy), r * 1.35, glowPaint);
+
+    // Ondas circulares (pulso).
+    for (var i = 1; i <= 3; i++) {
+      canvas.drawCircle(
+        Offset(cx, cy),
+        r * (1.0 + i * 0.14),
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.06 + i * 0.02)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+    }
 
     final rings = [
-      (r * 1.18, Colors.white.withValues(alpha: 0.08)),
-      (r * 1.05, Colors.white.withValues(alpha: 0.18)),
-      (r * 0.86, theme.cardColor),
-      (r * 0.64, theme.accentColor),
-      (r * 0.40, theme.accentSoft),
-      (r * 0.18, Colors.white),
+      (r * 1.12, Colors.white.withValues(alpha: 0.12)),
+      (r * 0.92, theme.cardColor),
+      (r * 0.68, theme.accentColor),
+      (r * 0.42, theme.accentSoft),
+      (r * 0.16, Colors.white),
     ];
     for (final (radius, color) in rings) {
       canvas.drawCircle(Offset(cx, cy), radius, Paint()..color = color);
     }
 
-    canvas.save();
-    canvas.translate(cx + r * 0.1, cy + r * 0.06);
-    canvas.rotate(-0.32);
-    final fingerW = r * 0.58;
-    final fingerH = r * 0.98;
-    final fingerRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: Offset(fingerW * 0.12, -fingerH * 0.12),
-        width: fingerW,
-        height: fingerH,
-      ),
-      Radius.circular(fingerW * 0.45),
-    );
-    canvas.drawRRect(fingerRect, Paint()..color = Colors.white);
-    canvas.restore();
+    // Partículas discretas.
+    final particlePaint = Paint()..color = Colors.white.withValues(alpha: 0.55);
+    for (final (dx, dy, pr) in [
+      (-0.72, -0.55, 0.04),
+      (0.68, -0.42, 0.035),
+      (0.55, 0.62, 0.03),
+      (-0.58, 0.48, 0.028),
+    ]) {
+      canvas.drawCircle(
+        Offset(cx + dx * r, cy + dy * r),
+        r * pr,
+        particlePaint,
+      );
+    }
+
+    if (!compact) {
+      canvas.save();
+      canvas.translate(cx + r * 0.08, cy + r * 0.05);
+      canvas.rotate(-0.28);
+      final fingerW = r * 0.52;
+      final fingerH = r * 0.92;
+      final fingerRect = RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: Offset(fingerW * 0.1, -fingerH * 0.1),
+          width: fingerW,
+          height: fingerH,
+        ),
+        Radius.circular(fingerW * 0.45),
+      );
+      canvas.drawRRect(
+        fingerRect.shift(const Offset(0, 2)),
+        Paint()..color = Colors.black.withValues(alpha: 0.1),
+      );
+      canvas.drawRRect(fingerRect, Paint()..color = Colors.white);
+      canvas.restore();
+    }
   }
 
   @override
@@ -192,35 +234,60 @@ class _MemoryArt extends _CardArtPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final extent = illustrationSize(size, factor: 0.92);
-    final cardW = extent * 0.52;
-    final cardH = cardW * 1.28;
+    final extent = illustrationSize(size, factor: 1.0);
+    final cardW = extent * 0.58;
+    final cardH = cardW * 1.3;
     final origin = illustrationOrigin(size, extent);
     final baseX = origin.dx + extent * 0.5;
-    final baseY = origin.dy + extent * 0.54;
+    final baseY = origin.dy + extent * 0.56;
 
     final cards = compact
         ? [
-            (0.0, -0.26, -0.22, theme.cardColor, '?'),
-            (0.20, 0.14, 0.16, theme.accentColor, '★'),
+            (-0.22, -0.18, -0.2, theme.cardColor, '?', 0.92),
+            (0.18, 0.12, 0.14, theme.accentColor, '★', 1.0),
           ]
         : [
-            (0.0, -0.32, -0.24, theme.cardColor, '?'),
-            (0.16, 0.06, 0.12, theme.accentColor, '★'),
-            (0.32, 0.24, 0.18, theme.blendColor, '♦'),
-            (0.08, 0.28, -0.08, theme.accentSoft, '♣'),
+            (-0.28, -0.2, -0.22, theme.cardColor, '?', 0.88),
+            (0.0, 0.0, 0.0, theme.accentSoft, '♣', 1.12),
+            (0.26, 0.18, 0.16, theme.accentColor, '★', 0.94),
           ];
 
-    for (final (_, dx, dy, color, label) in cards) {
+    for (final (dx, dy, angle, color, label, scale) in cards) {
       canvas.save();
       canvas.translate(baseX + dx * extent, baseY + dy * extent);
-      canvas.rotate(dy * 0.6);
+      canvas.rotate(angle);
+      final w = cardW * scale;
+      final h = cardH * scale;
       final rect = RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: cardW, height: cardH),
-        Radius.circular(cardW * 0.1),
+        Rect.fromCenter(center: Offset.zero, width: w, height: h),
+        Radius.circular(w * 0.1),
       );
       drawCardFace(canvas, rect, color, label: label);
+
+      // Carta central parcialmente aberta.
+      if (!compact && scale > 1.0) {
+        final flapRect = RRect.fromRectAndRadius(
+          Rect.fromLTWH(-w * 0.48, -h * 0.48, w * 0.96, h * 0.42),
+          Radius.circular(w * 0.08),
+        );
+        canvas.drawRRect(
+          flapRect,
+          Paint()..color = Colors.white.withValues(alpha: 0.22),
+        );
+      }
       canvas.restore();
+    }
+
+    // Brilhos discretos.
+    if (!compact) {
+      final sparkle = Paint()..color = Colors.white.withValues(alpha: 0.45);
+      for (final (sx, sy) in [(-0.38, -0.42), (0.42, -0.28), (0.35, 0.38)]) {
+        canvas.drawCircle(
+          Offset(baseX + sx * extent, baseY + sy * extent),
+          extent * 0.018,
+          sparkle,
+        );
+      }
     }
   }
 
@@ -250,7 +317,7 @@ class _Game2048Art extends _CardArtPainter {
     ];
 
     const gridExtent = 2;
-    final gridSize = math.min(size.width, size.height) * (compact ? 0.82 : 0.94);
+    final gridSize = math.min(size.width, size.height) * (compact ? 0.72 : 0.70);
     final gap = gridSize * 0.055;
     final tileSize = (gridSize - gap * (gridExtent - 1)) / gridExtent;
     final originX = (size.width - gridSize) / 2;
@@ -294,13 +361,26 @@ class _Game2048Art extends _CardArtPainter {
         width: tileSize,
         height: tileSize,
       ),
-      Radius.circular(tileSize * 0.12),
+      Radius.circular(tileSize * 0.16),
     );
     canvas.drawRRect(
-      rect.shift(const Offset(0, 3)),
-      Paint()..color = Colors.black.withValues(alpha: 0.12),
+      rect.shift(const Offset(0, 4)),
+      Paint()..color = Colors.black.withValues(alpha: 0.14),
     );
     canvas.drawRRect(rect, Paint()..color = bg);
+    // Profundidade sutil no topo do bloco.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          rect.left + tileSize * 0.06,
+          rect.top + tileSize * 0.06,
+          tileSize * 0.88,
+          tileSize * 0.22,
+        ),
+        Radius.circular(tileSize * 0.08),
+      ),
+      Paint()..color = Colors.white.withValues(alpha: 0.18),
+    );
     final painter = TextPainter(
       text: TextSpan(
         text: '$value',
@@ -328,38 +408,69 @@ class _InfiniteRunnerArt extends _CardArtPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final extent = illustrationSize(size);
+    final extent = illustrationSize(size, factor: 1.0);
     final origin = illustrationOrigin(size, extent);
-    final groundY = origin.dy + extent * 0.82;
+    final groundY = origin.dy + extent * 0.78;
 
-    canvas.drawRect(
-      Rect.fromLTWH(origin.dx, groundY, extent, extent * 0.06),
-      Paint()..color = const Color(0xFF7BED9F).withValues(alpha: 0.65),
+    // Chão em duas camadas.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(origin.dx, groundY, extent, extent * 0.07),
+        const Radius.circular(3),
+      ),
+      Paint()..color = const Color(0xFF7BED9F).withValues(alpha: 0.7),
     );
     canvas.drawRect(
-      Rect.fromLTWH(origin.dx, groundY + extent * 0.06, extent, extent * 0.14),
-      Paint()..color = theme.cardColor.withValues(alpha: 0.35),
+      Rect.fromLTWH(origin.dx, groundY + extent * 0.07, extent, extent * 0.12),
+      Paint()..color = theme.cardColor.withValues(alpha: 0.32),
     );
 
-    final bodyW = extent * 0.22;
-    _drawRunner(canvas, Offset(origin.dx + extent * 0.38, groundY), bodyW);
+    final bodyW = extent * 0.28;
+    final runnerX = origin.dx + extent * 0.32;
+    _drawRunner(canvas, Offset(runnerX, groundY), bodyW);
+
+    // Poeira atrás do personagem.
+    if (!compact) {
+      final dust = Paint()..color = Colors.white.withValues(alpha: 0.35);
+      for (var i = 0; i < 4; i++) {
+        canvas.drawCircle(
+          Offset(runnerX - bodyW * (0.9 + i * 0.22), groundY - bodyW * 0.08),
+          bodyW * (0.06 + i * 0.01),
+          dust,
+        );
+      }
+    }
 
     if (!compact) {
       _drawObstacleBeam(
         canvas,
-        Offset(origin.dx + extent * 0.68, groundY),
-        bodyW * 0.55,
+        Offset(origin.dx + extent * 0.62, groundY),
+        bodyW * 0.5,
       );
       _drawCactus(
         canvas,
-        Offset(origin.dx + extent * 0.86, groundY),
-        bodyW * 0.65,
+        Offset(origin.dx + extent * 0.82, groundY),
+        bodyW * 0.62,
       );
     } else {
       _drawCactus(
         canvas,
-        Offset(origin.dx + extent * 0.78, groundY),
-        bodyW * 0.75,
+        Offset(origin.dx + extent * 0.75, groundY),
+        bodyW * 0.7,
+      );
+    }
+
+    // Linhas de velocidade.
+    final speedPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.42)
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < (compact ? 2 : 4); i++) {
+      final y = origin.dy + extent * (0.28 + i * 0.1);
+      canvas.drawLine(
+        Offset(origin.dx + extent * 0.02, y),
+        Offset(origin.dx + extent * 0.22, y),
+        speedPaint,
       );
     }
   }
@@ -402,14 +513,14 @@ class _InfiniteRunnerArt extends _CardArtPainter {
     );
 
     final speedPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.5)
+      ..color = Colors.white.withValues(alpha: 0.45)
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round;
-    for (var i = 0; i < 3; i++) {
-      final y = headCenter.dy + i * bodyW * 0.22;
+    for (var i = 0; i < 2; i++) {
+      final y = headCenter.dy + bodyW * 0.18 + i * bodyW * 0.2;
       canvas.drawLine(
-        Offset(feet.dx - bodyW * 1.15, y),
-        Offset(feet.dx - bodyW * 0.6, y),
+        Offset(feet.dx - bodyW * 1.1, y),
+        Offset(feet.dx - bodyW * 0.55, y),
         speedPaint,
       );
     }
@@ -458,25 +569,26 @@ class _SolitaireArt extends _CardArtPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final extent = illustrationSize(size, factor: 0.92);
-    final cardW = extent * 0.38;
-    final cardH = cardW * 1.35;
+    final extent = illustrationSize(size, factor: 1.0);
+    final cardW = extent * 0.42;
+    final cardH = cardW * 1.32;
     final origin = illustrationOrigin(size, extent);
     final baseX = origin.dx + extent * 0.5;
-    final baseY = origin.dy + extent * 0.55;
+    final baseY = origin.dy + extent * 0.56;
 
     final specs = compact
         ? [
-            ('A', '♥', -0.24, -0.08, -0.14, theme.accentColor),
-            ('K', '♠', 0.18, 0.10, 0.12, theme.blendColor),
+            ('A', '♥', -0.22, -0.06, -0.14, theme.accentColor, true),
+            ('K', '♠', 0.16, 0.08, 0.12, theme.blendColor, true),
           ]
         : [
-            ('A', '♥', -0.30, -0.10, -0.16, theme.accentColor),
-            ('Q', '♦', 0.0, 0.0, 0.06, theme.accentSoft),
-            ('K', '♠', 0.28, 0.14, 0.14, theme.blendColor),
+            ('', '', -0.32, -0.08, -0.18, theme.cardColor, false),
+            ('A', '♥', -0.08, 0.02, -0.06, theme.accentColor, true),
+            ('K', '♠', 0.22, 0.12, 0.14, theme.blendColor, true),
+            ('', '', 0.38, 0.22, 0.08, theme.accentSoft, false),
           ];
 
-    for (final (rank, suit, dx, dy, angle, color) in specs) {
+    for (final (rank, suit, dx, dy, angle, color, faceUp) in specs) {
       canvas.save();
       canvas.translate(baseX + dx * extent, baseY + dy * extent);
       canvas.rotate(angle);
@@ -484,14 +596,32 @@ class _SolitaireArt extends _CardArtPainter {
         Rect.fromCenter(center: Offset.zero, width: cardW, height: cardH),
         Radius.circular(cardW * 0.1),
       );
-      drawCardFace(
-        canvas,
-        rect,
-        const Color(0xFFF8F9FA),
-        label: '$rank$suit',
-        labelColor: color,
-        labelSize: 0.34,
-      );
+      if (faceUp) {
+        drawCardFace(
+          canvas,
+          rect,
+          const Color(0xFFF8F9FA),
+          label: '$rank$suit',
+          labelColor: color,
+          labelSize: 0.32,
+        );
+      } else {
+        drawCardFace(canvas, rect, theme.cardColor);
+        // Padrão de carta virada.
+        final dot = Paint()..color = Colors.white.withValues(alpha: 0.25);
+        for (var row = 0; row < 3; row++) {
+          for (var col = 0; col < 2; col++) {
+            canvas.drawCircle(
+              Offset(
+                rect.left + cardW * (0.28 + col * 0.44),
+                rect.top + cardH * (0.22 + row * 0.28),
+              ),
+              cardW * 0.05,
+              dot,
+            );
+          }
+        }
+      }
       canvas.restore();
     }
   }
@@ -505,48 +635,63 @@ class _SnakeArt extends _CardArtPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final extent = illustrationSize(size, factor: 0.95);
-    final cell = extent / (compact ? 3.8 : 4.2);
+    final extent = illustrationSize(size, factor: 1.0);
+    final cell = extent / (compact ? 3.2 : 3.6);
     final origin = illustrationOrigin(size, extent);
-    final startX = origin.dx + cell * 0.35;
-    final startY = origin.dy + cell * 0.55;
+    final startX = origin.dx + cell * 0.2;
+    final startY = origin.dy + cell * 0.45;
 
     final segments = compact
-        ? const [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2), (1, 2)]
-        : const [(0, 0), (1, 0), (2, 0), (3, 0), (3, 1), (3, 2), (2, 2), (1, 2)];
+        ? const [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2), (1, 2), (0, 2)]
+        : const [
+            (0, 1), (1, 1), (2, 1), (3, 1), (4, 1),
+            (4, 2), (4, 3), (3, 3), (2, 3), (1, 3), (0, 3), (0, 2),
+          ];
 
     for (var i = segments.length - 1; i >= 0; i--) {
       final (dx, dy) = segments[i];
       final rect = Rect.fromLTWH(
-        startX + dx * cell * 0.94,
-        startY + dy * cell * 0.94,
-        cell * 0.9,
-        cell * 0.9,
+        startX + dx * cell * 0.92,
+        startY + dy * cell * 0.92,
+        cell * 0.92,
+        cell * 0.92,
       );
       final isHead = i == 0;
+      final rr = RRect.fromRectAndRadius(rect, Radius.circular(cell * 0.28));
+      if (!isHead) {
+        canvas.drawRRect(
+          rr.shift(const Offset(0, 2)),
+          Paint()..color = Colors.black.withValues(alpha: 0.08),
+        );
+      }
       canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, Radius.circular(cell * 0.26)),
+        rr,
         Paint()..color = isHead ? theme.accentColor : theme.blendColor,
       );
       if (isHead) {
         canvas.drawCircle(
-          rect.center + Offset(cell * 0.14, -cell * 0.08),
-          cell * 0.11,
+          rect.center + Offset(cell * 0.16, -cell * 0.1),
+          cell * 0.13,
           Paint()..color = Colors.white,
         );
         canvas.drawCircle(
-          rect.center + Offset(cell * 0.2, -cell * 0.05),
-          cell * 0.05,
+          rect.center + Offset(cell * 0.22, -cell * 0.06),
+          cell * 0.055,
           Paint()..color = const Color(0xFF2D3436),
         );
       }
     }
 
     final foodCenter = Offset(
-      startX + (compact ? 3.8 : 4.5) * cell * 0.94,
-      startY + (compact ? 0.4 : 0.3) * cell * 0.94,
+      startX + (compact ? 4.2 : 4.8) * cell * 0.92,
+      startY + (compact ? 0.2 : 0.15) * cell * 0.92,
     );
-    final foodR = cell * 0.36;
+    final foodR = cell * 0.38;
+    canvas.drawCircle(
+      foodCenter + const Offset(0, 2),
+      foodR,
+      Paint()..color = Colors.black.withValues(alpha: 0.1),
+    );
     canvas.drawCircle(foodCenter, foodR, Paint()..color = theme.accentColor);
     canvas.drawOval(
       Rect.fromCenter(
@@ -567,30 +712,41 @@ class _SudokuArt extends _CardArtPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final gridSize = illustrationSize(size);
+    const gridCells = 4;
+    final gridSize =
+        math.min(size.width, size.height) * (compact ? 0.68 : 0.70);
     final origin = illustrationOrigin(size, gridSize);
     final left = origin.dx;
     final top = origin.dy;
-    final cell = gridSize / 3;
+    final cell = gridSize / gridCells;
 
     final boardRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(left, top, gridSize, gridSize),
-      Radius.circular(gridSize * 0.05),
+      Radius.circular(gridSize * 0.06),
     );
     canvas.drawRRect(
-      boardRect.shift(const Offset(0, 3)),
+      boardRect.shift(const Offset(0, 4)),
       Paint()..color = Colors.black.withValues(alpha: 0.12),
     );
     canvas.drawRRect(boardRect, Paint()..color = const Color(0xFFF0EDFF));
 
-    final digits = const [
-      (0, 0, '5', 0),
-      (0, 1, '3', 1),
-      (0, 2, '7', 2),
-      (1, 0, '6', 3),
-      (1, 1, '1', 0),
-      (2, 2, '9', 1),
-    ];
+    final digits = compact
+        ? const [
+            (0, 0, '5', 0),
+            (0, 2, '7', 1),
+            (1, 1, '1', 2),
+            (2, 3, '9', 3),
+          ]
+        : const [
+            (0, 0, '5', 0),
+            (0, 1, '3', 1),
+            (0, 3, '7', 2),
+            (1, 0, '6', 3),
+            (1, 2, '1', 0),
+            (2, 1, '8', 1),
+            (3, 2, '9', 2),
+            (3, 3, '4', 3),
+          ];
     final digitColors = [
       theme.cardColor,
       theme.accentColor,
@@ -598,9 +754,10 @@ class _SudokuArt extends _CardArtPainter {
       theme.accentSoft,
     ];
 
-    for (var i = 0; i <= 3; i++) {
-      final stroke = i == 0 || i == 3 ? 2.5 : 1.2;
-      final color = theme.cardColor.withValues(alpha: i == 1 || i == 2 ? 0.35 : 0.85);
+    for (var i = 0; i <= gridCells; i++) {
+      final stroke = i == 0 || i == gridCells ? 2.5 : 1.2;
+      final color =
+          theme.cardColor.withValues(alpha: i == 0 || i == gridCells ? 0.85 : 0.3);
       final x = left + i * cell;
       canvas.drawLine(
         Offset(x, top),
@@ -618,13 +775,14 @@ class _SudokuArt extends _CardArtPainter {
     for (final (r, c, text, colorIdx) in digits) {
       final cx = left + (c + 0.5) * cell;
       final cy = top + (r + 0.5) * cell;
+      final isHighlight = text == '9' || text == '5';
       final painter = TextPainter(
         text: TextSpan(
           text: text,
           style: TextStyle(
             color: digitColors[colorIdx % digitColors.length],
-            fontSize: cell * 0.55,
-            fontWeight: FontWeight.w800,
+            fontSize: cell * (isHighlight ? 0.62 : 0.52),
+            fontWeight: isHighlight ? FontWeight.w900 : FontWeight.w800,
             height: 1,
           ),
         ),
@@ -646,68 +804,119 @@ class _CrossSumsArt extends _CardArtPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final gridSize = illustrationSize(size);
+    final gridSize =
+        math.min(size.width, size.height) * (compact ? 0.68 : 0.70);
     final origin = illustrationOrigin(size, gridSize);
     final left = origin.dx;
     final top = origin.dy;
-    const extent = 4;
-    final cell = gridSize / extent;
+    const cols = 3;
+    const rows = 2;
+    final cellW = gridSize / (cols + 0.6);
+    final cellH = gridSize / (rows + 0.4);
+    final gap = cellW * 0.12;
 
-    const headers = ['9', '4', '7'];
-    const rowTargets = ['14', '2', '5'];
-    const cells = [
-      ['8', '5', '6'],
-      ['7', '1', '4'],
-      ['1', '4', '1'],
-    ];
+    void drawBlock(Rect rect, String label, {bool highlight = false}) {
+      final rr = RRect.fromRectAndRadius(rect, Radius.circular(cellW * 0.14));
+      canvas.drawRRect(
+        rr.shift(const Offset(0, 3)),
+        Paint()..color = Colors.black.withValues(alpha: 0.1),
+      );
+      canvas.drawRRect(
+        rr,
+        Paint()
+          ..color = highlight
+              ? theme.accentColor
+              : Colors.white.withValues(alpha: 0.92),
+      );
+      final painter = TextPainter(
+        text: TextSpan(
+          text: label,
+          style: TextStyle(
+            color: highlight ? Colors.white : theme.cardColor,
+            fontSize: rect.height * 0.42,
+            fontWeight: FontWeight.w900,
+            height: 1,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      painter.paint(
+        canvas,
+        Offset(
+          rect.center.dx - painter.width / 2,
+          rect.center.dy - painter.height / 2,
+        ),
+      );
+    }
 
-    for (var br = 0; br < extent; br++) {
-      for (var bc = 0; bc < extent; bc++) {
-        final rect = Rect.fromLTWH(left + bc * cell, top + br * cell, cell, cell);
-        Color bg;
-        String? label;
+    void drawOperator(Offset center, String op) {
+      final painter = TextPainter(
+        text: TextSpan(
+          text: op,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.75),
+            fontSize: cellH * 0.38,
+            fontWeight: FontWeight.w800,
+            height: 1,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      painter.paint(
+        canvas,
+        Offset(center.dx - painter.width / 2, center.dy - painter.height / 2),
+      );
+    }
 
-        if (br == 0 && bc == 0) {
-          bg = const Color(0xFFE6F2F8);
-        } else if (br == 0 && bc > 0) {
-          bg = const Color(0xFFB3D9EE);
-          label = headers[bc - 1];
-        } else if (bc == 0 && br > 0) {
-          bg = const Color(0xFFB3D9EE);
-          label = rowTargets[br - 1];
-        } else {
-          bg = Colors.white;
-          label = cells[br - 1][bc - 1];
-        }
-
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(rect.deflate(1), Radius.circular(cell * 0.08)),
-          Paint()..color = bg,
-        );
-
-        if (label != null) {
-          final isHeader = br == 0 || bc == 0;
-          final painter = TextPainter(
-            text: TextSpan(
-              text: label,
-              style: TextStyle(
-                color: isHeader ? const Color(0xFF2D3436) : theme.cardColor,
-                fontSize: cell * (isHeader ? 0.44 : 0.54),
-                fontWeight: FontWeight.w800,
-                height: 1,
-              ),
+    final blocks = compact
+        ? ['8', '5', '13']
+        : ['9', '4', '7', '3', '2', '5'];
+    final positions = compact
+        ? [
+            Rect.fromLTWH(left, top + cellH * 0.2, cellW, cellH),
+            Rect.fromLTWH(left + cellW + gap, top + cellH * 0.2, cellW, cellH),
+            Rect.fromLTWH(
+              left + (cellW + gap) * 2,
+              top + cellH * 0.2,
+              cellW * 1.1,
+              cellH,
             ),
-            textDirection: TextDirection.ltr,
-          )..layout();
-          painter.paint(
-            canvas,
-            Offset(
-              rect.center.dx - painter.width / 2,
-              rect.center.dy - painter.height / 2,
+          ]
+        : [
+            Rect.fromLTWH(left, top, cellW, cellH),
+            Rect.fromLTWH(left + cellW + gap, top, cellW, cellH),
+            Rect.fromLTWH(left + (cellW + gap) * 2, top, cellW, cellH),
+            Rect.fromLTWH(left, top + cellH + gap, cellW, cellH),
+            Rect.fromLTWH(left + cellW + gap, top + cellH + gap, cellW, cellH),
+            Rect.fromLTWH(
+              left + (cellW + gap) * 2,
+              top + cellH + gap,
+              cellW * 1.1,
+              cellH,
             ),
-          );
-        }
-      }
+          ];
+
+    for (var i = 0; i < blocks.length; i++) {
+      drawBlock(
+        positions[i],
+        blocks[i],
+        highlight: i == blocks.length - 1,
+      );
+    }
+
+    if (!compact) {
+      drawOperator(
+        Offset(left + cellW + gap * 0.5, top + cellH * 0.5),
+        '+',
+      );
+      drawOperator(
+        Offset(left + (cellW + gap) * 1.5 + gap * 0.5, top + cellH * 0.5),
+        '+',
+      );
+      drawOperator(
+        Offset(left + cellW * 0.5, top + cellH + gap * 0.5),
+        '=',
+      );
     }
   }
 
@@ -1051,25 +1260,103 @@ class _GameCardBackdropPainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
     switch (gameId) {
       case 'memory':
-        _drawRoundedRects(canvas, size, paint, 0.07);
+        _drawRoundedRects(canvas, size, paint, 0.08);
+        _drawSparkles(canvas, size, 0.07);
       case 'tap_rush':
-        _drawCircles(canvas, size, paint, 0.06);
+        _drawCircles(canvas, size, paint, 0.07);
+        _drawRippleRings(canvas, size, 0.06);
       case 'game_2048':
-        _drawSquareGrid(canvas, size, paint, 0.06);
+        _drawSquareGrid(canvas, size, paint, 0.08);
       case 'snake':
-        _drawWaves(canvas, size, paint, 0.07);
+        _drawWaves(canvas, size, paint, 0.08);
+        _drawLeaves(canvas, size, 0.07);
       case 'infinite_runner':
-        _drawSpeedLines(canvas, size, paint, 0.08);
+        _drawSpeedLines(canvas, size, paint, 0.09);
       case 'sudoku':
+        _drawFineGrid(canvas, size, paint, 0.07);
       case 'cross_sums':
-      case 'minesweeper':
         _drawFineGrid(canvas, size, paint, 0.06);
+        _drawOperators(canvas, size, 0.08);
+      case 'minesweeper':
+        _drawFineGrid(canvas, size, paint, 0.07);
       case 'color_blocks':
-        _drawSquareGrid(canvas, size, paint, 0.05);
+        _drawSquareGrid(canvas, size, paint, 0.07);
       case 'solitaire':
-        _drawDiamonds(canvas, size, paint, 0.06);
+        _drawDiamonds(canvas, size, paint, 0.08);
       default:
-        _drawCircles(canvas, size, paint, 0.04);
+        _drawCircles(canvas, size, paint, 0.05);
+    }
+  }
+
+  void _drawSparkles(Canvas canvas, Size size, double alpha) {
+    final paint = Paint()..color = Colors.white.withValues(alpha: alpha);
+    for (final (fx, fy) in [(0.15, 0.35), (0.85, 0.28), (0.72, 0.72)]) {
+      final c = Offset(size.width * fx, size.height * fy);
+      canvas.drawCircle(c, size.width * 0.012, paint);
+      canvas.drawCircle(
+        c + Offset(size.width * 0.02, -size.width * 0.015),
+        size.width * 0.008,
+        paint,
+      );
+    }
+  }
+
+  void _drawRippleRings(Canvas canvas, Size size, double alpha) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: alpha)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    final cx = size.width * 0.5;
+    final cy = size.height * 0.62;
+    for (var i = 1; i <= 2; i++) {
+      canvas.drawCircle(
+        Offset(cx, cy),
+        size.width * (0.12 + i * 0.08),
+        paint,
+      );
+    }
+  }
+
+  void _drawLeaves(Canvas canvas, Size size, double alpha) {
+    final paint = Paint()..color = Colors.white.withValues(alpha: alpha);
+    for (final (fx, fy, angle) in [
+      (0.12, 0.42, -0.5),
+      (0.88, 0.55, 0.4),
+      (0.22, 0.78, 0.2),
+    ]) {
+      canvas.save();
+      canvas.translate(size.width * fx, size.height * fy);
+      canvas.rotate(angle);
+      final path = Path()
+        ..moveTo(0, 0)
+        ..quadraticBezierTo(6, -4, 12, 0)
+        ..quadraticBezierTo(6, 4, 0, 0);
+      canvas.drawPath(path, paint);
+      canvas.restore();
+    }
+  }
+
+  void _drawOperators(Canvas canvas, Size size, double alpha) {
+    final specs = ['+', '−', '+'];
+    for (var i = 0; i < specs.length; i++) {
+      final painter = TextPainter(
+        text: TextSpan(
+          text: specs[i],
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: alpha),
+            fontSize: size.width * 0.07,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      painter.paint(
+        canvas,
+        Offset(
+          size.width * (0.2 + i * 0.28) - painter.width / 2,
+          size.height * 0.82 - painter.height / 2,
+        ),
+      );
     }
   }
 
@@ -1265,22 +1552,26 @@ class GameCatalogHero extends StatelessWidget {
                       padding: EdgeInsets.fromLTRB(
                         HubTheme.cardPadding,
                         HubTheme.cardPadding,
-                        HubTheme.cardPadding + 30,
+                        HubTheme.cardPadding + HubTheme.favoriteButtonSize + 6,
                         0,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            displayTitle,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.92),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              height: 1.1,
-                              letterSpacing: 0.3,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              displayTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.92),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                height: 1.1,
+                                letterSpacing: 0.3,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -1302,10 +1593,10 @@ class GameCatalogHero extends StatelessWidget {
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
-                        6,
-                        showTitleOverlay ? 4 : 8,
-                        6,
-                        HubTheme.cardPadding * 0.35,
+                        4,
+                        showTitleOverlay ? 2 : 6,
+                        4,
+                        HubTheme.cardPadding * 0.3,
                       ),
                       child: GameCardArt(gameId: gameId, theme: theme),
                     ),
