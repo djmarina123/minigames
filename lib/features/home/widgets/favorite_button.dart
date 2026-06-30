@@ -48,7 +48,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
       TweenSequenceItem(tween: Tween(begin: 1.18, end: 1.0), weight: 55),
     ]).animate(CurvedAnimation(
       parent: _animController,
-      curve: Curves.easeOutBack,
+      curve: Curves.easeOut,
     ));
     _unfavoriteScaleAnim = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.85), weight: 40),
