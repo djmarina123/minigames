@@ -34,7 +34,7 @@ Todo jogo novo deve atingir o polish de **Tap Rush** (gameplay) + **Memória** (
 9. Gradiente de fundo + detalhe decorativo leve.
 10. Elementos jogáveis: borda branca, sombra, cantos arredondados.
 11. Tamanho pelo viewport menos área do HUD.
-12. **Card do catálogo** (`game_card_art.dart`): ilustração grande (~88% da área), sem bolhas/sparkles no painter — ver [`hub-ui.md`](hub-ui.md).
+12. **Card do catálogo** (`game_card_art.dart`): ilustração grande (~65–70% da área), composição única por jogo; decoração de fundo só no backdrop (≤ 10% opacidade) — ver [`hub-ui.md`](hub-ui.md).
 
 ### HUD (~48–56 px abaixo da AppBar)
 
