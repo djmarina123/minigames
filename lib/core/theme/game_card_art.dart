@@ -1627,19 +1627,23 @@ class GameCatalogHero extends StatelessWidget {
     required this.gameId,
     required this.title,
     required this.theme,
-    this.height = 200,
+    this.height,
     this.showTitleOverlay = true,
     this.showFeaturedBadge = false,
     this.progress,
+    this.bottomOverlay,
   });
 
   final String gameId;
   final String title;
   final HubGameTheme theme;
-  final double height;
+  /// Altura fixa; `null` preenche o pai (ex.: grid do catálogo).
+  final double? height;
   final bool showTitleOverlay;
   final bool showFeaturedBadge;
   final double? progress;
+  /// Widget sobreposto no canto inferior direito (ex.: favorito).
+  final Widget? bottomOverlay;
 
   @override
   Widget build(BuildContext context) {
@@ -1647,109 +1651,117 @@ class GameCatalogHero extends StatelessWidget {
     final gradientEnd = Color.lerp(theme.cardColor, theme.accentColor, 0.18)!;
     final gradientMid = Color.lerp(theme.cardColor, Colors.white, 0.08)!;
 
-    return SizedBox(
-      height: height,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(HubTheme.cardRadius),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.cardColor,
-              gradientMid,
-              gradientEnd,
-            ],
-            stops: const [0, 0.45, 1],
-          ),
+    final card = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(HubTheme.cardRadius),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.cardColor,
+            gradientMid,
+            gradientEnd,
+          ],
+          stops: const [0, 0.45, 1],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(HubTheme.cardRadius),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Plano 1–2: fundo + decoração por jogo.
-              CustomPaint(
-                painter: _GameCardBackdropPainter(gameId, theme),
-                size: Size.infinite,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (showTitleOverlay)
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        HubTheme.cardPadding,
-                        HubTheme.cardPadding,
-                        HubTheme.cardPadding,
-                        0,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              displayTitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.92),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                height: 1.1,
-                                letterSpacing: 0.3,
-                                shadows: HubTheme.cardTitleShadow(),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          GameCardProgressBar(
-                            progress: progress,
-                            trackColor: Colors.white.withValues(alpha: 0.22),
-                            fillColor: theme.accentColor.withValues(alpha: 0.95),
-                          ),
-                          if (showFeaturedBadge) ...[
-                            const SizedBox(height: 8),
-                            GameBadge.featured(
-                              label: L10nScope.of.featuredBadgeNew,
-                              backgroundColor: HubTheme.featuredBadge,
-                            ),
-                          ],
-                        ],
-                      ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(HubTheme.cardRadius),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Plano 1–2: fundo + decoração por jogo.
+            CustomPaint(
+              painter: _GameCardBackdropPainter(gameId, theme),
+              size: Size.infinite,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showTitleOverlay)
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      HubTheme.cardPadding,
+                      HubTheme.cardPadding,
+                      HubTheme.cardPadding,
+                      0,
                     ),
-                  Expanded(
-                    child: Stack(
-                      fit: StackFit.expand,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Plano 3: ilustração protagonista.
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            4,
-                            showTitleOverlay ? 2 : 6,
-                            4,
-                            HubTheme.cardPadding * 0.3,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            displayTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.92),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              height: 1.1,
+                              letterSpacing: 0.3,
+                              shadows: HubTheme.cardTitleShadow(),
+                            ),
                           ),
-                          child: GameCardArt(gameId: gameId, theme: theme),
                         ),
-                        // Plano 4: brilhos discretos sobre a arte.
-                        IgnorePointer(
-                          child: CustomPaint(
-                            painter: _CardHighlightPainter(gameId, theme),
-                            size: Size.infinite,
+                        const SizedBox(height: 8),
+                        GameCardProgressBar(
+                          progress: progress,
+                          trackColor: Colors.white.withValues(alpha: 0.22),
+                          fillColor: theme.accentColor.withValues(alpha: 0.95),
+                        ),
+                        if (showFeaturedBadge) ...[
+                          const SizedBox(height: 8),
+                          GameBadge.featured(
+                            label: L10nScope.of.featuredBadgeNew,
+                            backgroundColor: HubTheme.featuredBadge,
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
-                ],
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Plano 3: ilustração protagonista.
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          4,
+                          showTitleOverlay ? 2 : 6,
+                          4,
+                          HubTheme.cardPadding * 0.3,
+                        ),
+                        child: GameCardArt(gameId: gameId, theme: theme),
+                      ),
+                      // Plano 4: brilhos discretos sobre a arte.
+                      IgnorePointer(
+                        child: CustomPaint(
+                          painter: _CardHighlightPainter(gameId, theme),
+                          size: Size.infinite,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (bottomOverlay != null)
+              Positioned(
+                bottom: HubTheme.cardPadding - 4,
+                right: HubTheme.cardPadding - 4,
+                child: bottomOverlay!,
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
+
+    if (height != null) {
+      return SizedBox(height: height, child: card);
+    }
+    return card;
   }
 }

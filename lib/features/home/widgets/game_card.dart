@@ -107,19 +107,15 @@ class _GameCardState extends State<GameCard>
                         showFeaturedBadge: GameRegistry.instance
                             .isFeatured(widget.metadata.id),
                         progress: widget.progress,
+                        bottomOverlay: FavoriteButton(
+                          isFavorite: widget.isFavorite,
+                          onTap: widget.onFavoriteToggle,
+                          size: HubTheme.favoriteButtonSize,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-            Positioned(
-              top: HubTheme.cardPadding - 2,
-              right: HubTheme.cardPadding - 2,
-              child: FavoriteButton(
-                isFavorite: widget.isFavorite,
-                onTap: widget.onFavoriteToggle,
-                size: HubTheme.favoriteButtonSize,
               ),
             ),
           ],
