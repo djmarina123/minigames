@@ -52,10 +52,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Widget build(BuildContext context) {
     final entries = context.watch<LeaderboardRepository>().allBest;
 
-    return ColoredBox(
-      color: HubTheme.background,
-      child: SafeArea(
-        child: Column(
+    return SafeArea(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const _LeaderboardHeader(),
@@ -82,7 +80,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

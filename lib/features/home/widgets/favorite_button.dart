@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/hub_theme.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Botão circular de favorito — glass discreto, canto superior direito do card.
+/// Botão circular de favorito — glass, canto inferior direito do card.
 class FavoriteButton extends StatefulWidget {
   const FavoriteButton({
     super.key,
@@ -22,7 +22,49 @@ class FavoriteButton extends StatefulWidget {
   State<FavoriteButton> createState() => _FavoriteButtonState();
 }
 
-class _FavoriteButtonState extends State<FavoriteButton> {
+class _FavoriteButtonState extends State<FavoriteButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animController;
+  late final Animation<double> _scaleAnim;
+  late final Animation<double> _rotateAnim;
+  late final Animation<double> _opacityAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+    _scaleAnim = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.18), weight: 45),
+      TweenSequenceItem(tween: Tween(begin: 1.18, end: 1.0), weight: 55),
+    ]).animate(CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOutBack,
+    ));
+    _rotateAnim = Tween<double>(begin: 0, end: 0.12).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    );
+    _opacityAnim = Tween<double>(begin: 0.88, end: 1.0).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void didUpdateWidget(FavoriteButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isFavorite && !oldWidget.isFavorite) {
+      _animController.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final label = widget.isFavorite
@@ -33,35 +75,44 @@ class _FavoriteButtonState extends State<FavoriteButton> {
     return Semantics(
       button: true,
       label: label,
-      child: TweenAnimationBuilder<double>(
-        key: ValueKey(widget.isFavorite),
-        tween: Tween(begin: 1.0, end: widget.isFavorite ? 1.15 : 1.0),
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutBack,
-        builder: (context, scale, child) {
-          return Transform.scale(scale: scale, child: child);
+      child: AnimatedBuilder(
+        animation: _animController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _animController.isAnimating
+                ? _scaleAnim.value
+                : 1.0,
+            child: Transform.rotate(
+              angle: _animController.isAnimating ? _rotateAnim.value : 0,
+              child: child,
+            ),
+          );
         },
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 180),
-          opacity: widget.isFavorite ? 1.0 : 0.9,
+          opacity: widget.isFavorite
+              ? (_animController.isAnimating ? _opacityAnim.value : 1.0)
+              : 0.88,
           child: ClipOval(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Material(
-                color: Colors.white.withValues(alpha: 0.14),
+                color: Colors.white.withValues(alpha: 0.12),
                 shape: const CircleBorder(),
                 clipBehavior: Clip.antiAlias,
+                elevation: 0,
+                shadowColor: Colors.transparent,
                 child: InkWell(
                   onTap: widget.onTap,
                   customBorder: const CircleBorder(),
-                  splashColor: Colors.white.withValues(alpha: 0.18),
-                  highlightColor: Colors.white.withValues(alpha: 0.08),
+                  splashColor: Colors.white.withValues(alpha: 0.16),
+                  highlightColor: Colors.white.withValues(alpha: 0.06),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.22),
-                        width: 0.8,
+                        color: Colors.white.withValues(alpha: 0.18),
+                        width: 0.7,
                       ),
                     ),
                     child: SizedBox(
@@ -74,7 +125,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
                         size: iconSize,
                         color: widget.isFavorite
                             ? HubTheme.coinGold
-                            : Colors.white.withValues(alpha: 0.82),
+                            : Colors.white.withValues(alpha: 0.80),
                       ),
                     ),
                   ),

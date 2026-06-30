@@ -20,10 +20,8 @@ class ProfileScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final player = context.watch<PlayerRepository>().profile;
 
-    return ColoredBox(
-      color: HubTheme.background,
-      child: SafeArea(
-        child: Column(
+    return SafeArea(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
@@ -100,7 +98,6 @@ class ProfileScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

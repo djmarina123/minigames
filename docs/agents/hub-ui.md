@@ -6,10 +6,10 @@ Grid **2 colunas**, fundo creme, app bar colapsável. Visual **moderno, premium,
 
 | Zona | Regra |
 |---|---|
-| Fundo grid | `#F5F0E8` (`HubTheme.background`) |
+| Fundo grid | Gradiente `#FCFCFF` → `#FAF9FD` → `#F7F5FD` (`HubBackground`) |
 | App bar | `#FAF8FF` (`HubTheme.appBarBackground`) — lavanda suave |
 | Header | `MiniPlayAppBar` (menu · logo · chips · ações) |
-| Grid | 2 cols, `childAspectRatio: 0.85`, spacing 16, padding 16 · `RepaintBoundary` por card |
+| Grid | 2 cols, `childAspectRatio: 0.85`, spacing **20**, padding 16 · `RepaintBoundary` por card |
 | Nav | Bottom nav com indicador pill roxo + labels sempre visíveis |
 
 ### Futuro (fora do escopo atual)
@@ -28,7 +28,7 @@ Hero Card · categorias (chips) · busca.
 
 - Radius `HubTheme.chipRadius` (22 px), `HubTheme.chipShadow()`
 - Hierarquia: ícone + rótulo pequeno → **valor grande** (22 px bold)
-- Altura ~10% mais compacta que v2 (padding vertical reduzido)
+- Altura ~4 px mais compacta que v3 (padding vertical reduzido)
 - Animação de bump ao atualizar nível/moedas
 
 ### Botões de ação (`TopActionButton`)
@@ -37,15 +37,16 @@ Hero Card · categorias (chips) · busca.
 |---|---|
 | Daily | Simples; badge vermelho se recompensa disponível |
 | Missions | Label `hubActionGoals` → "Missions" / "Missões" |
-| Remove Ads | Fundo dourado quente (`#FFF3D6`), borda `#E8B84A`, ícone 28 px, brilho radial interno discreto |
+| Remove Ads | Gradiente dourado premium, brilho diagonal, sombra dourada suave, animação ao tocar |
 
 ## Card (`GameCard`)
 
 ### Forma (v3 — sem alterar tamanho do grid)
 
 - Gradiente diagonal + **fundo exclusivo por jogo** (`_GameCardBackdropPainter`, opacidade máx. **10%**)
-- Radius **30 px** · sombra `cardShadow()` (~35% mais leve que v2)
+- Radius **32 px** · sombra `cardShadow()` (elevação mínima)
 - Padding `cardPadding` = **22 px**
+- **5 planos de profundidade:** fundo → decoração → ilustração → brilhos → favorito
 
 ### Hierarquia
 
@@ -69,8 +70,8 @@ Hero Card · categorias (chips) · busca.
 
 ### Favorito (`FavoriteButton`)
 
-- **21 px** (`HubTheme.favoriteButtonSize`) · efeito **glass** (`BackdropFilter` + borda translúcida)
-- Animação scale elástico leve ao favoritar
+- **18 px** (`HubTheme.favoriteButtonSize`) · efeito **glass** (`BackdropFilter` + borda translúcida)
+- Animação scale + fade + rotação leve ao favoritar
 - Não competir com título nem ilustração
 
 ### Microinterações
@@ -120,15 +121,15 @@ Estrela no card → jogo sobe ao **topo**. API: `PlayerRepository.toggleFavorite
 
 ## Tokens (`hub_theme.dart`)
 
-`appBarBackground`, `chipRadius`, `chipShadow()`, `removeAdsGoldBg`, `cardRadius` (30), `cardPadding` (22), `cardShadow()`, `interactionDuration` (120 ms), `favoriteButtonSize` (21), `navIconSelectedScale` (1.10), demais tokens por jogo.
+`appBarBackground`, `chipRadius`, `chipShadow()`, `removeAdsGoldBg`, `cardRadius` (32), `cardPadding` (22), `cardShadow()`, `cardTitleShadow()`, `interactionDuration` (120 ms), `navInteractionDuration` (150 ms), `favoriteButtonSize` (18), `navIconSelectedScale` (1.12), demais tokens por jogo.
 
 ## Bottom navigation
 
-`NavigationBar` com indicador pill roxo (`removeAdsPurple` 22%), ícone ativo **110%** (`_NavBarIcon` + `AnimatedScale`), leve elevação no item ativo, label **bold** quando selecionado, fundo alinhado à app bar.
+`NavigationBar` com indicador pill roxo (`removeAdsPurple` 22%), ícone ativo **pulso 100→112→100%** (`_NavBarIcon`, 150 ms), label **bold** quando selecionado, fundo alinhado à app bar.
 
 ## Arquivos principais
 
-`hub_theme.dart`, `hub_card_widgets.dart`, `game_card_art.dart`, `mini_play_app_bar.dart`, `game_card.dart`, `favorite_button.dart`, `home_screen.dart`, `main_shell.dart`, `leaderboard_screen.dart`, `profile_screen.dart`, `settings_panel.dart`.
+`hub_theme.dart`, `hub_background.dart`, `hub_card_widgets.dart`, `game_card_art.dart`, `mini_play_app_bar.dart`, `game_card.dart`, `favorite_button.dart`, `home_screen.dart`, `main_shell.dart`, `leaderboard_screen.dart`, `profile_screen.dart`, `settings_panel.dart`.
 
 ## Novo jogo no catálogo
 

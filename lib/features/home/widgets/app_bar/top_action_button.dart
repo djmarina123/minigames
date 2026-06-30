@@ -13,6 +13,7 @@ class TopActionButton extends StatefulWidget {
     this.backgroundColor,
     this.borderColor,
     this.highlighted = false,
+    this.premium = false,
     this.badge,
     this.tooltip,
     this.iconSize = 24,
@@ -25,6 +26,7 @@ class TopActionButton extends StatefulWidget {
   final Color? backgroundColor;
   final Color? borderColor;
   final bool highlighted;
+  final bool premium;
   final String? badge;
   final String? tooltip;
   final double iconSize;
@@ -45,11 +47,11 @@ class _TopActionButtonState extends State<TopActionButton> {
         HubTheme.textPrimary.withValues(alpha: 0.08);
 
     final child = AnimatedScale(
-      scale: _pressed ? 0.97 : 1.0,
-      duration: const Duration(milliseconds: 100),
+      scale: _pressed ? 0.96 : 1.0,
+      duration: HubTheme.interactionDuration,
       curve: Curves.easeOut,
       child: Material(
-        color: background,
+        color: widget.premium ? Colors.transparent : background,
         borderRadius: BorderRadius.circular(HubTheme.chipRadius),
         child: InkWell(
           onTap: widget.onTap,
@@ -61,25 +63,67 @@ class _TopActionButtonState extends State<TopActionButton> {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(HubTheme.chipRadius),
+              gradient: widget.premium
+                  ? const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        HubTheme.removeAdsGoldBg,
+                        HubTheme.removeAdsGoldMid,
+                        HubTheme.removeAdsGoldBg,
+                      ],
+                      stops: [0, 0.5, 1],
+                    )
+                  : null,
+              color: widget.premium ? null : background,
               border: Border.all(
                 color: border,
                 width: widget.highlighted ? 1.5 : 1,
               ),
-              boxShadow: widget.highlighted
+              boxShadow: widget.premium
                   ? [
                       BoxShadow(
-                        color: const Color(0xFFE8A820).withValues(alpha: 0.22),
-                        blurRadius: 8,
-                        offset: const Offset(0, 1.5),
+                        color: HubTheme.removeAdsGoldBorder
+                            .withValues(alpha: 0.18),
+                        blurRadius: 6,
+                        offset: const Offset(0, 1),
                       ),
                     ]
-                  : HubTheme.chipShadow(),
+                  : widget.highlighted
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFFE8A820)
+                                .withValues(alpha: 0.22),
+                            blurRadius: 8,
+                            offset: const Offset(0, 1.5),
+                          ),
+                        ]
+                      : HubTheme.chipShadow(),
             ),
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.center,
               children: [
-                if (widget.highlighted)
+                if (widget.premium)
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.circular(HubTheme.chipRadius),
+                        gradient: LinearGradient(
+                          begin: const Alignment(-1.2, -1.0),
+                          end: const Alignment(0.6, 1.0),
+                          colors: [
+                            Colors.white.withValues(alpha: 0.35),
+                            Colors.white.withValues(alpha: 0.0),
+                            Colors.white.withValues(alpha: 0.0),
+                          ],
+                          stops: const [0, 0.35, 1],
+                        ),
+                      ),
+                    ),
+                  )
+                else if (widget.highlighted)
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../core/theme/hub_background.dart';
 import '../../core/theme/hub_theme.dart';
 import '../home/home_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
@@ -23,17 +24,19 @@ class _MainShellState extends State<MainShell> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: HubTheme.background,
-      body: IndexedStack(
-        index: _index,
-        children: [
-          HomeScreen(
-            onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
-            onProfileTap: () => setState(() => _index = 2),
-          ),
-          LeaderboardScreen(isActive: _index == 1),
-          const ProfileScreen(),
-        ],
+      backgroundColor: HubTheme.backgroundMid,
+      body: HubBackground(
+        child: IndexedStack(
+          index: _index,
+          children: [
+            HomeScreen(
+              onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+              onProfileTap: () => setState(() => _index = 2),
+            ),
+            LeaderboardScreen(isActive: _index == 1),
+            const ProfileScreen(),
+          ],
+        ),
       ),
       drawer: _HubDrawer(
         selectedIndex: _index,
@@ -75,6 +78,7 @@ class _MainShellState extends State<MainShell> {
           indicatorColor: HubTheme.removeAdsPurple.withValues(alpha: 0.22),
           elevation: 0,
           height: 68,
+          animationDuration: HubTheme.navInteractionDuration,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           selectedIndex: _index,
           onDestinationSelected: (i) => setState(() => _index = i),
@@ -125,8 +129,8 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
-/// Ícone da bottom nav — escala 110% e leve elevação quando ativo.
-class _NavBarIcon extends StatelessWidget {
+/// Ícone da bottom nav — pulso 100→112→100 ms ao selecionar aba.
+class _NavBarIcon extends StatefulWidget {
   const _NavBarIcon({
     required this.icon,
     required this.selectedIcon,
@@ -138,27 +142,56 @@ class _NavBarIcon extends StatelessWidget {
   final bool isSelected;
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedScale(
-      scale: isSelected ? HubTheme.navIconSelectedScale : 1.0,
-      duration: HubTheme.interactionDuration,
+  State<_NavBarIcon> createState() => _NavBarIconState();
+}
+
+class _NavBarIconState extends State<_NavBarIcon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: HubTheme.navInteractionDuration,
+    );
+    _pulseScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.12), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.12, end: 1.0), weight: 50),
+    ]).animate(CurvedAnimation(
+      parent: _pulseController,
       curve: Curves.easeOut,
-      child: AnimatedContainer(
-        duration: HubTheme.interactionDuration,
-        curve: Curves.easeOut,
-        decoration: isSelected
-            ? BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: HubTheme.removeAdsPurple.withValues(alpha: 0.18),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              )
-            : null,
-        child: Icon(isSelected ? selectedIcon : icon),
-      ),
+    ));
+    if (widget.isSelected) {
+      _pulseController.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(_NavBarIcon oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isSelected && !oldWidget.isSelected) {
+      _pulseController.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulseScale,
+      builder: (context, child) {
+        final scale = widget.isSelected ? _pulseScale.value : 1.0;
+        return Transform.scale(scale: scale, child: child);
+      },
+      child: Icon(widget.isSelected ? widget.selectedIcon : widget.icon),
     );
   }
 }

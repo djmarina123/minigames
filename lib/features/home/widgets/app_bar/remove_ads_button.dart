@@ -17,9 +17,10 @@ class RemoveAdsButton extends StatelessWidget {
       label: l10n.hubActionNoAds,
       iconColor: HubTheme.removeAdsPurple,
       iconSize: 28,
-      backgroundColor: const Color(0xFFFFF3D6),
-      borderColor: const Color(0xFFE8B84A).withValues(alpha: 0.72),
+      backgroundColor: HubTheme.removeAdsGoldBg,
+      borderColor: HubTheme.removeAdsGoldBorder.withValues(alpha: 0.72),
       highlighted: true,
+      premium: true,
       tooltip: l10n.homeRemoveAdsTooltip,
       onTap: () {
         ScaffoldMessenger.of(context).showSnackBar(

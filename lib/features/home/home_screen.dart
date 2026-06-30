@@ -34,9 +34,7 @@ class HomeScreen extends StatelessWidget {
       playerRepo.profile.favoriteGameIds,
     );
 
-    return ColoredBox(
-      color: HubTheme.background,
-      child: CustomScrollView(
+    return CustomScrollView(
         slivers: [
           SliverAppBar(
             pinned: true,
@@ -85,7 +83,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
         ],
-      ),
     );
   }
 

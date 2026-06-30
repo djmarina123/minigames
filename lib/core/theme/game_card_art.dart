@@ -248,7 +248,7 @@ class _MemoryArt extends _CardArtPainter {
           ]
         : [
             (-0.28, -0.2, -0.22, theme.cardColor, '?', 0.88),
-            (0.0, 0.0, 0.0, theme.accentSoft, '♣', 1.12),
+            (0.0, -0.04, 0.0, theme.accentSoft, '♣', 1.18),
             (0.26, 0.18, 0.16, theme.accentColor, '★', 0.94),
           ];
 
@@ -278,17 +278,45 @@ class _MemoryArt extends _CardArtPainter {
       canvas.restore();
     }
 
-    // Brilhos discretos.
+    // Brilhos e partículas discretas.
     if (!compact) {
       final sparkle = Paint()..color = Colors.white.withValues(alpha: 0.45);
-      for (final (sx, sy) in [(-0.38, -0.42), (0.42, -0.28), (0.35, 0.38)]) {
+      for (final (sx, sy, sr) in [
+        (-0.38, -0.48, 0.018),
+        (0.42, -0.32, 0.016),
+        (0.38, 0.42, 0.014),
+        (-0.25, 0.35, 0.012),
+      ]) {
         canvas.drawCircle(
           Offset(baseX + sx * extent, baseY + sy * extent),
-          extent * 0.018,
+          extent * sr,
           sparkle,
         );
       }
+      // Estrelas pequenas (4 pontas).
+      final starPaint = Paint()..color = Colors.white.withValues(alpha: 0.35);
+      for (final (sx, sy) in [(0.48, -0.38), (-0.45, 0.15)]) {
+        _drawTinyStar(
+          canvas,
+          Offset(baseX + sx * extent, baseY + sy * extent),
+          extent * 0.022,
+          starPaint,
+        );
+      }
     }
+  }
+
+  void _drawTinyStar(Canvas canvas, Offset center, double r, Paint paint) {
+    final path = Path();
+    for (var i = 0; i < 4; i++) {
+      final angle = i * math.pi / 2;
+      path.moveTo(center.dx, center.dy);
+      path.lineTo(
+        center.dx + math.cos(angle) * r,
+        center.dy + math.sin(angle) * r,
+      );
+    }
+    canvas.drawPath(path, paint..style = PaintingStyle.stroke..strokeWidth = 1.2);
   }
 
   @override
@@ -324,6 +352,29 @@ class _Game2048Art extends _CardArtPainter {
     final originY = (size.height - gridSize) / 2;
 
     if (!compact) {
+      // Quadrados transparentes no fundo.
+      final ghostPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.08)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+      final ghostStep = gridSize * 0.22;
+      for (var gx = 0; gx < 3; gx++) {
+        for (var gy = 0; gy < 3; gy++) {
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromLTWH(
+                originX - ghostStep * 0.6 + gx * ghostStep * 0.55,
+                originY - ghostStep * 0.6 + gy * ghostStep * 0.55,
+                ghostStep * 0.45,
+                ghostStep * 0.45,
+              ),
+              Radius.circular(ghostStep * 0.08),
+            ),
+            ghostPaint,
+          );
+        }
+      }
+
       final boardRect = RRect.fromRectAndRadius(
         Rect.fromLTWH(
           originX - gap * 0.8,
@@ -425,9 +476,9 @@ class _InfiniteRunnerArt extends _CardArtPainter {
       Paint()..color = theme.cardColor.withValues(alpha: 0.32),
     );
 
-    final bodyW = extent * 0.28;
-    final runnerX = origin.dx + extent * 0.32;
-    _drawRunner(canvas, Offset(runnerX, groundY), bodyW);
+    final bodyW = extent * 0.34;
+    final runnerX = origin.dx + extent * 0.30;
+    _drawRunner(canvas, Offset(runnerX, groundY + extent * 0.02), bodyW);
 
     // Poeira atrás do personagem.
     if (!compact) {
@@ -584,8 +635,9 @@ class _SolitaireArt extends _CardArtPainter {
         : [
             ('', '', -0.32, -0.08, -0.18, theme.cardColor, false),
             ('A', '♥', -0.08, 0.02, -0.06, theme.accentColor, true),
-            ('K', '♠', 0.22, 0.12, 0.14, theme.blendColor, true),
-            ('', '', 0.38, 0.22, 0.08, theme.accentSoft, false),
+            ('K', '♠', 0.18, 0.10, 0.12, theme.blendColor, true),
+            ('Q', '♦', 0.34, 0.20, 0.08, theme.accentSoft, true),
+            ('', '', 0.42, 0.28, 0.06, theme.cardColor, false),
           ];
 
     for (final (rank, suit, dx, dy, angle, color, faceUp) in specs) {
@@ -636,16 +688,16 @@ class _SnakeArt extends _CardArtPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final extent = illustrationSize(size, factor: 1.0);
-    final cell = extent / (compact ? 3.2 : 3.6);
+    final cell = extent / (compact ? 3.0 : 3.2);
     final origin = illustrationOrigin(size, extent);
-    final startX = origin.dx + cell * 0.2;
-    final startY = origin.dy + cell * 0.45;
+    final startX = origin.dx + cell * 0.05;
+    final startY = origin.dy + cell * 0.38;
 
     final segments = compact
         ? const [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2), (1, 2), (0, 2)]
         : const [
-            (0, 1), (1, 1), (2, 1), (3, 1), (4, 1),
-            (4, 2), (4, 3), (3, 3), (2, 3), (1, 3), (0, 3), (0, 2),
+            (0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0),
+            (5, 1), (5, 2), (4, 2), (3, 2), (2, 2), (1, 2), (0, 2), (0, 1),
           ];
 
     for (var i = segments.length - 1; i >= 0; i--) {
@@ -670,21 +722,27 @@ class _SnakeArt extends _CardArtPainter {
       );
       if (isHead) {
         canvas.drawCircle(
-          rect.center + Offset(cell * 0.16, -cell * 0.1),
-          cell * 0.13,
+          rect.center + Offset(cell * 0.18, -cell * 0.12),
+          cell * 0.14,
           Paint()..color = Colors.white,
         );
         canvas.drawCircle(
-          rect.center + Offset(cell * 0.22, -cell * 0.06),
-          cell * 0.055,
+          rect.center + Offset(cell * 0.24, -cell * 0.08),
+          cell * 0.06,
           Paint()..color = const Color(0xFF2D3436),
+        );
+        // Olho expressivo.
+        canvas.drawCircle(
+          rect.center + Offset(cell * 0.08, -cell * 0.1),
+          cell * 0.04,
+          Paint()..color = Colors.white.withValues(alpha: 0.7),
         );
       }
     }
 
     final foodCenter = Offset(
-      startX + (compact ? 4.2 : 4.8) * cell * 0.92,
-      startY + (compact ? 0.2 : 0.15) * cell * 0.92,
+      startX + (compact ? 5.5 : 6.2) * cell * 0.92,
+      startY + (compact ? 0.1 : 0.05) * cell * 0.92,
     );
     final foodR = cell * 0.38;
     canvas.drawCircle(
@@ -714,7 +772,7 @@ class _SudokuArt extends _CardArtPainter {
   void paint(Canvas canvas, Size size) {
     const gridCells = 4;
     final gridSize =
-        math.min(size.width, size.height) * (compact ? 0.68 : 0.70);
+        math.min(size.width, size.height) * (compact ? 0.70 : 0.74);
     final origin = illustrationOrigin(size, gridSize);
     final left = origin.dx;
     final top = origin.dy;
@@ -911,11 +969,21 @@ class _CrossSumsArt extends _CardArtPainter {
       );
       drawOperator(
         Offset(left + (cellW + gap) * 1.5 + gap * 0.5, top + cellH * 0.5),
-        '+',
+        '−',
       );
       drawOperator(
         Offset(left + cellW * 0.5, top + cellH + gap * 0.5),
         '=',
+      );
+      // Conexões discretas entre blocos.
+      final linkPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.35)
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(
+        Offset(left + cellW + gap * 0.15, top + cellH * 0.5),
+        Offset(left + cellW + gap * 0.85, top + cellH * 0.5),
+        linkPaint,
       );
     }
   }
@@ -1492,6 +1560,66 @@ class _GameCardBackdropPainter extends CustomPainter {
       oldDelegate.gameId != gameId;
 }
 
+/// Plano 4 — brilhos discretos sobre a ilustração (luz superior esquerda).
+class _CardHighlightPainter extends CustomPainter {
+  _CardHighlightPainter(this.gameId, this.theme);
+
+  final String gameId;
+  final HubGameTheme theme;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    // Brilho diagonal suave — canto superior esquerdo.
+    paint.shader = LinearGradient(
+      begin: Alignment.topLeft,
+      end: const Alignment(0.4, 0.5),
+      colors: [
+        Colors.white.withValues(alpha: 0.10),
+        Colors.white.withValues(alpha: 0.0),
+      ],
+    ).createShader(Rect.fromLTWH(0, 0, size.width, size.height * 0.55));
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height * 0.55), paint);
+
+    // Pontos de luz por jogo — opacidade máx. 10%.
+    switch (gameId) {
+      case 'memory':
+        _drawSpark(canvas, size, 0.72, 0.38, 0.018, 0.08);
+        _drawSpark(canvas, size, 0.28, 0.62, 0.014, 0.07);
+      case 'tap_rush':
+        _drawSpark(canvas, size, 0.5, 0.55, 0.022, 0.09);
+      case 'infinite_runner':
+        _drawSpark(canvas, size, 0.35, 0.48, 0.016, 0.08);
+      case 'snake':
+        _drawSpark(canvas, size, 0.62, 0.42, 0.015, 0.07);
+      case 'game_2048':
+        _drawSpark(canvas, size, 0.55, 0.35, 0.012, 0.06);
+      default:
+        _drawSpark(canvas, size, 0.65, 0.4, 0.012, 0.06);
+    }
+  }
+
+  void _drawSpark(
+    Canvas canvas,
+    Size size,
+    double fx,
+    double fy,
+    double radiusFactor,
+    double alpha,
+  ) {
+    canvas.drawCircle(
+      Offset(size.width * fx, size.height * fy),
+      size.width * radiusFactor,
+      Paint()..color = Colors.white.withValues(alpha: alpha),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _CardHighlightPainter oldDelegate) =>
+      oldDelegate.gameId != gameId;
+}
+
 /// Banner do jogo — layout minimalista com foco na ilustração.
 class GameCatalogHero extends StatelessWidget {
   const GameCatalogHero({
@@ -1540,6 +1668,7 @@ class GameCatalogHero extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
+              // Plano 1–2: fundo + decoração por jogo.
               CustomPaint(
                 painter: _GameCardBackdropPainter(gameId, theme),
                 size: Size.infinite,
@@ -1552,7 +1681,7 @@ class GameCatalogHero extends StatelessWidget {
                       padding: EdgeInsets.fromLTRB(
                         HubTheme.cardPadding,
                         HubTheme.cardPadding,
-                        HubTheme.cardPadding + HubTheme.favoriteButtonSize + 6,
+                        HubTheme.cardPadding,
                         0,
                       ),
                       child: Column(
@@ -1571,6 +1700,7 @@ class GameCatalogHero extends StatelessWidget {
                                 fontWeight: FontWeight.w800,
                                 height: 1.1,
                                 letterSpacing: 0.3,
+                                shadows: HubTheme.cardTitleShadow(),
                               ),
                             ),
                           ),
@@ -1591,14 +1721,27 @@ class GameCatalogHero extends StatelessWidget {
                       ),
                     ),
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        4,
-                        showTitleOverlay ? 2 : 6,
-                        4,
-                        HubTheme.cardPadding * 0.3,
-                      ),
-                      child: GameCardArt(gameId: gameId, theme: theme),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Plano 3: ilustração protagonista.
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            4,
+                            showTitleOverlay ? 2 : 6,
+                            4,
+                            HubTheme.cardPadding * 0.3,
+                          ),
+                          child: GameCardArt(gameId: gameId, theme: theme),
+                        ),
+                        // Plano 4: brilhos discretos sobre a arte.
+                        IgnorePointer(
+                          child: CustomPaint(
+                            painter: _CardHighlightPainter(gameId, theme),
+                            size: Size.infinite,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
