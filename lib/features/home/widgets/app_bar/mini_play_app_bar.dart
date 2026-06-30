@@ -42,6 +42,7 @@ class MiniPlayAppBar extends StatelessWidget {
             boxShadow: HubTheme.appBarShadow(),
           ),
           child: SafeArea(
+            top: false,
             bottom: false,
             minimum: EdgeInsets.zero,
             child: Padding(
@@ -58,13 +59,22 @@ class MiniPlayAppBar extends StatelessWidget {
                   _TitleRow(onMenuTap: onMenuTap),
                   const SizedBox(height: HubTheme.appBarLineSpacing),
                   PlayerStatsRow(onProfileTap: onProfileTap),
-                  SizedBox(height: HubTheme.appBarLineSpacing * t),
-                  if (t > 0.55) ...[
-                    Opacity(
-                      opacity: ((t - 0.55) / 0.45).clamp(0.0, 1.0),
-                      child: const _ActionButtonsRow(),
+                  ClipRect(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      heightFactor: t,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: HubTheme.appBarLineSpacing),
+                          Opacity(
+                            opacity: t,
+                            child: const _ActionButtonsRow(),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
