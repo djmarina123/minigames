@@ -497,6 +497,8 @@ class RunnerObstacle extends PositionComponent {
     required Vector2 groundPosition,
     required Vector2 obstacleSize,
     required this.kind,
+    this.beamTopRatio = InfiniteRunnerConfig.highObstacleBeamTopRatio,
+    this.beamHeightRatio = InfiniteRunnerConfig.highObstacleBeamHeightRatio,
   }) : super(
           position: groundPosition,
           size: obstacleSize,
@@ -504,6 +506,8 @@ class RunnerObstacle extends PositionComponent {
         );
 
   final RunnerObstacleKind kind;
+  final double beamTopRatio;
+  final double beamHeightRatio;
   bool cleared = false;
 
   Rect get hitRect {
@@ -512,9 +516,9 @@ class RunnerObstacle extends PositionComponent {
     if (kind == RunnerObstacleKind.high) {
       return Rect.fromLTWH(
         position.x + size.x * 0.02,
-        top + size.y * 0.08,
+        top + size.y * beamTopRatio,
         size.x * 0.96,
-        size.y * 0.42,
+        size.y * beamHeightRatio,
       );
     }
     return Rect.fromLTWH(
@@ -636,8 +640,8 @@ class RunnerObstacle extends PositionComponent {
       );
     }
 
-    final beamTop = h * 0.18;
-    final beamH = h * 0.3;
+    final beamTop = h * beamTopRatio;
+    final beamH = h * beamHeightRatio;
     final beamRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(0, beamTop, w, beamH),
       Radius.circular(w * 0.06),

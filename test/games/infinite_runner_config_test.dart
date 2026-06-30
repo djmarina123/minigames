@@ -10,24 +10,35 @@ void main() {
         InfiniteRunnerConfig.baseScrollSpeed,
       );
       expect(
-        infiniteRunnerScrollSpeed(80),
+        infiniteRunnerScrollSpeed(InfiniteRunnerConfig.speedRampSec),
         InfiniteRunnerConfig.maxScrollSpeed,
       );
       expect(
-        infiniteRunnerScrollSpeed(40, modeMultiplier: 1.5),
-        greaterThan(infiniteRunnerScrollSpeed(40)),
+        infiniteRunnerScrollSpeed(25, modeMultiplier: 1.75),
+        greaterThan(infiniteRunnerScrollSpeed(25)),
       );
+    });
+
+    test('curva de dificuldade acelera no final da partida', () {
+      expect(infiniteRunnerDifficultyProgress(0.5), lessThan(0.5));
+      expect(infiniteRunnerDifficultyProgress(1.0), 1.0);
+      final ramp = InfiniteRunnerConfig.speedRampSec;
+      final earlyDelta = infiniteRunnerScrollSpeed(ramp * 0.2) -
+          infiniteRunnerScrollSpeed(ramp * 0.1);
+      final lateDelta = infiniteRunnerScrollSpeed(ramp * 0.9) -
+          infiniteRunnerScrollSpeed(ramp * 0.8);
+      expect(lateDelta, greaterThan(earlyDelta));
     });
 
     test('nível de velocidade vai de 1 a 10', () {
       expect(infiniteRunnerSpeedLevel(0), 1);
-      expect(infiniteRunnerSpeedLevel(80), 10);
+      expect(infiniteRunnerSpeedLevel(InfiniteRunnerConfig.speedRampSec), 10);
     });
 
     test('pontuação vem só de obstáculos ultrapassados', () {
       expect(infiniteRunnerScore(obstaclesCleared: 0), 0);
       expect(infiniteRunnerScore(obstaclesCleared: 4), 120);
-      expect(infiniteRunnerScore(obstaclesCleared: 17), 510);
+      expect(infiniteRunnerScore(obstaclesCleared: 26), 780);
     });
 
     test('delta ao passar obstáculo é fixo por obstáculo', () {
@@ -50,11 +61,11 @@ void main() {
     test('desempenho normalizado usa obstáculos', () {
       expect(infiniteRunnerPerformanceRatio(obstaclesCleared: 0), 0);
       expect(
-        infiniteRunnerPerformanceRatio(obstaclesCleared: 17),
+        infiniteRunnerPerformanceRatio(obstaclesCleared: 26),
         closeTo(1.0, 0.001),
       );
       expect(
-        infiniteRunnerPerformanceTier(obstaclesCleared: 17),
+        infiniteRunnerPerformanceTier(obstaclesCleared: 26),
         PerformanceTier.gold,
       );
     });
@@ -126,7 +137,7 @@ void main() {
       expect(alternations, lessThan(170));
     });
 
-    test('intervalo de spawn diminui com progresso', () {
+    test('intervalo de spawn diminui com progresso e velocidade', () {
       expect(
         infiniteRunnerSpawnGapSec(0),
         InfiniteRunnerConfig.maxSpawnGapSec,
@@ -135,12 +146,31 @@ void main() {
         infiniteRunnerSpawnGapSec(1),
         InfiniteRunnerConfig.minSpawnGapSec,
       );
+      expect(
+        infiniteRunnerSpawnGapSec(1, scrollSpeed: 600),
+        lessThan(InfiniteRunnerConfig.minSpawnGapSec),
+      );
+    });
+
+    test('par de obstáculos só após limiar de progresso', () {
+      expect(
+        infiniteRunnerRollDoubleObstacle(progress: 0.5, randomUnit: 0.0),
+        isFalse,
+      );
+      expect(
+        infiniteRunnerRollDoubleObstacle(progress: 0.6, randomUnit: 0.0),
+        isTrue,
+      );
+      expect(
+        infiniteRunnerRollDoubleObstacle(progress: 1.0, randomUnit: 0.99),
+        isFalse,
+      );
     });
 
     test('multiplicadores de modo', () {
       expect(infiniteRunnerSpeedModeMultiplier(0), 1.0);
-      expect(infiniteRunnerSpeedModeMultiplier(2), 1.5);
-      expect(infiniteRunnerSpeedModeMultiplier(99), 1.5);
+      expect(infiniteRunnerSpeedModeMultiplier(2), 1.75);
+      expect(infiniteRunnerSpeedModeMultiplier(99), 1.75);
     });
 
     test('swipe vertical reconhece cima e baixo', () {
@@ -156,23 +186,56 @@ void main() {
       expect(infiniteRunnerSwipeActionFromDelta(5, 5), isNull);
     });
 
-    test('obstáculos baixos visíveis mas puláveis', () {
+    test('obstáculos baixos crescem com o progresso', () {
       const pw = 58.0;
       const ph = 143.0;
-      final (w, h) = infiniteRunnerLowObstacleSize(
-        playerW: pw,
-        playerH: ph,
-        randomUnit: 0.0,
-      );
-      final (wMax, hMax) = infiniteRunnerLowObstacleSize(
+      final (_, hEarly) = infiniteRunnerLowObstacleSize(
         playerW: pw,
         playerH: ph,
         randomUnit: 1.0,
+        progress: 0.0,
       );
-      expect(w, greaterThan(pw * 0.5));
-      expect(hMax, greaterThan(ph * 0.6));
-      expect(h, greaterThan(ph * 0.4));
-      expect(wMax, lessThan(pw * 0.85));
+      final (_, hLate) = infiniteRunnerLowObstacleSize(
+        playerW: pw,
+        playerH: ph,
+        randomUnit: 1.0,
+        progress: 1.0,
+      );
+      final (wEarly, _) = infiniteRunnerLowObstacleSize(
+        playerW: pw,
+        playerH: ph,
+        randomUnit: 0.0,
+        progress: 0.0,
+      );
+      final (wLate, _) = infiniteRunnerLowObstacleSize(
+        playerW: pw,
+        playerH: ph,
+        randomUnit: 0.0,
+        progress: 1.0,
+      );
+      expect(hLate, greaterThan(hEarly));
+      expect(wLate, greaterThan(wEarly));
+      expect(hEarly, greaterThan(ph * 0.4));
+    });
+
+    test('viga alta desce com o progresso', () {
+      const pw = 58.0;
+      const ph = 143.0;
+      final early = infiniteRunnerHighObstacleSpec(
+        playerW: pw,
+        playerH: ph,
+        randomUnit: 0.5,
+        progress: 0.0,
+      );
+      final late = infiniteRunnerHighObstacleSpec(
+        playerW: pw,
+        playerH: ph,
+        randomUnit: 0.5,
+        progress: 1.0,
+      );
+      expect(late.height, greaterThan(early.height));
+      expect(late.beamTopRatio, greaterThan(early.beamTopRatio));
+      expect(late.beamHeightRatio, greaterThan(early.beamHeightRatio));
     });
   });
 }

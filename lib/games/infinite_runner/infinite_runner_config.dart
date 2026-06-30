@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import '../../core/economy/performance_tier.dart';
@@ -9,11 +10,11 @@ abstract final class InfiniteRunnerConfig {
   static const optionKeySpeedMode = 'speedMode';
 
   /// Multiplicadores por modo (Normal / Rápida / Insana).
-  static const speedModeMultipliers = [1.0, 1.25, 1.5];
+  static const speedModeMultipliers = [1.0, 1.35, 1.75];
 
   static const baseScrollSpeed = 260.0;
-  static const maxScrollSpeed = 500.0;
-  static const speedRampSec = 80.0;
+  static const maxScrollSpeed = 600.0;
+  static const speedRampSec = 50.0;
 
   static const gravity = 2400.0;
   static const jumpVelocity = -920.0;
@@ -21,18 +22,33 @@ abstract final class InfiniteRunnerConfig {
   /// Tamanho dos obstáculos baixos em fração do jogador (pulo).
   static const lowObstacleWidthMin = 0.55;
   static const lowObstacleWidthMax = 0.75;
+  static const lowObstacleWidthMinLate = 0.62;
+  static const lowObstacleWidthMaxLate = 0.82;
   static const lowObstacleHeightMin = 0.45;
   static const lowObstacleHeightMax = 0.65;
+  static const lowObstacleHeightMaxLate = 0.78;
 
   /// Obstáculo alto (agachar) — viga mais baixa e estreita.
   static const highObstacleWidthMin = 1.1;
   static const highObstacleWidthMax = 1.35;
   static const highObstacleHeightFactor = 0.88;
+  static const highObstacleHeightFactorLate = 0.94;
+  static const highObstacleBeamTopRatio = 0.18;
+  static const highObstacleBeamTopRatioLate = 0.28;
+  static const highObstacleBeamHeightRatio = 0.30;
+  static const highObstacleBeamHeightRatioLate = 0.36;
 
   static const pointsPerObstacle = 30;
 
-  static const minSpawnGapSec = 1.35;
-  static const maxSpawnGapSec = 2.5;
+  static const minSpawnGapSec = 1.0;
+  static const maxSpawnGapSec = 2.0;
+  static const absoluteMinSpawnGapSec = 0.82;
+
+  /// Par jump→duck (ou vice-versa) a partir deste progresso linear.
+  static const doubleObstacleProgressThreshold = 0.6;
+  static const doubleObstacleBaseChance = 0.12;
+  static const doubleObstacleMaxExtraChance = 0.18;
+  static const doubleObstacleFollowGapSec = 0.45;
 
   /// Distância mínima (px) para reconhecer swipe vertical nos controles.
   static const swipeThresholdPx = 22.0;
@@ -109,9 +125,13 @@ InfiniteRunnerSwipeAction? infiniteRunnerSwipeActionFromDelta(
 double infiniteRunnerProgress(double elapsedSec) =>
     (elapsedSec / InfiniteRunnerConfig.speedRampSec).clamp(0.0, 1.0);
 
+/// Curva de dificuldade — acelera suavemente no meio/final da partida.
+double infiniteRunnerDifficultyProgress(double progress) =>
+    pow(progress.clamp(0.0, 1.0), 1.35).toDouble();
+
 /// Velocidade horizontal atual (px/s).
 double infiniteRunnerScrollSpeed(double elapsedSec, {double modeMultiplier = 1.0}) {
-  final progress = infiniteRunnerProgress(elapsedSec);
+  final progress = infiniteRunnerDifficultyProgress(infiniteRunnerProgress(elapsedSec));
   final base = InfiniteRunnerConfig.baseScrollSpeed +
       (InfiniteRunnerConfig.maxScrollSpeed -
               InfiniteRunnerConfig.baseScrollSpeed) *
@@ -120,8 +140,15 @@ double infiniteRunnerScrollSpeed(double elapsedSec, {double modeMultiplier = 1.0
 }
 
 /// Nível exibido no HUD (1–10).
-int infiniteRunnerSpeedLevel(double elapsedSec) =>
-    (1 + infiniteRunnerProgress(elapsedSec) * 9).floor().clamp(1, 10);
+int infiniteRunnerSpeedLevel(double elapsedSec) {
+  final progress =
+      infiniteRunnerDifficultyProgress(infiniteRunnerProgress(elapsedSec));
+  return (1 + progress * 9).floor().clamp(1, 10);
+}
+
+/// Progresso 0–1 para barra do HUD (espelha a curva de velocidade).
+double infiniteRunnerHudProgress(double elapsedSec) =>
+    infiniteRunnerDifficultyProgress(infiniteRunnerProgress(elapsedSec));
 
 /// Pontos acumulados por obstáculos ultrapassados.
 int infiniteRunnerScore({required int obstaclesCleared}) =>
@@ -156,15 +183,117 @@ bool infiniteRunnerPickHighObstacle({
   return pickOther ? !lastWasHigh : lastWasHigh;
 }
 
-/// Intervalo entre spawns (diminui com o progresso).
-double infiniteRunnerSpawnGapSec(double progress) {
+/// Intervalo entre spawns (diminui com progresso e velocidade).
+double infiniteRunnerSpawnGapSec(
+  double progress, {
+  double scrollSpeed = InfiniteRunnerConfig.baseScrollSpeed,
+}) {
+  final difficulty = infiniteRunnerDifficultyProgress(progress.clamp(0.0, 1.0));
   final gap = InfiniteRunnerConfig.maxSpawnGapSec -
       (InfiniteRunnerConfig.maxSpawnGapSec -
               InfiniteRunnerConfig.minSpawnGapSec) *
-          progress;
-  return gap.clamp(
-    InfiniteRunnerConfig.minSpawnGapSec,
+          difficulty;
+  final speedFactor =
+      (scrollSpeed / InfiniteRunnerConfig.baseScrollSpeed).clamp(1.0, 2.2);
+  return (gap / speedFactor).clamp(
+    InfiniteRunnerConfig.absoluteMinSpawnGapSec,
     InfiniteRunnerConfig.maxSpawnGapSec,
+  );
+}
+
+/// Chance de um segundo obstáculo logo após o primeiro (troca jump/duck).
+bool infiniteRunnerRollDoubleObstacle({
+  required double progress,
+  required double randomUnit,
+}) {
+  if (progress < InfiniteRunnerConfig.doubleObstacleProgressThreshold) {
+    return false;
+  }
+  final span = 1.0 - InfiniteRunnerConfig.doubleObstacleProgressThreshold;
+  final t = ((progress - InfiniteRunnerConfig.doubleObstacleProgressThreshold) /
+          span)
+      .clamp(0.0, 1.0);
+  final chance = InfiniteRunnerConfig.doubleObstacleBaseChance +
+      t * InfiniteRunnerConfig.doubleObstacleMaxExtraChance;
+  return randomUnit < chance;
+}
+
+/// Pausa entre os dois obstáculos de um par (segundos).
+double infiniteRunnerDoubleObstacleFollowGapSec(double progress) {
+  final difficulty = infiniteRunnerDifficultyProgress(progress.clamp(0.0, 1.0));
+  return InfiniteRunnerConfig.doubleObstacleFollowGapSec *
+      (1.0 - difficulty * 0.25);
+}
+
+double _lerpConfig(double from, double to, double t) => from + (to - from) * t;
+
+/// Largura/altura de obstáculo baixo para um jogador com [playerW] × [playerH].
+(double width, double height) infiniteRunnerLowObstacleSize({
+  required double playerW,
+  required double playerH,
+  required double randomUnit,
+  double progress = 0.0,
+}) {
+  final t = randomUnit.clamp(0.0, 1.0);
+  final p = infiniteRunnerDifficultyProgress(progress.clamp(0.0, 1.0));
+  final widthMin = _lerpConfig(
+    InfiniteRunnerConfig.lowObstacleWidthMin,
+    InfiniteRunnerConfig.lowObstacleWidthMinLate,
+    p,
+  );
+  final widthMax = _lerpConfig(
+    InfiniteRunnerConfig.lowObstacleWidthMax,
+    InfiniteRunnerConfig.lowObstacleWidthMaxLate,
+    p,
+  );
+  final heightMax = _lerpConfig(
+    InfiniteRunnerConfig.lowObstacleHeightMax,
+    InfiniteRunnerConfig.lowObstacleHeightMaxLate,
+    p,
+  );
+  final width = playerW * (widthMin + t * (widthMax - widthMin));
+  final height = playerH *
+      (InfiniteRunnerConfig.lowObstacleHeightMin + t * (heightMax - InfiniteRunnerConfig.lowObstacleHeightMin));
+  return (width, height);
+}
+
+/// Largura/altura e geometria da viga de obstáculo alto (agachar).
+({
+  double width,
+  double height,
+  double beamTopRatio,
+  double beamHeightRatio,
+}) infiniteRunnerHighObstacleSpec({
+  required double playerW,
+  required double playerH,
+  required double randomUnit,
+  double progress = 0.0,
+}) {
+  final t = randomUnit.clamp(0.0, 1.0);
+  final p = infiniteRunnerDifficultyProgress(progress.clamp(0.0, 1.0));
+  final width = playerW *
+      (InfiniteRunnerConfig.highObstacleWidthMin +
+          t *
+              (InfiniteRunnerConfig.highObstacleWidthMax -
+                  InfiniteRunnerConfig.highObstacleWidthMin));
+  final heightFactor = _lerpConfig(
+    InfiniteRunnerConfig.highObstacleHeightFactor,
+    InfiniteRunnerConfig.highObstacleHeightFactorLate,
+    p,
+  );
+  return (
+    width: width,
+    height: playerH * heightFactor,
+    beamTopRatio: _lerpConfig(
+      InfiniteRunnerConfig.highObstacleBeamTopRatio,
+      InfiniteRunnerConfig.highObstacleBeamTopRatioLate,
+      p,
+    ),
+    beamHeightRatio: _lerpConfig(
+      InfiniteRunnerConfig.highObstacleBeamHeightRatio,
+      InfiniteRunnerConfig.highObstacleBeamHeightRatioLate,
+      p,
+    ),
   );
 }
 
@@ -180,44 +309,24 @@ double infiniteRunnerSpeedModeMultiplier(int modeIndex) {
   return InfiniteRunnerConfig.speedModeMultipliers[idx];
 }
 
-/// Largura/altura de obstáculo baixo para um jogador com [playerW] × [playerH].
-(double width, double height) infiniteRunnerLowObstacleSize({
-  required double playerW,
-  required double playerH,
-  required double randomUnit,
-}) {
-  final t = randomUnit.clamp(0.0, 1.0);
-  final width = playerW *
-      (InfiniteRunnerConfig.lowObstacleWidthMin +
-          t *
-              (InfiniteRunnerConfig.lowObstacleWidthMax -
-                  InfiniteRunnerConfig.lowObstacleWidthMin));
-  final height = playerH *
-      (InfiniteRunnerConfig.lowObstacleHeightMin +
-          t *
-              (InfiniteRunnerConfig.lowObstacleHeightMax -
-                  InfiniteRunnerConfig.lowObstacleHeightMin));
-  return (width, height);
-}
-
-/// Largura/altura de obstáculo alto (agachar).
+/// Largura/altura de obstáculo alto (agachar) — compatível com testes legados.
 (double width, double height) infiniteRunnerHighObstacleSize({
   required double playerW,
   required double playerH,
   required double randomUnit,
+  double progress = 0.0,
 }) {
-  final t = randomUnit.clamp(0.0, 1.0);
-  final width = playerW *
-      (InfiniteRunnerConfig.highObstacleWidthMin +
-          t *
-              (InfiniteRunnerConfig.highObstacleWidthMax -
-                  InfiniteRunnerConfig.highObstacleWidthMin));
-  final height = playerH * InfiniteRunnerConfig.highObstacleHeightFactor;
-  return (width, height);
+  final spec = infiniteRunnerHighObstacleSpec(
+    playerW: playerW,
+    playerH: playerH,
+    randomUnit: randomUnit,
+    progress: progress,
+  );
+  return (spec.width, spec.height);
 }
 
 /// Obstáculos desviados considerados "partida excelente" (desempenho `1.0`).
-const infiniteRunnerGoldObstacles = 17;
+const infiniteRunnerGoldObstacles = 26;
 
 /// Desempenho normalizado (`0.0`–`1.0`) a partir dos obstáculos ultrapassados.
 double infiniteRunnerPerformanceRatio({required int obstaclesCleared}) =>

@@ -116,6 +116,7 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
   int _obstaclesCleared = 0;
   RunnerObstacleKind? _lastSpawnKind;
   int _sameKindStreak = 0;
+  RunnerObstacleKind? _forcedNextKind;
 
   RunnerPlayer? _player;
   final _obstacles = <RunnerObstacle>[];
@@ -124,7 +125,9 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
   double get _modeMultiplier =>
       infiniteRunnerSpeedModeMultiplier(speedModeIndex);
 
-  double get _progress => infiniteRunnerProgress(_elapsed);
+  double get _timeProgress => infiniteRunnerProgress(_elapsed);
+
+  double get _hudProgress => infiniteRunnerHudProgress(_elapsed);
 
   @override
   Color backgroundColor() => InfiniteRunnerConfig.skyTop;
@@ -289,10 +292,10 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
     _spawnTimer -= dt;
     if (_spawnTimer > 0) return;
 
-    final gap = infiniteRunnerSpawnGapSec(_progress);
-    _spawnTimer = gap + _random.nextDouble() * 0.35;
+    final forced = _forcedNextKind;
+    _forcedNextKind = null;
 
-    final kind = _pickObstacleKind();
+    final kind = forced ?? _pickObstacleKind();
     if (_lastSpawnKind == kind) {
       _sameKindStreak++;
     } else {
@@ -303,6 +306,32 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
     final obstacle = _buildObstacle(kind);
     _obstacles.add(obstacle);
     add(obstacle);
+
+    if (forced != null) {
+      final gap = infiniteRunnerSpawnGapSec(
+        _timeProgress,
+        scrollSpeed: _scrollSpeed,
+      );
+      _spawnTimer = gap + _random.nextDouble() * 0.25;
+      return;
+    }
+
+    if (infiniteRunnerRollDoubleObstacle(
+      progress: _timeProgress,
+      randomUnit: _random.nextDouble(),
+    )) {
+      _forcedNextKind = kind == RunnerObstacleKind.low
+          ? RunnerObstacleKind.high
+          : RunnerObstacleKind.low;
+      _spawnTimer = infiniteRunnerDoubleObstacleFollowGapSec(_timeProgress);
+      return;
+    }
+
+    final gap = infiniteRunnerSpawnGapSec(
+      _timeProgress,
+      scrollSpeed: _scrollSpeed,
+    );
+    _spawnTimer = gap + _random.nextDouble() * 0.25;
   }
 
   RunnerObstacleKind _pickObstacleKind() {
@@ -318,12 +347,14 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
 
   RunnerObstacle _buildObstacle(RunnerObstacleKind kind) {
     final roll = _random.nextDouble();
+    final progress = _timeProgress;
     return switch (kind) {
       RunnerObstacleKind.low => () {
           final (w, h) = infiniteRunnerLowObstacleSize(
             playerW: _playerW,
             playerH: _playerH,
             randomUnit: roll,
+            progress: progress,
           );
           return RunnerObstacle(
             groundPosition: Vector2(size.x + 28, _groundY),
@@ -332,15 +363,18 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
           );
         }(),
       RunnerObstacleKind.high => () {
-          final (w, h) = infiniteRunnerHighObstacleSize(
+          final spec = infiniteRunnerHighObstacleSpec(
             playerW: _playerW,
             playerH: _playerH,
             randomUnit: roll,
+            progress: progress,
           );
           return RunnerObstacle(
             groundPosition: Vector2(size.x + 28, _groundY),
-            obstacleSize: Vector2(w, h),
+            obstacleSize: Vector2(spec.width, spec.height),
             kind: kind,
+            beamTopRatio: spec.beamTopRatio,
+            beamHeightRatio: spec.beamHeightRatio,
           );
         }(),
     };
@@ -662,7 +696,7 @@ class InfiniteRunnerFlameGame extends FlameGame with KeyboardEvents {
         ),
       ],
       progress: GameSessionHudProgress(
-        ratio: _progress,
+        ratio: _hudProgress,
         color: InfiniteRunnerConfig.speedBar,
         lowColor: InfiniteRunnerConfig.speedBarLow,
         lowThreshold: 0.75,
